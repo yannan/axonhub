@@ -2,11 +2,12 @@ package orchestrator
 
 import (
 	"context"
-	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/looplj/axonhub/internal/contexts"
+	"github.com/looplj/axonhub/internal/llm"
 	"github.com/looplj/axonhub/internal/llm/pipeline"
 	"github.com/looplj/axonhub/internal/llm/pipeline/stream"
 	"github.com/looplj/axonhub/internal/llm/transformer"
@@ -258,7 +259,14 @@ func validateContent(inbound transformer.Inbound, engine *filter.ValidationEngin
 		// Assuming prompt is in body and body is string-ish.
 		if engine != nil {
 			if valid, word := engine.Validate(string(request.Body)); !valid {
-				return nil, fmt.Errorf("content blocked: sensitive word '%s' found in request", word)
+				return nil, &llm.ResponseError{
+					StatusCode: http.StatusBadRequest,
+					Detail: llm.ErrorDetail{
+						Message: "Request contains sensitive word: " + word,
+						Type:    "content_policy_violation",
+						Code:    "sensitive_content",
+					},
+				}
 			}
 		}
 		return request, nil

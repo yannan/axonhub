@@ -200,8 +200,9 @@ if loadBalancer != nil {
 
 **功能**:
 - **请求过滤**: 检查请求内容是否包含敏感词
-- **响应过滤**: 检查响应内容是否包含敏感词（非流式）
-- 使用 Aho-Corasick 算法进行高效匹配
+- 使用腾讯云内容安全 TMS TextModeration 进行检测（Base64 传输）
+- 依赖环境变量 `TENCENTCLOUD_SECRET_ID` / `TENCENTCLOUD_SECRET_KEY`（可选 `TENCENTCLOUD_TOKEN`、`TENCENTCLOUD_REGION`）
+- 上游异常时记录告警并放行（fail-open）
 
 **实现**:
 ```go
@@ -326,12 +327,12 @@ quota, err := billingService.CalculateQuota(ctx, modelName, promptTokens, comple
 
 **当前状态**:
 - ✅ 敏感词过滤中间件已实现
-- ✅ Aho-Corasick 算法引擎已集成
-- ✅ 请求和响应过滤已实现
+- ✅ 腾讯云 TMS 接入已完成
+- ✅ 请求过滤已实现
 - ⚠️ 流式响应的敏感词检测待完善
 
 **实现方式**:
-- 使用 `filter.ValidationEngine` 进行敏感词匹配
+- 使用 `filter.ValidationEngine` 对接腾讯云 TMS
 - 在 Pipeline 的 `validateContent` 中间件中执行
 - 命中敏感词时返回错误，不扣除额度
 
@@ -361,7 +362,7 @@ quota, err := billingService.CalculateQuota(ctx, modelName, promptTokens, comple
    - 预扣费失败
 
 3. **敏感词拦截** (`400 Bad Request`)
-   - 请求或响应包含敏感词
+   - 请求包含敏感词
    - 不扣除额度
 
 4. **模型不可用** (`404 Not Found`)
@@ -380,8 +381,6 @@ quota, err := billingService.CalculateQuota(ctx, modelName, promptTokens, comple
 
 ### 2. 缓存机制
 - 模型定价缓存（避免频繁查询）
-- 敏感词树缓存（启动时构建）
-
 ### 3. 流式处理
 - 流式响应实时转发，不缓存完整响应
 - Token 累加在流式过程中完成
@@ -418,4 +417,3 @@ AxonHub 的 API 调用流程采用了清晰的分层架构：
 - ⚠️ 计费功能（部分实现，待完善）
 
 通过这种架构设计，AxonHub 实现了统一、灵活、可扩展的 API 网关功能。
-

@@ -226,49 +226,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
-  /admin/filter/words:
-    post:
-      tags: [管理]
-      summary: 添加敏感词
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddWordRequest"
-      responses:
-        "200":
-          description: 已添加词条
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SensitiveWordResponse"
-        "400":
-          description: 请求无效
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "401":
-          description: 未授权
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "403":
-          description: 禁止访问
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "500":
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
   /admin/pricing:
     get:
       tags: [管理]

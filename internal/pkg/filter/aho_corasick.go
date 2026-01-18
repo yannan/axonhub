@@ -2,59 +2,95 @@ package filter
 
 import (
 	"context"
-	"sync"
+	"encoding/base64"
+	"errors"
+	"os"
 
-	"github.com/cloudflare/ahocorasick"
-	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/sensitiveword"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
+	tms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tms/v20200713"
+
+	"github.com/looplj/axonhub/internal/log"
 )
 
 type ValidationEngine struct {
-	client *ent.Client
-	ac     *ahocorasick.Matcher
-	words  []string
-	mu     sync.RWMutex
+	client  *tms.Client
+	initErr error
 }
 
-func NewValidationEngine(client *ent.Client) *ValidationEngine {
-	return &ValidationEngine{
-		client: client,
-		ac:     ahocorasick.NewStringMatcher([]string{}),
-		words:  []string{},
+func NewValidationEngine() *ValidationEngine {
+	secretID := os.Getenv("TENCENTCLOUD_SECRET_ID")
+	secretKey := os.Getenv("TENCENTCLOUD_SECRET_KEY")
+	if secretID == "" || secretKey == "" {
+		return &ValidationEngine{initErr: errors.New("missing Tencent Cloud credentials (TENCENTCLOUD_SECRET_ID/TENCENTCLOUD_SECRET_KEY)")}
 	}
+
+	var credential *common.Credential
+	if token := os.Getenv("TENCENTCLOUD_TOKEN"); token != "" {
+		credential = common.NewTokenCredential(secretID, secretKey, token)
+	} else {
+		credential = common.NewCredential(secretID, secretKey)
+	}
+
+	cpf := profile.NewClientProfile()
+	cpf.HttpProfile.Endpoint = "tms.tencentcloudapi.com"
+
+	region := os.Getenv("TENCENTCLOUD_REGION")
+	client, err := tms.NewClient(credential, region, cpf)
+	if err != nil {
+		return &ValidationEngine{initErr: err}
+	}
+
+	return &ValidationEngine{client: client}
 }
 
 func (e *ValidationEngine) Reload(ctx context.Context) error {
-	words, err := e.client.SensitiveWord.Query().Where(sensitiveword.TypeEQ(sensitiveword.TypeBlock)).All(ctx)
-	if err != nil {
-		return err
-	}
-
-	patterns := make([]string, len(words))
-	for i, w := range words {
-		patterns[i] = w.Word
-	}
-
-	e.mu.Lock()
-	defer e.mu.Unlock()
-
-	e.ac = ahocorasick.NewStringMatcher(patterns)
-	e.words = patterns
-	return nil
+	return e.initErr
 }
 
 func (e *ValidationEngine) Validate(content string) (bool, string) {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	matches := e.ac.MatchThreadSafe([]byte(content))
-	if len(matches) > 0 {
-		// Return the first matched word
-		idx := matches[0]
-		if idx < len(e.words) {
-			return false, e.words[idx]
-		}
-		return false, ""
+	if e == nil || e.client == nil {
+		return true, ""
 	}
-	return true, ""
+
+	if content == "" {
+		return true, ""
+	}
+
+	encoded := base64.StdEncoding.EncodeToString([]byte(content))
+	request := tms.NewTextModerationRequest()
+	request.Content = common.StringPtr(encoded)
+
+	response, err := e.client.TextModeration(request)
+	if err != nil {
+		log.Warn(context.Background(), "tencent content moderation failed", log.Cause(err))
+		return true, ""
+	}
+
+	if response == nil || response.Response == nil || response.Response.Suggestion == nil {
+		return true, ""
+	}
+
+	suggestion := *response.Response.Suggestion
+	if suggestion == "Normal" {
+		return true, ""
+	}
+
+	word := firstKeyword(response.Response.Keywords)
+	if word == "" && response.Response.Label != nil {
+		word = *response.Response.Label
+	}
+	if word == "" {
+		word = "tencent_cloud"
+	}
+
+	return false, word
+}
+
+func firstKeyword(keywords []*string) string {
+	if len(keywords) == 0 || keywords[0] == nil {
+		return ""
+	}
+
+	return *keywords[0]
 }
