@@ -73,6 +73,10 @@ func (APIKey) Fields() []ent.Field {
 			Annotations(
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
 			),
+		field.String("ip_whitelist").
+			Default("").
+			Optional().
+			Comment("Allowed IPs, one per line; empty means allow all"),
 	}
 }
 
@@ -95,6 +99,11 @@ func (APIKey) Edges() []ent.Edge {
 			).
 			Ref("api_keys").Field("project_id"),
 		edge.To("requests", Request.Type).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.RelayConnection(),
+			),
+		edge.To("usage_logs", UsageLog.Type).
 			Annotations(
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
 				entgql.RelayConnection(),

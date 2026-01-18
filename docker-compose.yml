@@ -12,62 +12,62 @@
 #    仅使用环境变量进行基本配置即可运行
 
 services:
-  # PostgreSQL 数据库
-  postgres:
-    image: postgres:15-alpine
-    container_name: axonhub-postgres
-    environment:
-      POSTGRES_DB: axonhub
-      POSTGRES_USER: axonhub
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-axonhub_password}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - axonhub-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U axonhub"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+#   # PostgreSQL 数据库
+#   postgres:
+#     image: postgres:15-alpine
+#     container_name: axonhub-postgres
+#     environment:
+#       POSTGRES_DB: axonhub
+#       POSTGRES_USER: axonhub
+#       POSTGRES_PASSWORD: ${DB_PASSWORD:-axonhub_password}
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     ports:
+#       - "5432:5432"
+#     networks:
+#       - axonhub-network
+#     restart: unless-stopped
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U axonhub"]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
 
-  # AxonHub 主服务
-  axonhub:
-    image: looplj/axonhub:latest
-    container_name: axonhub-app
-    environment:
-      # 数据库配置可以通过环境变量设置，优先级高于配置文件
-      AXONHUB_DB_DIALECT: postgres
-      AXONHUB_DB_DSN: postgres://axonhub:${DB_PASSWORD:-axonhub_password}@postgres:5432/axonhub?sslmode=disable
-    ports:
-      - "8090:8090"
-    volumes:
-      # 配置文件挂载 - 用于复杂配置，如缓存、日志、监控等
-      # 参考: https://github.com/looplj/axonhub/blob/main/docs/deployment/configuration.md
-      - ./config.yml:/app/config.yml:ro
-      # - axonhub_data:/data
-    networks:
-      - axonhub-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8090/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+#   # AxonHub 主服务
+#   axonhub:
+#     image: looplj/axonhub:latest
+#     container_name: axonhub-app
+#     environment:
+#       # 数据库配置可以通过环境变量设置，优先级高于配置文件
+#       AXONHUB_DB_DIALECT: postgres
+#       AXONHUB_DB_DSN: postgres://axonhub:${DB_PASSWORD:-axonhub_password}@postgres:5432/axonhub?sslmode=disable
+#     ports:
+#       - "8090:8090"
+#     volumes:
+#       # 配置文件挂载 - 用于复杂配置，如缓存、日志、监控等
+#       # 参考: https://github.com/looplj/axonhub/blob/main/docs/deployment/configuration.md
+#       - ./config.yml:/app/config.yml:ro
+#       # - axonhub_data:/data
+#     networks:
+#       - axonhub-network
+#     depends_on:
+#       postgres:
+#         condition: service_healthy
+#     restart: unless-stopped
+#     healthcheck:
+#       test:
+#         [
+#           "CMD",
+#           "wget",
+#           "--no-verbose",
+#           "--tries=1",
+#           "--spider",
+#           "http://localhost:8090/health",
+#         ]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
+#       start_period: 40s
 
   # SQLite 配置示例 (取消注释以使用 SQLite)
   # 注意: 此服务与上面的 'axonhub' 服务冲突。请只启用其中一个。
@@ -103,50 +103,32 @@ services:
   #     retries: 3
   #     start_period: 40s
 
-  # MySQL 配置示例 (取消注释以使用 MySQL)
-  # 注意: 此服务与上面的 'axonhub' 服务冲突。请只启用其中一个。
-  # mysql:
-  #   image: mysql:8.0
-  #   container_name: axonhub-mysql
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-axonhub_root_password}
-  #     MYSQL_DATABASE: axonhub
-  #     MYSQL_USER: axonhub
-  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-axonhub_password}
-  #   volumes:
-  #     - mysql_data:/var/lib/mysql
-  #   ports:
-  #     - "3306:3306"
-  #   networks:
-  #     - axonhub-network
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-axonhub_root_password}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #
-  # # AxonHub 主服务 (MySQL 版本)
-  # # 注意: 取消注释此服务时，请注释掉上面的 PostgreSQL 版本 axonhub 服务
-  # axonhub-mysql:
+  # AxonHub 主服务 (使用外部 MariaDB)
+  # 注意: 此服务连接到已存在的 MariaDB 实例
+  # 请修改下面的 AXONHUB_DB_DSN 环境变量，填入你的 MariaDB 连接信息
+  # axonhub:
   #   image: looplj/axonhub:latest
-  #   container_name: axonhub-mysql-app
+  #   container_name: axonhub-app
   #   environment:
   #     AXONHUB_DB_DIALECT: mysql
-  #     # DSN 格式参考: ${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(mysql:3306)/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=True&loc=Local
-  #     AXONHUB_DB_DSN: axonhub:${MYSQL_PASSWORD:-axonhub_password}@tcp(mysql:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+  #     # DSN 格式: user:password@tcp(host:port)/database?charset=utf8mb4&parseTime=True&loc=Local
+  #     # 示例：
+  #     # - 本地 MariaDB (Docker 容器访问主机): axonhub:password@tcp(host.docker.internal:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+  #     # - Docker 网络中的 MariaDB: axonhub:password@tcp(mariadb:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+  #     # - 远程 MariaDB: axonhub:password@tcp(192.168.1.100:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+  #     # 请修改下面的连接信息
+  #     # MariaDB 连接信息: anyshare:eisoo.com123@tcp(host:port)/axonhub
+  #     # 使用容器名连接（推荐）：flow-automation-mariadb:3306
+  #     # 或通过主机端口连接：host.docker.internal:3330
+  #     AXONHUB_DB_DSN: ${AXONHUB_DB_DSN:-anyshare:eisoo.com123@tcp(flow-automation-mariadb:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local}
   #   ports:
   #     - "8090:8090"
-  #   volumes:
-  #     # 配置文件挂载 - 用于复杂配置
-  #     # 参考: https://github.com/looplj/axonhub/blob/main/docs/deployment/configuration.md
-  #     - ./config.yml:/app/config.yml:ro
-  #     # - axonhub_data:/data
+  #   # 连接到 MariaDB 所在的网络
   #   networks:
-  #     - axonhub-network
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
+  #     - flow-automation-network
+  #   # 如果 MariaDB 在主机上，添加 extra_hosts 以允许容器访问主机
+  #   # extra_hosts:
+  #   #   - "host.docker.internal:host-gateway"
   #   restart: unless-stopped
   #   healthcheck:
   #     test:
@@ -163,10 +145,55 @@ services:
   #     retries: 3
   #     start_period: 40s
 
+  # 如果需要使用 Docker Compose 启动新的 MariaDB 实例，取消下面的注释
+  # mariadb:
+  #   image: mariadb:11.3
+  #   container_name: axonhub-mariadb
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-axonhub_root_password}
+  #     MYSQL_DATABASE: axonhub
+  #     MYSQL_USER: axonhub
+  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-axonhub_password}
+  #   volumes:
+  #     - mariadb_data:/var/lib/mysql
+  #   ports:
+  #     - "3306:3306"
+  #   networks:
+  #     - axonhub-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-axonhub_root_password}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # MySQL 数据库服务 (用于本地开发)
+  mysql:
+    image: mysql:8.0
+    container_name: axonhub-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-axonhub_root_password}
+      MYSQL_DATABASE: axonhub
+      MYSQL_USER: axonhub
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-axonhub_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - axonhub-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-axonhub_root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
-  postgres_data:
   mysql_data:
 
 networks:
   axonhub-network:
     driver: bridge
+  # flow-automation-network:
+  #   external: true

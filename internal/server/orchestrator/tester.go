@@ -82,7 +82,6 @@ func (processor *TestChannelOrchestrator) TestChannel(
 		SystemService:        processor.systemService,
 		UsageLogService:      processor.usageLogService,
 		proxy:                proxy,
-		ModelMapper:          nil,
 		selectedChannelIds:   []int{},
 		adaptiveLoadBalancer: nil,
 		weightedLoadBalancer: nil,

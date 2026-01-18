@@ -10,10 +10,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useProjectsContext } from '../context/projects-context';
 import { useCreateProject, useUpdateProject, useArchiveProject, useActivateProject } from '../data/projects';
 import { createProjectInputSchema, updateProjectInputSchema } from '../data/schema';
+import { useQuerySystemSetting } from '@/features/system-settings/data/settings';
 
 // Create Project Dialog
 export function CreateProjectDialog() {
@@ -21,11 +23,24 @@ export function CreateProjectDialog() {
   const { isCreateDialogOpen, setIsCreateDialogOpen } = useProjectsContext();
   const createProject = useCreateProject();
 
+  // Fetch user selectable groups from system settings
+  const { data: selectableGroupsData } = useQuerySystemSetting('user_selectable_groups');
+
+  // Get selectable groups or use default
+  const selectableGroups = React.useMemo(() => {
+    if (selectableGroupsData?.settings?.[0]?.value) {
+      return selectableGroupsData.settings[0].value as Record<string, string>;
+    }
+    return { default: '默认分组' };
+  }, [selectableGroupsData]);
+
   const form = useForm<z.infer<typeof createProjectInputSchema>>({
     resolver: zodResolver(createProjectInputSchema),
     defaultValues: {
       name: '',
       description: '',
+      quota: 0,
+      group: 'default',
     },
   });
 
@@ -91,6 +106,57 @@ export function CreateProjectDialog() {
               )}
             />
 
+            <FormField
+              control={form.control}
+              name='group'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('projects.dialogs.fields.group.label')}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('projects.dialogs.fields.group.placeholder')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(selectableGroups).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>{t('projects.dialogs.fields.group.description')}</FormDescription>
+                  <div className='min-h-[1.25rem]'>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='quota'
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel>{t('projects.dialogs.fields.quota.label')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='number'
+                      min={0}
+                      placeholder={t('projects.dialogs.fields.quota.placeholder')}
+                      aria-invalid={!!fieldState.error}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>{t('projects.dialogs.fields.quota.description')}</FormDescription>
+                  <div className='min-h-[1.25rem]'>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+
             <DialogFooter>
               <Button type='button' variant='outline' onClick={handleClose}>
                 {t('common.buttons.cancel')}
@@ -112,11 +178,25 @@ export function EditProjectDialog() {
   const { editingProject, setEditingProject } = useProjectsContext();
   const updateProject = useUpdateProject();
 
+  // Fetch user selectable groups from system settings
+  const { data: selectableGroupsData } = useQuerySystemSetting('user_selectable_groups');
+
+  // Get selectable groups or use default
+  const selectableGroups = React.useMemo(() => {
+    if (selectableGroupsData?.settings?.[0]?.value) {
+      return selectableGroupsData.settings[0].value as Record<string, string>;
+    }
+    return { default: '默认分组' };
+  }, [selectableGroupsData]);
+
   const form = useForm<z.infer<typeof updateProjectInputSchema>>({
     resolver: zodResolver(updateProjectInputSchema),
     defaultValues: {
       name: '',
       description: '',
+      quota: 0,
+      usedQuota: 0,
+      group: 'default',
     },
   });
 
@@ -125,6 +205,9 @@ export function EditProjectDialog() {
       form.reset({
         name: editingProject.name,
         description: editingProject.description || '',
+        quota: editingProject.quota ?? 0,
+        usedQuota: editingProject.usedQuota ?? 0,
+        group: editingProject.group ?? 'default',
       });
     }
   }, [editingProject, form]);
@@ -190,6 +273,71 @@ export function EditProjectDialog() {
                   <div className='min-h-[1.25rem]'>
                     <FormMessage />
                   </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='group'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('projects.dialogs.fields.group.label')}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('projects.dialogs.fields.group.placeholder')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(selectableGroups).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>{t('projects.dialogs.fields.group.description')}</FormDescription>
+                  <div className='min-h-[1.25rem]'>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='quota'
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel>{t('projects.dialogs.fields.quota.label')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='number'
+                      min={0}
+                      placeholder={t('projects.dialogs.fields.quota.placeholder')}
+                      aria-invalid={!!fieldState.error}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>{t('projects.dialogs.fields.quota.description')}</FormDescription>
+                  <div className='min-h-[1.25rem]'>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='usedQuota'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('projects.dialogs.fields.usedQuota.label')}</FormLabel>
+                  <FormControl>
+                    <Input type='number' min={0} readOnly disabled {...field} />
+                  </FormControl>
+                  <FormDescription>{t('projects.dialogs.fields.usedQuota.description')}</FormDescription>
                 </FormItem>
               )}
             />

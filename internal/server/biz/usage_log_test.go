@@ -58,6 +58,7 @@ func TestUsageLogService_CreateUsageLog_PromptWriteCachedTokens(t *testing.T) {
 	created, err := svc.CreateUsageLog(
 		ctx,
 		req.ID,
+		nil,
 		p.ID,
 		nil,
 		"test-model",

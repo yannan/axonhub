@@ -8,6 +8,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/looplj/axonhub/internal/llm/transformer/anthropic"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/pkg/httpclient"
 	"github.com/looplj/axonhub/internal/server/biz"
 	"github.com/looplj/axonhub/internal/server/orchestrator"
@@ -16,12 +17,13 @@ import (
 type AnthropicHandlersParams struct {
 	fx.In
 
-	ChannelService  *biz.ChannelService
-	ModelService    *biz.ModelService
-	RequestService  *biz.RequestService
-	SystemService   *biz.SystemService
-	UsageLogService *biz.UsageLogService
-	HttpClient      *httpclient.HttpClient
+	ChannelService   *biz.ChannelService
+	ModelService     *biz.ModelService
+	RequestService   *biz.RequestService
+	SystemService    *biz.SystemService
+	UsageLogService  *biz.UsageLogService
+	HttpClient       *httpclient.HttpClient
+	ValidationEngine *filter.ValidationEngine
 }
 
 type AnthropicHandlers struct {
@@ -42,6 +44,7 @@ func NewAnthropicHandlers(params AnthropicHandlersParams) *AnthropicHandlers {
 				anthropic.NewInboundTransformer(),
 				params.SystemService,
 				params.UsageLogService,
+				params.ValidationEngine,
 			),
 		},
 		ChannelService: params.ChannelService,

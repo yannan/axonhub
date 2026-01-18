@@ -6,6 +6,7 @@ import (
 
 	"github.com/looplj/axonhub/internal/llm/transformer/aisdk"
 	"github.com/looplj/axonhub/internal/log"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/pkg/httpclient"
 	"github.com/looplj/axonhub/internal/pkg/streams"
 	"github.com/looplj/axonhub/internal/server/biz"
@@ -15,12 +16,13 @@ import (
 type AiSdkHandlersParams struct {
 	fx.In
 
-	ChannelService  *biz.ChannelService
-	ModelService    *biz.ModelService
-	RequestService  *biz.RequestService
-	SystemService   *biz.SystemService
-	UsageLogService *biz.UsageLogService
-	HttpClient      *httpclient.HttpClient
+	ChannelService   *biz.ChannelService
+	ModelService     *biz.ModelService
+	RequestService   *biz.RequestService
+	SystemService    *biz.SystemService
+	UsageLogService  *biz.UsageLogService
+	HttpClient       *httpclient.HttpClient
+	ValidationEngine *filter.ValidationEngine
 }
 
 type AiSDKHandlers struct {
@@ -38,6 +40,7 @@ func NewAiSDKHandlers(params AiSdkHandlersParams) *AiSDKHandlers {
 				aisdk.NewDataStreamTransformer(),
 				params.SystemService,
 				params.UsageLogService,
+				params.ValidationEngine,
 			),
 			StreamWriter: WriteJSONStream,
 		},

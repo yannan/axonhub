@@ -43,6 +43,8 @@ type APIKey struct {
 	Scopes []string `json:"scopes,omitempty"`
 	// Profiles holds the value of the "profiles" field.
 	Profiles *objects.APIKeyProfiles `json:"profiles,omitempty"`
+	// Allowed IPs, one per line; empty means allow all
+	IPWhitelist string `json:"ip_whitelist,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the APIKeyQuery when eager-loading is set.
 	Edges        APIKeyEdges `json:"edges"`
@@ -57,13 +59,16 @@ type APIKeyEdges struct {
 	Project *Project `json:"project,omitempty"`
 	// Requests holds the value of the requests edge.
 	Requests []*Request `json:"requests,omitempty"`
+	// UsageLogs holds the value of the usage_logs edge.
+	UsageLogs []*UsageLog `json:"usage_logs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [4]map[string]int
 
-	namedRequests map[string][]*Request
+	namedRequests  map[string][]*Request
+	namedUsageLogs map[string][]*UsageLog
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -97,6 +102,15 @@ func (e APIKeyEdges) RequestsOrErr() ([]*Request, error) {
 	return nil, &NotLoadedError{edge: "requests"}
 }
 
+// UsageLogsOrErr returns the UsageLogs value or an error if the edge
+// was not loaded in eager-loading.
+func (e APIKeyEdges) UsageLogsOrErr() ([]*UsageLog, error) {
+	if e.loadedTypes[3] {
+		return e.UsageLogs, nil
+	}
+	return nil, &NotLoadedError{edge: "usage_logs"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*APIKey) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -106,7 +120,7 @@ func (*APIKey) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case apikey.FieldID, apikey.FieldDeletedAt, apikey.FieldUserID, apikey.FieldProjectID:
 			values[i] = new(sql.NullInt64)
-		case apikey.FieldKey, apikey.FieldName, apikey.FieldType, apikey.FieldStatus:
+		case apikey.FieldKey, apikey.FieldName, apikey.FieldType, apikey.FieldStatus, apikey.FieldIPWhitelist:
 			values[i] = new(sql.NullString)
 		case apikey.FieldCreatedAt, apikey.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -201,6 +215,12 @@ func (_m *APIKey) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field profiles: %w", err)
 				}
 			}
+		case apikey.FieldIPWhitelist:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ip_whitelist", values[i])
+			} else if value.Valid {
+				_m.IPWhitelist = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -227,6 +247,11 @@ func (_m *APIKey) QueryProject() *ProjectQuery {
 // QueryRequests queries the "requests" edge of the APIKey entity.
 func (_m *APIKey) QueryRequests() *RequestQuery {
 	return NewAPIKeyClient(_m.config).QueryRequests(_m)
+}
+
+// QueryUsageLogs queries the "usage_logs" edge of the APIKey entity.
+func (_m *APIKey) QueryUsageLogs() *UsageLogQuery {
+	return NewAPIKeyClient(_m.config).QueryUsageLogs(_m)
 }
 
 // Update returns a builder for updating this APIKey.
@@ -284,6 +309,9 @@ func (_m *APIKey) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("profiles=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Profiles))
+	builder.WriteString(", ")
+	builder.WriteString("ip_whitelist=")
+	builder.WriteString(_m.IPWhitelist)
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -309,6 +337,30 @@ func (_m *APIKey) appendNamedRequests(name string, edges ...*Request) {
 		_m.Edges.namedRequests[name] = []*Request{}
 	} else {
 		_m.Edges.namedRequests[name] = append(_m.Edges.namedRequests[name], edges...)
+	}
+}
+
+// NamedUsageLogs returns the UsageLogs named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *APIKey) NamedUsageLogs(name string) ([]*UsageLog, error) {
+	if _m.Edges.namedUsageLogs == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedUsageLogs[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *APIKey) appendNamedUsageLogs(name string, edges ...*UsageLog) {
+	if _m.Edges.namedUsageLogs == nil {
+		_m.Edges.namedUsageLogs = make(map[string][]*UsageLog)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedUsageLogs[name] = []*UsageLog{}
+	} else {
+		_m.Edges.namedUsageLogs[name] = append(_m.Edges.namedUsageLogs[name], edges...)
 	}
 }
 

@@ -14,6 +14,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/request"
+	"github.com/looplj/axonhub/internal/ent/usagelog"
 	"github.com/looplj/axonhub/internal/ent/user"
 	"github.com/looplj/axonhub/internal/objects"
 )
@@ -140,6 +141,20 @@ func (_c *APIKeyCreate) SetProfiles(v *objects.APIKeyProfiles) *APIKeyCreate {
 	return _c
 }
 
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (_c *APIKeyCreate) SetIPWhitelist(v string) *APIKeyCreate {
+	_c.mutation.SetIPWhitelist(v)
+	return _c
+}
+
+// SetNillableIPWhitelist sets the "ip_whitelist" field if the given value is not nil.
+func (_c *APIKeyCreate) SetNillableIPWhitelist(v *string) *APIKeyCreate {
+	if v != nil {
+		_c.SetIPWhitelist(*v)
+	}
+	return _c
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_c *APIKeyCreate) SetUser(v *User) *APIKeyCreate {
 	return _c.SetUserID(v.ID)
@@ -163,6 +178,21 @@ func (_c *APIKeyCreate) AddRequests(v ...*Request) *APIKeyCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddRequestIDs(ids...)
+}
+
+// AddUsageLogIDs adds the "usage_logs" edge to the UsageLog entity by IDs.
+func (_c *APIKeyCreate) AddUsageLogIDs(ids ...int) *APIKeyCreate {
+	_c.mutation.AddUsageLogIDs(ids...)
+	return _c
+}
+
+// AddUsageLogs adds the "usage_logs" edges to the UsageLog entity.
+func (_c *APIKeyCreate) AddUsageLogs(v ...*UsageLog) *APIKeyCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUsageLogIDs(ids...)
 }
 
 // Mutation returns the APIKeyMutation object of the builder.
@@ -239,6 +269,10 @@ func (_c *APIKeyCreate) defaults() error {
 	if _, ok := _c.mutation.Profiles(); !ok {
 		v := apikey.DefaultProfiles
 		_c.mutation.SetProfiles(v)
+	}
+	if _, ok := _c.mutation.IPWhitelist(); !ok {
+		v := apikey.DefaultIPWhitelist
+		_c.mutation.SetIPWhitelist(v)
 	}
 	return nil
 }
@@ -351,6 +385,10 @@ func (_c *APIKeyCreate) createSpec() (*APIKey, *sqlgraph.CreateSpec) {
 		_spec.SetField(apikey.FieldProfiles, field.TypeJSON, value)
 		_node.Profiles = value
 	}
+	if value, ok := _c.mutation.IPWhitelist(); ok {
+		_spec.SetField(apikey.FieldIPWhitelist, field.TypeString, value)
+		_node.IPWhitelist = value
+	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -394,6 +432,22 @@ func (_c *APIKeyCreate) createSpec() (*APIKey, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UsageLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apikey.UsageLogsTable,
+			Columns: []string{apikey.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -552,6 +606,24 @@ func (u *APIKeyUpsert) UpdateProfiles() *APIKeyUpsert {
 // ClearProfiles clears the value of the "profiles" field.
 func (u *APIKeyUpsert) ClearProfiles() *APIKeyUpsert {
 	u.SetNull(apikey.FieldProfiles)
+	return u
+}
+
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (u *APIKeyUpsert) SetIPWhitelist(v string) *APIKeyUpsert {
+	u.Set(apikey.FieldIPWhitelist, v)
+	return u
+}
+
+// UpdateIPWhitelist sets the "ip_whitelist" field to the value that was provided on create.
+func (u *APIKeyUpsert) UpdateIPWhitelist() *APIKeyUpsert {
+	u.SetExcluded(apikey.FieldIPWhitelist)
+	return u
+}
+
+// ClearIPWhitelist clears the value of the "ip_whitelist" field.
+func (u *APIKeyUpsert) ClearIPWhitelist() *APIKeyUpsert {
+	u.SetNull(apikey.FieldIPWhitelist)
 	return u
 }
 
@@ -725,6 +797,27 @@ func (u *APIKeyUpsertOne) UpdateProfiles() *APIKeyUpsertOne {
 func (u *APIKeyUpsertOne) ClearProfiles() *APIKeyUpsertOne {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.ClearProfiles()
+	})
+}
+
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (u *APIKeyUpsertOne) SetIPWhitelist(v string) *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetIPWhitelist(v)
+	})
+}
+
+// UpdateIPWhitelist sets the "ip_whitelist" field to the value that was provided on create.
+func (u *APIKeyUpsertOne) UpdateIPWhitelist() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateIPWhitelist()
+	})
+}
+
+// ClearIPWhitelist clears the value of the "ip_whitelist" field.
+func (u *APIKeyUpsertOne) ClearIPWhitelist() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.ClearIPWhitelist()
 	})
 }
 
@@ -1064,6 +1157,27 @@ func (u *APIKeyUpsertBulk) UpdateProfiles() *APIKeyUpsertBulk {
 func (u *APIKeyUpsertBulk) ClearProfiles() *APIKeyUpsertBulk {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.ClearProfiles()
+	})
+}
+
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (u *APIKeyUpsertBulk) SetIPWhitelist(v string) *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetIPWhitelist(v)
+	})
+}
+
+// UpdateIPWhitelist sets the "ip_whitelist" field to the value that was provided on create.
+func (u *APIKeyUpsertBulk) UpdateIPWhitelist() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateIPWhitelist()
+	})
+}
+
+// ClearIPWhitelist clears the value of the "ip_whitelist" field.
+func (u *APIKeyUpsertBulk) ClearIPWhitelist() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.ClearIPWhitelist()
 	})
 }
 

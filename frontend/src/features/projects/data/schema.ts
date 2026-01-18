@@ -9,6 +9,9 @@ export const projectSchema = z.object({
   name: z.string(),
   description: z.string(),
   status: z.enum(['active', 'archived']),
+  quota: z.number(),
+  usedQuota: z.number(),
+  group: z.string(),
 });
 export type Project = z.infer<typeof projectSchema>;
 
@@ -30,12 +33,16 @@ export const createProjectInputSchemaFactory = (t: (key: string) => string) =>
   z.object({
     name: z.string().min(1, t('projects.validation.nameRequired')),
     description: z.string().optional(),
+    quota: z.coerce.number().int().min(0).optional(),
+    group: z.string().optional(),
   });
 
 // Default schema for backward compatibility
 export const createProjectInputSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
   description: z.string().optional(),
+  quota: z.coerce.number().int().min(0).optional(),
+  group: z.string().optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
 
@@ -44,12 +51,18 @@ export const updateProjectInputSchemaFactory = (t: (key: string) => string) =>
   z.object({
     name: z.string().min(1, t('projects.validation.nameRequired')),
     description: z.string().optional(),
+    quota: z.coerce.number().int().min(0).optional(),
+    usedQuota: z.coerce.number().int().min(0).optional(),
+    group: z.string().optional(),
   });
 
 // Default schema for backward compatibility
 export const updateProjectInputSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
   description: z.string().optional(),
+  quota: z.coerce.number().int().min(0).optional(),
+  usedQuota: z.coerce.number().int().min(0).optional(),
+  group: z.string().optional(),
 });
 export type UpdateProjectInput = z.infer<typeof updateProjectInputSchema>;
 

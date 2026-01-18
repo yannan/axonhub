@@ -12,6 +12,7 @@
       "channels": "Channels",
       "models": "Models",
       "dataStorages": "Data Storages",
+      "pricing": "Pricing",
       "users": "Users",
       "roles": "Roles",
       "system": "System",
@@ -20,6 +21,7 @@
       "threads": "Threads",
       "usageLogs": "Usage Logs",
       "apiKeys": "API Keys",
+      "billing": "Billing",
       "playground": "Playground",
       "profile": "Profile",
       "projects": "Projects"

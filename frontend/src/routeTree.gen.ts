@@ -28,6 +28,7 @@ import { Route as AuthenticatedSystemIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRolesIndexRouteImport } from './routes/_authenticated/roles/index'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects/index'
+import { Route as AuthenticatedPricingIndexRouteImport } from './routes/_authenticated/pricing/index'
 import { Route as AuthenticatedPermissionDemoIndexRouteImport } from './routes/_authenticated/permission-demo/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedDataStoragesIndexRouteImport } from './routes/_authenticated/data-storages/index'
@@ -45,6 +46,7 @@ import { Route as AuthenticatedProjectThreadsIndexRouteImport } from './routes/_
 import { Route as AuthenticatedProjectRolesIndexRouteImport } from './routes/_authenticated/project/roles/index'
 import { Route as AuthenticatedProjectRequestsIndexRouteImport } from './routes/_authenticated/project/requests/index'
 import { Route as AuthenticatedProjectPlaygroundIndexRouteImport } from './routes/_authenticated/project/playground/index'
+import { Route as AuthenticatedProjectBillingIndexRouteImport } from './routes/_authenticated/project/billing/index'
 import { Route as AuthenticatedProjectApiKeysIndexRouteImport } from './routes/_authenticated/project/api-keys/index'
 import { Route as AuthenticatedProjectTracesTraceIdRouteImport } from './routes/_authenticated/project/traces/$traceId'
 import { Route as AuthenticatedProjectThreadsThreadIdRouteImport } from './routes/_authenticated/project/threads/$threadId'
@@ -148,6 +150,12 @@ const AuthenticatedProjectsIndexRoute =
     path: '/projects/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPricingIndexRoute =
+  AuthenticatedPricingIndexRouteImport.update({
+    id: '/pricing/',
+    path: '/pricing/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPermissionDemoIndexRoute =
   AuthenticatedPermissionDemoIndexRouteImport.update({
     id: '/permission-demo/',
@@ -249,6 +257,12 @@ const AuthenticatedProjectPlaygroundIndexRoute =
     path: '/project/playground/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProjectBillingIndexRoute =
+  AuthenticatedProjectBillingIndexRouteImport.update({
+    id: '/project/billing/',
+    path: '/project/billing/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjectApiKeysIndexRoute =
   AuthenticatedProjectApiKeysIndexRouteImport.update({
     id: '/project/api-keys/',
@@ -298,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/data-storages': typeof AuthenticatedDataStoragesIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/permission-demo': typeof AuthenticatedPermissionDemoIndexRoute
+  '/pricing': typeof AuthenticatedPricingIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/roles': typeof AuthenticatedRolesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -307,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/project/threads/$threadId': typeof AuthenticatedProjectThreadsThreadIdRoute
   '/project/traces/$traceId': typeof AuthenticatedProjectTracesTraceIdRoute
   '/project/api-keys': typeof AuthenticatedProjectApiKeysIndexRoute
+  '/project/billing': typeof AuthenticatedProjectBillingIndexRoute
   '/project/playground': typeof AuthenticatedProjectPlaygroundIndexRoute
   '/project/requests': typeof AuthenticatedProjectRequestsIndexRoute
   '/project/roles': typeof AuthenticatedProjectRolesIndexRoute
@@ -338,6 +354,7 @@ export interface FileRoutesByTo {
   '/data-storages': typeof AuthenticatedDataStoragesIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/permission-demo': typeof AuthenticatedPermissionDemoIndexRoute
+  '/pricing': typeof AuthenticatedPricingIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/roles': typeof AuthenticatedRolesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -347,6 +364,7 @@ export interface FileRoutesByTo {
   '/project/threads/$threadId': typeof AuthenticatedProjectThreadsThreadIdRoute
   '/project/traces/$traceId': typeof AuthenticatedProjectTracesTraceIdRoute
   '/project/api-keys': typeof AuthenticatedProjectApiKeysIndexRoute
+  '/project/billing': typeof AuthenticatedProjectBillingIndexRoute
   '/project/playground': typeof AuthenticatedProjectPlaygroundIndexRoute
   '/project/requests': typeof AuthenticatedProjectRequestsIndexRoute
   '/project/roles': typeof AuthenticatedProjectRolesIndexRoute
@@ -381,6 +399,7 @@ export interface FileRoutesById {
   '/_authenticated/data-storages/': typeof AuthenticatedDataStoragesIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/permission-demo/': typeof AuthenticatedPermissionDemoIndexRoute
+  '/_authenticated/pricing/': typeof AuthenticatedPricingIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/roles/': typeof AuthenticatedRolesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -390,6 +409,7 @@ export interface FileRoutesById {
   '/_authenticated/project/threads/$threadId': typeof AuthenticatedProjectThreadsThreadIdRoute
   '/_authenticated/project/traces/$traceId': typeof AuthenticatedProjectTracesTraceIdRoute
   '/_authenticated/project/api-keys/': typeof AuthenticatedProjectApiKeysIndexRoute
+  '/_authenticated/project/billing/': typeof AuthenticatedProjectBillingIndexRoute
   '/_authenticated/project/playground/': typeof AuthenticatedProjectPlaygroundIndexRoute
   '/_authenticated/project/requests/': typeof AuthenticatedProjectRequestsIndexRoute
   '/_authenticated/project/roles/': typeof AuthenticatedProjectRolesIndexRoute
@@ -424,6 +444,7 @@ export interface FileRouteTypes {
     | '/data-storages'
     | '/help-center'
     | '/permission-demo'
+    | '/pricing'
     | '/projects'
     | '/roles'
     | '/settings/'
@@ -433,6 +454,7 @@ export interface FileRouteTypes {
     | '/project/threads/$threadId'
     | '/project/traces/$traceId'
     | '/project/api-keys'
+    | '/project/billing'
     | '/project/playground'
     | '/project/requests'
     | '/project/roles'
@@ -464,6 +486,7 @@ export interface FileRouteTypes {
     | '/data-storages'
     | '/help-center'
     | '/permission-demo'
+    | '/pricing'
     | '/projects'
     | '/roles'
     | '/settings'
@@ -473,6 +496,7 @@ export interface FileRouteTypes {
     | '/project/threads/$threadId'
     | '/project/traces/$traceId'
     | '/project/api-keys'
+    | '/project/billing'
     | '/project/playground'
     | '/project/requests'
     | '/project/roles'
@@ -506,6 +530,7 @@ export interface FileRouteTypes {
     | '/_authenticated/data-storages/'
     | '/_authenticated/help-center/'
     | '/_authenticated/permission-demo/'
+    | '/_authenticated/pricing/'
     | '/_authenticated/projects/'
     | '/_authenticated/roles/'
     | '/_authenticated/settings/'
@@ -515,6 +540,7 @@ export interface FileRouteTypes {
     | '/_authenticated/project/threads/$threadId'
     | '/_authenticated/project/traces/$traceId'
     | '/_authenticated/project/api-keys/'
+    | '/_authenticated/project/billing/'
     | '/_authenticated/project/playground/'
     | '/_authenticated/project/requests/'
     | '/_authenticated/project/roles/'
@@ -672,6 +698,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pricing/': {
+      id: '/_authenticated/pricing/'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof AuthenticatedPricingIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/permission-demo/': {
       id: '/_authenticated/permission-demo/'
       path: '/permission-demo'
@@ -791,6 +824,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectPlaygroundIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/project/billing/': {
+      id: '/_authenticated/project/billing/'
+      path: '/project/billing'
+      fullPath: '/project/billing'
+      preLoaderRoute: typeof AuthenticatedProjectBillingIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/project/api-keys/': {
       id: '/_authenticated/project/api-keys/'
       path: '/project/api-keys'
@@ -856,6 +896,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDataStoragesIndexRoute: typeof AuthenticatedDataStoragesIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedPermissionDemoIndexRoute: typeof AuthenticatedPermissionDemoIndexRoute
+  AuthenticatedPricingIndexRoute: typeof AuthenticatedPricingIndexRoute
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
   AuthenticatedRolesIndexRoute: typeof AuthenticatedRolesIndexRoute
   AuthenticatedSystemIndexRoute: typeof AuthenticatedSystemIndexRoute
@@ -864,6 +905,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectThreadsThreadIdRoute: typeof AuthenticatedProjectThreadsThreadIdRoute
   AuthenticatedProjectTracesTraceIdRoute: typeof AuthenticatedProjectTracesTraceIdRoute
   AuthenticatedProjectApiKeysIndexRoute: typeof AuthenticatedProjectApiKeysIndexRoute
+  AuthenticatedProjectBillingIndexRoute: typeof AuthenticatedProjectBillingIndexRoute
   AuthenticatedProjectPlaygroundIndexRoute: typeof AuthenticatedProjectPlaygroundIndexRoute
   AuthenticatedProjectRequestsIndexRoute: typeof AuthenticatedProjectRequestsIndexRoute
   AuthenticatedProjectRolesIndexRoute: typeof AuthenticatedProjectRolesIndexRoute
@@ -884,6 +926,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDataStoragesIndexRoute: AuthenticatedDataStoragesIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedPermissionDemoIndexRoute: AuthenticatedPermissionDemoIndexRoute,
+  AuthenticatedPricingIndexRoute: AuthenticatedPricingIndexRoute,
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
   AuthenticatedRolesIndexRoute: AuthenticatedRolesIndexRoute,
   AuthenticatedSystemIndexRoute: AuthenticatedSystemIndexRoute,
@@ -895,6 +938,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProjectTracesTraceIdRoute:
     AuthenticatedProjectTracesTraceIdRoute,
   AuthenticatedProjectApiKeysIndexRoute: AuthenticatedProjectApiKeysIndexRoute,
+  AuthenticatedProjectBillingIndexRoute: AuthenticatedProjectBillingIndexRoute,
   AuthenticatedProjectPlaygroundIndexRoute:
     AuthenticatedProjectPlaygroundIndexRoute,
   AuthenticatedProjectRequestsIndexRoute:

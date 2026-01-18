@@ -105,6 +105,16 @@ func IsOwner(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldIsOwner, v))
 }
 
+// Quota applies equality check predicate on the "quota" field. It's identical to QuotaEQ.
+func Quota(v int64) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldQuota, v))
+}
+
+// UsedQuota applies equality check predicate on the "used_quota" field. It's identical to UsedQuotaEQ.
+func UsedQuota(v int64) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUsedQuota, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -655,6 +665,86 @@ func IsOwnerNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldIsOwner, v))
 }
 
+// QuotaEQ applies the EQ predicate on the "quota" field.
+func QuotaEQ(v int64) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldQuota, v))
+}
+
+// QuotaNEQ applies the NEQ predicate on the "quota" field.
+func QuotaNEQ(v int64) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldQuota, v))
+}
+
+// QuotaIn applies the In predicate on the "quota" field.
+func QuotaIn(vs ...int64) predicate.User {
+	return predicate.User(sql.FieldIn(FieldQuota, vs...))
+}
+
+// QuotaNotIn applies the NotIn predicate on the "quota" field.
+func QuotaNotIn(vs ...int64) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldQuota, vs...))
+}
+
+// QuotaGT applies the GT predicate on the "quota" field.
+func QuotaGT(v int64) predicate.User {
+	return predicate.User(sql.FieldGT(FieldQuota, v))
+}
+
+// QuotaGTE applies the GTE predicate on the "quota" field.
+func QuotaGTE(v int64) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldQuota, v))
+}
+
+// QuotaLT applies the LT predicate on the "quota" field.
+func QuotaLT(v int64) predicate.User {
+	return predicate.User(sql.FieldLT(FieldQuota, v))
+}
+
+// QuotaLTE applies the LTE predicate on the "quota" field.
+func QuotaLTE(v int64) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldQuota, v))
+}
+
+// UsedQuotaEQ applies the EQ predicate on the "used_quota" field.
+func UsedQuotaEQ(v int64) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUsedQuota, v))
+}
+
+// UsedQuotaNEQ applies the NEQ predicate on the "used_quota" field.
+func UsedQuotaNEQ(v int64) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldUsedQuota, v))
+}
+
+// UsedQuotaIn applies the In predicate on the "used_quota" field.
+func UsedQuotaIn(vs ...int64) predicate.User {
+	return predicate.User(sql.FieldIn(FieldUsedQuota, vs...))
+}
+
+// UsedQuotaNotIn applies the NotIn predicate on the "used_quota" field.
+func UsedQuotaNotIn(vs ...int64) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldUsedQuota, vs...))
+}
+
+// UsedQuotaGT applies the GT predicate on the "used_quota" field.
+func UsedQuotaGT(v int64) predicate.User {
+	return predicate.User(sql.FieldGT(FieldUsedQuota, v))
+}
+
+// UsedQuotaGTE applies the GTE predicate on the "used_quota" field.
+func UsedQuotaGTE(v int64) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldUsedQuota, v))
+}
+
+// UsedQuotaLT applies the LT predicate on the "used_quota" field.
+func UsedQuotaLT(v int64) predicate.User {
+	return predicate.User(sql.FieldLT(FieldUsedQuota, v))
+}
+
+// UsedQuotaLTE applies the LTE predicate on the "used_quota" field.
+func UsedQuotaLTE(v int64) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldUsedQuota, v))
+}
+
 // ScopesIsNil applies the IsNil predicate on the "scopes" field.
 func ScopesIsNil() predicate.User {
 	return predicate.User(sql.FieldIsNull(FieldScopes))
@@ -749,6 +839,75 @@ func HasChannelOverrideTemplates() predicate.User {
 func HasChannelOverrideTemplatesWith(preds ...predicate.ChannelOverrideTemplate) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newChannelOverrideTemplatesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConsumptionRecords applies the HasEdge predicate on the "consumption_records" edge.
+func HasConsumptionRecords() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConsumptionRecordsTable, ConsumptionRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConsumptionRecordsWith applies the HasEdge predicate on the "consumption_records" edge with a given conditions (other predicates).
+func HasConsumptionRecordsWith(preds ...predicate.ConsumptionRecord) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newConsumptionRecordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRedemptionCodes applies the HasEdge predicate on the "redemption_codes" edge.
+func HasRedemptionCodes() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RedemptionCodesTable, RedemptionCodesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRedemptionCodesWith applies the HasEdge predicate on the "redemption_codes" edge with a given conditions (other predicates).
+func HasRedemptionCodesWith(preds ...predicate.RedemptionCode) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRedemptionCodesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRechargeRecords applies the HasEdge predicate on the "recharge_records" edge.
+func HasRechargeRecords() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RechargeRecordsTable, RechargeRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRechargeRecordsWith applies the HasEdge predicate on the "recharge_records" edge with a given conditions (other predicates).
+func HasRechargeRecordsWith(preds ...predicate.RechargeRecord) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRechargeRecordsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

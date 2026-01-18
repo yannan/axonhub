@@ -12,7 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/looplj/axonhub/internal/ent/apikey"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/project"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/thread"
@@ -102,6 +104,48 @@ func (_c *ProjectCreate) SetStatus(v project.Status) *ProjectCreate {
 func (_c *ProjectCreate) SetNillableStatus(v *project.Status) *ProjectCreate {
 	if v != nil {
 		_c.SetStatus(*v)
+	}
+	return _c
+}
+
+// SetQuota sets the "quota" field.
+func (_c *ProjectCreate) SetQuota(v int64) *ProjectCreate {
+	_c.mutation.SetQuota(v)
+	return _c
+}
+
+// SetNillableQuota sets the "quota" field if the given value is not nil.
+func (_c *ProjectCreate) SetNillableQuota(v *int64) *ProjectCreate {
+	if v != nil {
+		_c.SetQuota(*v)
+	}
+	return _c
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (_c *ProjectCreate) SetUsedQuota(v int64) *ProjectCreate {
+	_c.mutation.SetUsedQuota(v)
+	return _c
+}
+
+// SetNillableUsedQuota sets the "used_quota" field if the given value is not nil.
+func (_c *ProjectCreate) SetNillableUsedQuota(v *int64) *ProjectCreate {
+	if v != nil {
+		_c.SetUsedQuota(*v)
+	}
+	return _c
+}
+
+// SetGroup sets the "group" field.
+func (_c *ProjectCreate) SetGroup(v string) *ProjectCreate {
+	_c.mutation.SetGroup(v)
+	return _c
+}
+
+// SetNillableGroup sets the "group" field if the given value is not nil.
+func (_c *ProjectCreate) SetNillableGroup(v *string) *ProjectCreate {
+	if v != nil {
+		_c.SetGroup(*v)
 	}
 	return _c
 }
@@ -211,6 +255,36 @@ func (_c *ProjectCreate) AddTraces(v ...*Trace) *ProjectCreate {
 	return _c.AddTraceIDs(ids...)
 }
 
+// AddConsumptionRecordIDs adds the "consumption_records" edge to the ConsumptionRecord entity by IDs.
+func (_c *ProjectCreate) AddConsumptionRecordIDs(ids ...int) *ProjectCreate {
+	_c.mutation.AddConsumptionRecordIDs(ids...)
+	return _c
+}
+
+// AddConsumptionRecords adds the "consumption_records" edges to the ConsumptionRecord entity.
+func (_c *ProjectCreate) AddConsumptionRecords(v ...*ConsumptionRecord) *ProjectCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConsumptionRecordIDs(ids...)
+}
+
+// AddRechargeRecordIDs adds the "recharge_records" edge to the RechargeRecord entity by IDs.
+func (_c *ProjectCreate) AddRechargeRecordIDs(ids ...int) *ProjectCreate {
+	_c.mutation.AddRechargeRecordIDs(ids...)
+	return _c
+}
+
+// AddRechargeRecords adds the "recharge_records" edges to the RechargeRecord entity.
+func (_c *ProjectCreate) AddRechargeRecords(v ...*RechargeRecord) *ProjectCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRechargeRecordIDs(ids...)
+}
+
 // AddProjectUserIDs adds the "project_users" edge to the UserProject entity by IDs.
 func (_c *ProjectCreate) AddProjectUserIDs(ids ...int) *ProjectCreate {
 	_c.mutation.AddProjectUserIDs(ids...)
@@ -289,6 +363,18 @@ func (_c *ProjectCreate) defaults() error {
 		v := project.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
+	if _, ok := _c.mutation.Quota(); !ok {
+		v := project.DefaultQuota
+		_c.mutation.SetQuota(v)
+	}
+	if _, ok := _c.mutation.UsedQuota(); !ok {
+		v := project.DefaultUsedQuota
+		_c.mutation.SetUsedQuota(v)
+	}
+	if _, ok := _c.mutation.Group(); !ok {
+		v := project.DefaultGroup
+		_c.mutation.SetGroup(v)
+	}
 	return nil
 }
 
@@ -316,6 +402,15 @@ func (_c *ProjectCreate) check() error {
 		if err := project.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Project.status": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.Quota(); !ok {
+		return &ValidationError{Name: "quota", err: errors.New(`ent: missing required field "Project.quota"`)}
+	}
+	if _, ok := _c.mutation.UsedQuota(); !ok {
+		return &ValidationError{Name: "used_quota", err: errors.New(`ent: missing required field "Project.used_quota"`)}
+	}
+	if _, ok := _c.mutation.Group(); !ok {
+		return &ValidationError{Name: "group", err: errors.New(`ent: missing required field "Project.group"`)}
 	}
 	return nil
 }
@@ -367,6 +462,18 @@ func (_c *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(project.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := _c.mutation.Quota(); ok {
+		_spec.SetField(project.FieldQuota, field.TypeInt64, value)
+		_node.Quota = value
+	}
+	if value, ok := _c.mutation.UsedQuota(); ok {
+		_spec.SetField(project.FieldUsedQuota, field.TypeInt64, value)
+		_node.UsedQuota = value
+	}
+	if value, ok := _c.mutation.Group(); ok {
+		_spec.SetField(project.FieldGroup, field.TypeString, value)
+		_node.Group = value
 	}
 	if nodes := _c.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -477,6 +584,38 @@ func (_c *ProjectCreate) createSpec() (*Project, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(trace.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConsumptionRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ConsumptionRecordsTable,
+			Columns: []string{project.ConsumptionRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionrecord.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RechargeRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.RechargeRecordsTable,
+			Columns: []string{project.RechargeRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargerecord.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -618,6 +757,54 @@ func (u *ProjectUpsert) UpdateStatus() *ProjectUpsert {
 	return u
 }
 
+// SetQuota sets the "quota" field.
+func (u *ProjectUpsert) SetQuota(v int64) *ProjectUpsert {
+	u.Set(project.FieldQuota, v)
+	return u
+}
+
+// UpdateQuota sets the "quota" field to the value that was provided on create.
+func (u *ProjectUpsert) UpdateQuota() *ProjectUpsert {
+	u.SetExcluded(project.FieldQuota)
+	return u
+}
+
+// AddQuota adds v to the "quota" field.
+func (u *ProjectUpsert) AddQuota(v int64) *ProjectUpsert {
+	u.Add(project.FieldQuota, v)
+	return u
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (u *ProjectUpsert) SetUsedQuota(v int64) *ProjectUpsert {
+	u.Set(project.FieldUsedQuota, v)
+	return u
+}
+
+// UpdateUsedQuota sets the "used_quota" field to the value that was provided on create.
+func (u *ProjectUpsert) UpdateUsedQuota() *ProjectUpsert {
+	u.SetExcluded(project.FieldUsedQuota)
+	return u
+}
+
+// AddUsedQuota adds v to the "used_quota" field.
+func (u *ProjectUpsert) AddUsedQuota(v int64) *ProjectUpsert {
+	u.Add(project.FieldUsedQuota, v)
+	return u
+}
+
+// SetGroup sets the "group" field.
+func (u *ProjectUpsert) SetGroup(v string) *ProjectUpsert {
+	u.Set(project.FieldGroup, v)
+	return u
+}
+
+// UpdateGroup sets the "group" field to the value that was provided on create.
+func (u *ProjectUpsert) UpdateGroup() *ProjectUpsert {
+	u.SetExcluded(project.FieldGroup)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -737,6 +924,62 @@ func (u *ProjectUpsertOne) SetStatus(v project.Status) *ProjectUpsertOne {
 func (u *ProjectUpsertOne) UpdateStatus() *ProjectUpsertOne {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetQuota sets the "quota" field.
+func (u *ProjectUpsertOne) SetQuota(v int64) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetQuota(v)
+	})
+}
+
+// AddQuota adds v to the "quota" field.
+func (u *ProjectUpsertOne) AddQuota(v int64) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.AddQuota(v)
+	})
+}
+
+// UpdateQuota sets the "quota" field to the value that was provided on create.
+func (u *ProjectUpsertOne) UpdateQuota() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateQuota()
+	})
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (u *ProjectUpsertOne) SetUsedQuota(v int64) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetUsedQuota(v)
+	})
+}
+
+// AddUsedQuota adds v to the "used_quota" field.
+func (u *ProjectUpsertOne) AddUsedQuota(v int64) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.AddUsedQuota(v)
+	})
+}
+
+// UpdateUsedQuota sets the "used_quota" field to the value that was provided on create.
+func (u *ProjectUpsertOne) UpdateUsedQuota() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateUsedQuota()
+	})
+}
+
+// SetGroup sets the "group" field.
+func (u *ProjectUpsertOne) SetGroup(v string) *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetGroup(v)
+	})
+}
+
+// UpdateGroup sets the "group" field to the value that was provided on create.
+func (u *ProjectUpsertOne) UpdateGroup() *ProjectUpsertOne {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateGroup()
 	})
 }
 
@@ -1025,6 +1268,62 @@ func (u *ProjectUpsertBulk) SetStatus(v project.Status) *ProjectUpsertBulk {
 func (u *ProjectUpsertBulk) UpdateStatus() *ProjectUpsertBulk {
 	return u.Update(func(s *ProjectUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetQuota sets the "quota" field.
+func (u *ProjectUpsertBulk) SetQuota(v int64) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetQuota(v)
+	})
+}
+
+// AddQuota adds v to the "quota" field.
+func (u *ProjectUpsertBulk) AddQuota(v int64) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.AddQuota(v)
+	})
+}
+
+// UpdateQuota sets the "quota" field to the value that was provided on create.
+func (u *ProjectUpsertBulk) UpdateQuota() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateQuota()
+	})
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (u *ProjectUpsertBulk) SetUsedQuota(v int64) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetUsedQuota(v)
+	})
+}
+
+// AddUsedQuota adds v to the "used_quota" field.
+func (u *ProjectUpsertBulk) AddUsedQuota(v int64) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.AddUsedQuota(v)
+	})
+}
+
+// UpdateUsedQuota sets the "used_quota" field to the value that was provided on create.
+func (u *ProjectUpsertBulk) UpdateUsedQuota() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateUsedQuota()
+	})
+}
+
+// SetGroup sets the "group" field.
+func (u *ProjectUpsertBulk) SetGroup(v string) *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.SetGroup(v)
+	})
+}
+
+// UpdateGroup sets the "group" field to the value that was provided on create.
+func (u *ProjectUpsertBulk) UpdateGroup() *ProjectUpsertBulk {
+	return u.Update(func(s *ProjectUpsert) {
+		s.UpdateGroup()
 	})
 }
 

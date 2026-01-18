@@ -7,7 +7,47 @@
       "brand": "品牌",
       "storage": "存储",
       "retry": "重试",
+      "redemption": "兑换码",
+      "billing": "消费统计",
+      "sensitiveWords": "屏蔽词",
       "about": "关于"
+    },
+    "billingStats": {
+      "title": "消费统计",
+      "description": "按项目、模型与日期聚合消费数据。",
+      "filters": {
+        "projectId": "项目 ID",
+        "projectPlaceholder": "项目 ID",
+        "model": "模型",
+        "modelPlaceholder": "模型名称",
+        "startDate": "开始日期",
+        "endDate": "结束日期"
+      },
+      "actions": {
+        "apply": "应用筛选",
+        "reset": "重置",
+        "export": "导出 CSV"
+      },
+      "table": {
+        "columns": {
+          "projectId": "项目",
+          "model": "模型",
+          "date": "日期",
+          "count": "请求数",
+          "quota": "额度",
+          "promptTokens": "提示词令牌",
+          "completionTokens": "补全令牌",
+          "totalTokens": "总令牌"
+        },
+        "empty": "暂无统计数据。"
+      },
+      "errors": {
+        "load": "获取消费统计失败。",
+        "export": "导出消费统计失败。"
+      },
+      "messages": {
+        "exported": "已开始导出。"
+      }
     },
     "storage": {
       "dataStorage": {
@@ -100,6 +140,124 @@
       "retryDelayMs": {
         "label": "重试延迟",
         "description": "重试间隔时间，单位毫秒 (100-10000ms)。较短的延迟提供更快的恢复速度，但可能会压倒 struggling 服务。较长的延迟给服务更多时间恢复。"
+      }
+    },
+    "redemption": {
+      "title": "兑换码管理",
+      "description": "生成、作废并管理兑换码。",
+      "generate": {
+        "title": "生成兑换码",
+        "description": "创建用于项目额度的兑换码。",
+        "count": "数量",
+        "quota": "额度",
+        "maxUses": "最大使用次数",
+        "expiresAt": "过期时间",
+        "submit": "生成",
+        "latest": "最新生成的兑换码",
+        "clear": "清空"
+      },
+      "filters": {
+        "code": "兑换码",
+        "codePlaceholder": "搜索兑换码",
+        "status": "状态",
+        "voided": "是否作废",
+        "expired": "是否过期",
+        "usedBy": "使用人",
+        "all": "全部",
+        "yes": "是",
+        "no": "否",
+        "reset": "重置"
+      },
+      "status": {
+        "active": "可用",
+        "used": "已使用",
+        "disabled": "已禁用"
+      },
+      "table": {
+        "columns": {
+          "id": "ID",
+          "code": "兑换码",
+          "quota": "额度",
+          "status": "状态",
+          "uses": "使用次数",
+          "expiresAt": "过期时间",
+          "voided": "作废",
+          "usedBy": "使用人",
+          "actions": "操作"
+        },
+        "empty": "暂无兑换码记录。",
+        "unlimited": "不限",
+        "pagination": "显示 {{start}}-{{end}}"
+      },
+      "actions": {
+        "void": "作废",
+        "delete": "删除"
+      },
+      "dialogs": {
+        "void": {
+          "title": "作废兑换码？",
+          "description": "作废后，该兑换码将无法继续使用。"
+        },
+        "delete": {
+          "title": "删除兑换码？",
+          "description": "此操作无法撤销。"
+        }
+      },
+      "messages": {
+        "generated": "已生成 {{count}} 个兑换码。",
+        "voided": "兑换码已作废。",
+        "deleted": "兑换码已删除。"
+      },
+      "errors": {
+        "load": "获取兑换码失败。",
+        "generate": "生成兑换码失败。",
+        "void": "作废兑换码失败。",
+        "delete": "删除兑换码失败。"
+      }
+    },
+    "sensitiveWords": {
+      "title": "屏蔽词设置",
+      "description": "命中这些词的请求将被拦截。",
+      "form": {
+        "wordLabel": "词语或短语",
+        "wordPlaceholder": "输入词语或短语",
+        "typeLabel": "处理方式",
+        "typePlaceholder": "选择处理方式",
+        "add": "添加屏蔽词"
+      },
+      "types": {
+        "block": "拦截",
+        "replace": "替换"
+      },
+      "filters": {
+        "searchLabel": "搜索",
+        "searchPlaceholder": "搜索词语..."
+      },
+      "table": {
+        "title": "词库",
+        "description": "管理请求过滤所使用的词库。",
+        "columns": {
+          "word": "词语",
+          "type": "处理方式",
+          "createdAt": "创建时间",
+          "actions": "操作"
+        },
+        "empty": "暂无屏蔽词。"
+      },
+      "dialogs": {
+        "delete": {
+          "title": "删除屏蔽词？",
+          "description": "此操作无法撤销。"
+        }
+      },
+      "messages": {
+        "added": "屏蔽词已添加。",
+        "deleted": "屏蔽词已删除。"
+      },
+      "errors": {
+        "load": "获取屏蔽词失败。",
+        "add": "添加屏蔽词失败。",
+        "delete": "删除屏蔽词失败。"
       }
     },
     "onboarding": {

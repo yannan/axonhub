@@ -86,7 +86,7 @@ func (Request) Fields() []ent.Field {
 		// External ID for tracking requests in external systems
 		field.String("external_id").Optional(),
 		// The status of the request.
-		field.Enum("status").Values("pending", "processing", "completed", "failed", "canceled"),
+		field.Enum("status").Values("pending", "processing", "completed", "failed", "canceled", "blocked"),
 		// Whether the request is a streaming request
 		field.Bool("stream").Default(false).Immutable(),
 		// Total latency in milliseconds from request start to completion

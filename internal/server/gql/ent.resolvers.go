@@ -80,6 +80,21 @@ func (r *channelPerformanceResolver) ChannelID(ctx context.Context, obj *ent.Cha
 }
 
 // ID is the resolver for the id field.
+func (r *consumptionRecordResolver) ID(ctx context.Context, obj *ent.ConsumptionRecord) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
+}
+
+// UserID is the resolver for the userID field.
+func (r *consumptionRecordResolver) UserID(ctx context.Context, obj *ent.ConsumptionRecord) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: UserID - userID"))
+}
+
+// ProjectID is the resolver for the projectID field.
+func (r *consumptionRecordResolver) ProjectID(ctx context.Context, obj *ent.ConsumptionRecord) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ProjectID - projectID"))
+}
+
+// ID is the resolver for the id field.
 func (r *dataStorageResolver) ID(ctx context.Context, obj *ent.DataStorage) (*objects.GUID, error) {
 	return &objects.GUID{
 		Type: ent.TypeDataStorage,
@@ -93,6 +108,11 @@ func (r *modelResolver) ID(ctx context.Context, obj *ent.Model) (*objects.GUID, 
 		Type: ent.TypeModel,
 		ID:   obj.ID,
 	}, nil
+}
+
+// ID is the resolver for the id field.
+func (r *modelPricingResolver) ID(ctx context.Context, obj *ent.ModelPricing) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
 }
 
 // ID is the resolver for the id field.
@@ -148,6 +168,11 @@ func (r *queryResolver) ChannelOverrideTemplates(ctx context.Context, after *ent
 	panic(fmt.Errorf("not implemented: ChannelOverrideTemplates - channelOverrideTemplates"))
 }
 
+// ConsumptionRecords is the resolver for the consumptionRecords field.
+func (r *queryResolver) ConsumptionRecords(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.ConsumptionRecordOrder, where *ent.ConsumptionRecordWhereInput) (*ent.ConsumptionRecordConnection, error) {
+	panic(fmt.Errorf("not implemented: ConsumptionRecords - consumptionRecords"))
+}
+
 // DataStorages is the resolver for the dataStorages field.
 func (r *queryResolver) DataStorages(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.DataStorageOrder, where *ent.DataStorageWhereInput) (*ent.DataStorageConnection, error) {
 	if err := validatePaginationArgs(first, last); err != nil {
@@ -168,6 +193,11 @@ func (r *queryResolver) Models(ctx context.Context, after *entgql.Cursor[int], f
 	)
 }
 
+// ModelPricings is the resolver for the modelPricings field.
+func (r *queryResolver) ModelPricings(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.ModelPricingOrder, where *ent.ModelPricingWhereInput) (*ent.ModelPricingConnection, error) {
+	panic(fmt.Errorf("not implemented: ModelPricings - modelPricings"))
+}
+
 // Projects is the resolver for the projects field.
 func (r *queryResolver) Projects(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.ProjectOrder, where *ent.ProjectWhereInput) (*ent.ProjectConnection, error) {
 	if err := validatePaginationArgs(first, last); err != nil {
@@ -178,6 +208,16 @@ func (r *queryResolver) Projects(ctx context.Context, after *entgql.Cursor[int],
 		ent.WithProjectOrder(orderBy),
 		ent.WithProjectFilter(where.Filter),
 	)
+}
+
+// RechargeRecords is the resolver for the rechargeRecords field.
+func (r *queryResolver) RechargeRecords(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.RechargeRecordOrder, where *ent.RechargeRecordWhereInput) (*ent.RechargeRecordConnection, error) {
+	panic(fmt.Errorf("not implemented: RechargeRecords - rechargeRecords"))
+}
+
+// RedemptionCodes is the resolver for the redemptionCodes field.
+func (r *queryResolver) RedemptionCodes(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.RedemptionCodeOrder, where *ent.RedemptionCodeWhereInput) (*ent.RedemptionCodeConnection, error) {
+	panic(fmt.Errorf("not implemented: RedemptionCodes - redemptionCodes"))
 }
 
 // Requests is the resolver for the requests field.
@@ -204,6 +244,11 @@ func (r *queryResolver) Roles(ctx context.Context, after *entgql.Cursor[int], fi
 	)
 }
 
+// SensitiveWords is the resolver for the sensitiveWords field.
+func (r *queryResolver) SensitiveWords(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.SensitiveWordOrder, where *ent.SensitiveWordWhereInput) (*ent.SensitiveWordConnection, error) {
+	panic(fmt.Errorf("not implemented: SensitiveWords - sensitiveWords"))
+}
+
 // Systems is the resolver for the systems field.
 func (r *queryResolver) Systems(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.SystemOrder, where *ent.SystemWhereInput) (*ent.SystemConnection, error) {
 	if err := validatePaginationArgs(first, last); err != nil {
@@ -214,6 +259,11 @@ func (r *queryResolver) Systems(ctx context.Context, after *entgql.Cursor[int], 
 		ent.WithSystemOrder(orderBy),
 		ent.WithSystemFilter(where.Filter),
 	)
+}
+
+// SystemSettingsSlice is the resolver for the systemSettingsSlice field.
+func (r *queryResolver) SystemSettingsSlice(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.SystemSettingsOrder, where *ent.SystemSettingsWhereInput) (*ent.SystemSettingsConnection, error) {
+	panic(fmt.Errorf("not implemented: SystemSettingsSlice - systemSettingsSlice"))
 }
 
 // Threads is the resolver for the threads field.
@@ -262,6 +312,36 @@ func (r *queryResolver) Users(ctx context.Context, after *entgql.Cursor[int], fi
 		ent.WithUserOrder(orderBy),
 		ent.WithUserFilter(where.Filter),
 	)
+}
+
+// ID is the resolver for the id field.
+func (r *rechargeRecordResolver) ID(ctx context.Context, obj *ent.RechargeRecord) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
+}
+
+// UserID is the resolver for the userID field.
+func (r *rechargeRecordResolver) UserID(ctx context.Context, obj *ent.RechargeRecord) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: UserID - userID"))
+}
+
+// ProjectID is the resolver for the projectID field.
+func (r *rechargeRecordResolver) ProjectID(ctx context.Context, obj *ent.RechargeRecord) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ProjectID - projectID"))
+}
+
+// CodeID is the resolver for the codeID field.
+func (r *rechargeRecordResolver) CodeID(ctx context.Context, obj *ent.RechargeRecord) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: CodeID - codeID"))
+}
+
+// ID is the resolver for the id field.
+func (r *redemptionCodeResolver) ID(ctx context.Context, obj *ent.RedemptionCode) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
+}
+
+// UsedBy is the resolver for the usedBy field.
+func (r *redemptionCodeResolver) UsedBy(ctx context.Context, obj *ent.RedemptionCode) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: UsedBy - usedBy"))
 }
 
 // ID is the resolver for the id field.
@@ -472,11 +552,21 @@ func (r *roleResolver) UserRoles(ctx context.Context, obj *ent.Role) ([]*ent.Use
 }
 
 // ID is the resolver for the id field.
+func (r *sensitiveWordResolver) ID(ctx context.Context, obj *ent.SensitiveWord) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
+}
+
+// ID is the resolver for the id field.
 func (r *systemResolver) ID(ctx context.Context, obj *ent.System) (*objects.GUID, error) {
 	return &objects.GUID{
 		Type: ent.TypeSystem,
 		ID:   obj.ID,
 	}, nil
+}
+
+// ID is the resolver for the id field.
+func (r *systemSettingsResolver) ID(ctx context.Context, obj *ent.SystemSettings) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: ID - id"))
 }
 
 // ID is the resolver for the id field.
@@ -533,6 +623,11 @@ func (r *usageLogResolver) RequestID(ctx context.Context, obj *ent.UsageLog) (*o
 		Type: ent.TypeRequest,
 		ID:   obj.RequestID,
 	}, nil
+}
+
+// APIKeyID is the resolver for the apiKeyID field.
+func (r *usageLogResolver) APIKeyID(ctx context.Context, obj *ent.UsageLog) (*objects.GUID, error) {
+	panic(fmt.Errorf("not implemented: APIKeyID - apiKeyID"))
 }
 
 // ProjectID is the resolver for the projectID field.
@@ -638,17 +733,31 @@ func (r *Resolver) ChannelPerformance() ChannelPerformanceResolver {
 	return &channelPerformanceResolver{r}
 }
 
+// ConsumptionRecord returns ConsumptionRecordResolver implementation.
+func (r *Resolver) ConsumptionRecord() ConsumptionRecordResolver {
+	return &consumptionRecordResolver{r}
+}
+
 // DataStorage returns DataStorageResolver implementation.
 func (r *Resolver) DataStorage() DataStorageResolver { return &dataStorageResolver{r} }
 
 // Model returns ModelResolver implementation.
 func (r *Resolver) Model() ModelResolver { return &modelResolver{r} }
 
+// ModelPricing returns ModelPricingResolver implementation.
+func (r *Resolver) ModelPricing() ModelPricingResolver { return &modelPricingResolver{r} }
+
 // Project returns ProjectResolver implementation.
 func (r *Resolver) Project() ProjectResolver { return &projectResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
+
+// RechargeRecord returns RechargeRecordResolver implementation.
+func (r *Resolver) RechargeRecord() RechargeRecordResolver { return &rechargeRecordResolver{r} }
+
+// RedemptionCode returns RedemptionCodeResolver implementation.
+func (r *Resolver) RedemptionCode() RedemptionCodeResolver { return &redemptionCodeResolver{r} }
 
 // Request returns RequestResolver implementation.
 func (r *Resolver) Request() RequestResolver { return &requestResolver{r} }
@@ -659,8 +768,14 @@ func (r *Resolver) RequestExecution() RequestExecutionResolver { return &request
 // Role returns RoleResolver implementation.
 func (r *Resolver) Role() RoleResolver { return &roleResolver{r} }
 
+// SensitiveWord returns SensitiveWordResolver implementation.
+func (r *Resolver) SensitiveWord() SensitiveWordResolver { return &sensitiveWordResolver{r} }
+
 // System returns SystemResolver implementation.
 func (r *Resolver) System() SystemResolver { return &systemResolver{r} }
+
+// SystemSettings returns SystemSettingsResolver implementation.
+func (r *Resolver) SystemSettings() SystemSettingsResolver { return &systemSettingsResolver{r} }
 
 // Thread returns ThreadResolver implementation.
 func (r *Resolver) Thread() ThreadResolver { return &threadResolver{r} }
@@ -684,14 +799,20 @@ type aPIKeyResolver struct{ *Resolver }
 type channelResolver struct{ *Resolver }
 type channelOverrideTemplateResolver struct{ *Resolver }
 type channelPerformanceResolver struct{ *Resolver }
+type consumptionRecordResolver struct{ *Resolver }
 type dataStorageResolver struct{ *Resolver }
 type modelResolver struct{ *Resolver }
+type modelPricingResolver struct{ *Resolver }
 type projectResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type rechargeRecordResolver struct{ *Resolver }
+type redemptionCodeResolver struct{ *Resolver }
 type requestResolver struct{ *Resolver }
 type requestExecutionResolver struct{ *Resolver }
 type roleResolver struct{ *Resolver }
+type sensitiveWordResolver struct{ *Resolver }
 type systemResolver struct{ *Resolver }
+type systemSettingsResolver struct{ *Resolver }
 type threadResolver struct{ *Resolver }
 type traceResolver struct{ *Resolver }
 type usageLogResolver struct{ *Resolver }

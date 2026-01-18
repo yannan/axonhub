@@ -1,14 +1,18 @@
 package middleware
 
 import (
+	"context"
 	"errors"
+	"net"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/looplj/axonhub/internal/contexts"
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/request"
+	"github.com/looplj/axonhub/internal/log"
 	"github.com/looplj/axonhub/internal/server/biz"
 )
 
@@ -39,6 +43,11 @@ func WithAPIKeyConfig(auth *biz.AuthService, config *APIKeyConfig) gin.HandlerFu
 		}
 
 		// 将 API key entity 保存到 context 中
+		if !ipAllowed(apiKey.IPWhitelist, c.ClientIP()) {
+			AbortWithError(c, http.StatusUnauthorized, errors.New("IP not allowed"))
+			return
+		}
+
 		ctx := contexts.WithAPIKey(c.Request.Context(), apiKey)
 
 		if apiKey.Edges.Project != nil {
@@ -50,6 +59,44 @@ func WithAPIKeyConfig(auth *biz.AuthService, config *APIKeyConfig) gin.HandlerFu
 		// 继续处理请求
 		c.Next()
 	}
+}
+
+func ipAllowed(whitelist string, clientIP string) bool {
+	whitelist = strings.TrimSpace(whitelist)
+	if whitelist == "" {
+		return true
+	}
+	ip := net.ParseIP(clientIP)
+	if ip == nil {
+		return false
+	}
+
+	for _, line := range strings.Split(whitelist, "\n") {
+		entry := strings.TrimSpace(line)
+		if entry == "" {
+			continue
+		}
+		if strings.Contains(entry, "/") {
+			_, cidr, err := net.ParseCIDR(entry)
+			if err != nil {
+				log.Warn(context.Background(), "invalid ip whitelist cidr", log.Any("entry", entry))
+				continue
+			}
+			if cidr.Contains(ip) {
+				return true
+			}
+			continue
+		}
+		parsed := net.ParseIP(entry)
+		if parsed == nil {
+			log.Warn(context.Background(), "invalid ip whitelist entry", log.Any("entry", entry))
+			continue
+		}
+		if parsed.Equal(ip) {
+			return true
+		}
+	}
+	return false
 }
 
 func WithJWTAuth(auth *biz.AuthService) gin.HandlerFunc {

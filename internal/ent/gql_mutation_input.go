@@ -3,13 +3,18 @@
 package ent
 
 import (
+	"time"
+
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelpricing"
 	"github.com/looplj/axonhub/internal/ent/project"
+	"github.com/looplj/axonhub/internal/ent/redemptioncode"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/role"
+	"github.com/looplj/axonhub/internal/ent/sensitiveword"
 	"github.com/looplj/axonhub/internal/ent/usagelog"
 	"github.com/looplj/axonhub/internal/ent/user"
 	"github.com/looplj/axonhub/internal/objects"
@@ -17,10 +22,11 @@ import (
 
 // CreateAPIKeyInput represents a mutation input for creating apikeys.
 type CreateAPIKeyInput struct {
-	Name      string
-	Type      *apikey.Type
-	Scopes    []string
-	ProjectID int
+	Name        string
+	Type        *apikey.Type
+	Scopes      []string
+	IPWhitelist *string
+	ProjectID   int
 }
 
 // Mutate applies the CreateAPIKeyInput on the APIKeyMutation builder.
@@ -31,6 +37,9 @@ func (i *CreateAPIKeyInput) Mutate(m *APIKeyMutation) {
 	}
 	if v := i.Scopes; v != nil {
 		m.SetScopes(v)
+	}
+	if v := i.IPWhitelist; v != nil {
+		m.SetIPWhitelist(*v)
 	}
 	m.SetProjectID(i.ProjectID)
 }
@@ -43,10 +52,12 @@ func (c *APIKeyCreate) SetInput(i CreateAPIKeyInput) *APIKeyCreate {
 
 // UpdateAPIKeyInput represents a mutation input for updating apikeys.
 type UpdateAPIKeyInput struct {
-	Name         *string
-	ClearScopes  bool
-	Scopes       []string
-	AppendScopes []string
+	Name             *string
+	ClearScopes      bool
+	Scopes           []string
+	AppendScopes     []string
+	ClearIPWhitelist bool
+	IPWhitelist      *string
 }
 
 // Mutate applies the UpdateAPIKeyInput on the APIKeyMutation builder.
@@ -62,6 +73,12 @@ func (i *UpdateAPIKeyInput) Mutate(m *APIKeyMutation) {
 	}
 	if i.AppendScopes != nil {
 		m.AppendScopes(i.Scopes)
+	}
+	if i.ClearIPWhitelist {
+		m.ClearIPWhitelist()
+	}
+	if v := i.IPWhitelist; v != nil {
+		m.SetIPWhitelist(*v)
 	}
 }
 
@@ -90,6 +107,7 @@ type CreateChannelInput struct {
 	Settings                *objects.ChannelSettings
 	OrderingWeight          *int
 	Remark                  *string
+	Group                   *string
 }
 
 // Mutate applies the CreateChannelInput on the ChannelMutation builder.
@@ -121,6 +139,9 @@ func (i *CreateChannelInput) Mutate(m *ChannelMutation) {
 	if v := i.Remark; v != nil {
 		m.SetRemark(*v)
 	}
+	if v := i.Group; v != nil {
+		m.SetGroup(*v)
+	}
 }
 
 // SetInput applies the change-set in the CreateChannelInput on the ChannelCreate builder.
@@ -150,6 +171,7 @@ type UpdateChannelInput struct {
 	ErrorMessage            *string
 	ClearRemark             bool
 	Remark                  *string
+	Group                   *string
 }
 
 // Mutate applies the UpdateChannelInput on the ChannelMutation builder.
@@ -210,6 +232,9 @@ func (i *UpdateChannelInput) Mutate(m *ChannelMutation) {
 	}
 	if v := i.Remark; v != nil {
 		m.SetRemark(*v)
+	}
+	if v := i.Group; v != nil {
+		m.SetGroup(*v)
 	}
 }
 
@@ -459,11 +484,86 @@ func (c *ModelUpdateOne) SetInput(i UpdateModelInput) *ModelUpdateOne {
 	return c
 }
 
+// CreateModelPricingInput represents a mutation input for creating modelpricings.
+type CreateModelPricingInput struct {
+	Model           string
+	Type            *modelpricing.Type
+	Quota           *float64
+	CompletionRatio *float64
+	Price           *float64
+}
+
+// Mutate applies the CreateModelPricingInput on the ModelPricingMutation builder.
+func (i *CreateModelPricingInput) Mutate(m *ModelPricingMutation) {
+	m.SetModel(i.Model)
+	if v := i.Type; v != nil {
+		m.SetType(*v)
+	}
+	if v := i.Quota; v != nil {
+		m.SetQuota(*v)
+	}
+	if v := i.CompletionRatio; v != nil {
+		m.SetCompletionRatio(*v)
+	}
+	if v := i.Price; v != nil {
+		m.SetPrice(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateModelPricingInput on the ModelPricingCreate builder.
+func (c *ModelPricingCreate) SetInput(i CreateModelPricingInput) *ModelPricingCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateModelPricingInput represents a mutation input for updating modelpricings.
+type UpdateModelPricingInput struct {
+	Model           *string
+	Type            *modelpricing.Type
+	Quota           *float64
+	CompletionRatio *float64
+	Price           *float64
+}
+
+// Mutate applies the UpdateModelPricingInput on the ModelPricingMutation builder.
+func (i *UpdateModelPricingInput) Mutate(m *ModelPricingMutation) {
+	if v := i.Model; v != nil {
+		m.SetModel(*v)
+	}
+	if v := i.Type; v != nil {
+		m.SetType(*v)
+	}
+	if v := i.Quota; v != nil {
+		m.SetQuota(*v)
+	}
+	if v := i.CompletionRatio; v != nil {
+		m.SetCompletionRatio(*v)
+	}
+	if v := i.Price; v != nil {
+		m.SetPrice(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateModelPricingInput on the ModelPricingUpdate builder.
+func (c *ModelPricingUpdate) SetInput(i UpdateModelPricingInput) *ModelPricingUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateModelPricingInput on the ModelPricingUpdateOne builder.
+func (c *ModelPricingUpdateOne) SetInput(i UpdateModelPricingInput) *ModelPricingUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateProjectInput represents a mutation input for creating projects.
 type CreateProjectInput struct {
 	Name        string
 	Description *string
 	Status      *project.Status
+	Quota       *int64
+	UsedQuota   *int64
+	Group       *string
 	UserIDs     []int
 }
 
@@ -475,6 +575,15 @@ func (i *CreateProjectInput) Mutate(m *ProjectMutation) {
 	}
 	if v := i.Status; v != nil {
 		m.SetStatus(*v)
+	}
+	if v := i.Quota; v != nil {
+		m.SetQuota(*v)
+	}
+	if v := i.UsedQuota; v != nil {
+		m.SetUsedQuota(*v)
+	}
+	if v := i.Group; v != nil {
+		m.SetGroup(*v)
 	}
 	if v := i.UserIDs; len(v) > 0 {
 		m.AddUserIDs(v...)
@@ -492,6 +601,9 @@ type UpdateProjectInput struct {
 	Name          *string
 	Description   *string
 	Status        *project.Status
+	Quota         *int64
+	UsedQuota     *int64
+	Group         *string
 	ClearUsers    bool
 	AddUserIDs    []int
 	RemoveUserIDs []int
@@ -507,6 +619,15 @@ func (i *UpdateProjectInput) Mutate(m *ProjectMutation) {
 	}
 	if v := i.Status; v != nil {
 		m.SetStatus(*v)
+	}
+	if v := i.Quota; v != nil {
+		m.SetQuota(*v)
+	}
+	if v := i.UsedQuota; v != nil {
+		m.SetUsedQuota(*v)
+	}
+	if v := i.Group; v != nil {
+		m.SetGroup(*v)
 	}
 	if i.ClearUsers {
 		m.ClearUsers()
@@ -527,6 +648,136 @@ func (c *ProjectUpdate) SetInput(i UpdateProjectInput) *ProjectUpdate {
 
 // SetInput applies the change-set in the UpdateProjectInput on the ProjectUpdateOne builder.
 func (c *ProjectUpdateOne) SetInput(i UpdateProjectInput) *ProjectUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateRedemptionCodeInput represents a mutation input for creating redemptioncodes.
+type CreateRedemptionCodeInput struct {
+	Code              string
+	Quota             int
+	Status            *redemptioncode.Status
+	ExpiresAt         *time.Time
+	MaxUses           *int
+	UsedTimes         *int
+	Voided            *bool
+	UsedAt            *time.Time
+	UserID            *int
+	RechargeRecordIDs []int
+}
+
+// Mutate applies the CreateRedemptionCodeInput on the RedemptionCodeMutation builder.
+func (i *CreateRedemptionCodeInput) Mutate(m *RedemptionCodeMutation) {
+	m.SetCode(i.Code)
+	m.SetQuota(i.Quota)
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if v := i.ExpiresAt; v != nil {
+		m.SetExpiresAt(*v)
+	}
+	if v := i.MaxUses; v != nil {
+		m.SetMaxUses(*v)
+	}
+	if v := i.UsedTimes; v != nil {
+		m.SetUsedTimes(*v)
+	}
+	if v := i.Voided; v != nil {
+		m.SetVoided(*v)
+	}
+	if v := i.UsedAt; v != nil {
+		m.SetUsedAt(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if v := i.RechargeRecordIDs; len(v) > 0 {
+		m.AddRechargeRecordIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateRedemptionCodeInput on the RedemptionCodeCreate builder.
+func (c *RedemptionCodeCreate) SetInput(i CreateRedemptionCodeInput) *RedemptionCodeCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateRedemptionCodeInput represents a mutation input for updating redemptioncodes.
+type UpdateRedemptionCodeInput struct {
+	Code                    *string
+	Quota                   *int
+	Status                  *redemptioncode.Status
+	ClearExpiresAt          bool
+	ExpiresAt               *time.Time
+	MaxUses                 *int
+	UsedTimes               *int
+	Voided                  *bool
+	ClearUsedAt             bool
+	UsedAt                  *time.Time
+	ClearUser               bool
+	UserID                  *int
+	ClearRechargeRecords    bool
+	AddRechargeRecordIDs    []int
+	RemoveRechargeRecordIDs []int
+}
+
+// Mutate applies the UpdateRedemptionCodeInput on the RedemptionCodeMutation builder.
+func (i *UpdateRedemptionCodeInput) Mutate(m *RedemptionCodeMutation) {
+	if v := i.Code; v != nil {
+		m.SetCode(*v)
+	}
+	if v := i.Quota; v != nil {
+		m.SetQuota(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if i.ClearExpiresAt {
+		m.ClearExpiresAt()
+	}
+	if v := i.ExpiresAt; v != nil {
+		m.SetExpiresAt(*v)
+	}
+	if v := i.MaxUses; v != nil {
+		m.SetMaxUses(*v)
+	}
+	if v := i.UsedTimes; v != nil {
+		m.SetUsedTimes(*v)
+	}
+	if v := i.Voided; v != nil {
+		m.SetVoided(*v)
+	}
+	if i.ClearUsedAt {
+		m.ClearUsedAt()
+	}
+	if v := i.UsedAt; v != nil {
+		m.SetUsedAt(*v)
+	}
+	if i.ClearUser {
+		m.ClearUser()
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if i.ClearRechargeRecords {
+		m.ClearRechargeRecords()
+	}
+	if v := i.AddRechargeRecordIDs; len(v) > 0 {
+		m.AddRechargeRecordIDs(v...)
+	}
+	if v := i.RemoveRechargeRecordIDs; len(v) > 0 {
+		m.RemoveRechargeRecordIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateRedemptionCodeInput on the RedemptionCodeUpdate builder.
+func (c *RedemptionCodeUpdate) SetInput(i UpdateRedemptionCodeInput) *RedemptionCodeUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateRedemptionCodeInput on the RedemptionCodeUpdateOne builder.
+func (c *RedemptionCodeUpdateOne) SetInput(i UpdateRedemptionCodeInput) *RedemptionCodeUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }
@@ -787,6 +1038,54 @@ func (c *RoleUpdateOne) SetInput(i UpdateRoleInput) *RoleUpdateOne {
 	return c
 }
 
+// CreateSensitiveWordInput represents a mutation input for creating sensitivewords.
+type CreateSensitiveWordInput struct {
+	Word string
+	Type *sensitiveword.Type
+}
+
+// Mutate applies the CreateSensitiveWordInput on the SensitiveWordMutation builder.
+func (i *CreateSensitiveWordInput) Mutate(m *SensitiveWordMutation) {
+	m.SetWord(i.Word)
+	if v := i.Type; v != nil {
+		m.SetType(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateSensitiveWordInput on the SensitiveWordCreate builder.
+func (c *SensitiveWordCreate) SetInput(i CreateSensitiveWordInput) *SensitiveWordCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateSensitiveWordInput represents a mutation input for updating sensitivewords.
+type UpdateSensitiveWordInput struct {
+	Word *string
+	Type *sensitiveword.Type
+}
+
+// Mutate applies the UpdateSensitiveWordInput on the SensitiveWordMutation builder.
+func (i *UpdateSensitiveWordInput) Mutate(m *SensitiveWordMutation) {
+	if v := i.Word; v != nil {
+		m.SetWord(*v)
+	}
+	if v := i.Type; v != nil {
+		m.SetType(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateSensitiveWordInput on the SensitiveWordUpdate builder.
+func (c *SensitiveWordUpdate) SetInput(i UpdateSensitiveWordInput) *SensitiveWordUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateSensitiveWordInput on the SensitiveWordUpdateOne builder.
+func (c *SensitiveWordUpdateOne) SetInput(i UpdateSensitiveWordInput) *SensitiveWordUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateSystemInput represents a mutation input for creating systems.
 type CreateSystemInput struct {
 	Key   string
@@ -829,6 +1128,66 @@ func (c *SystemUpdate) SetInput(i UpdateSystemInput) *SystemUpdate {
 
 // SetInput applies the change-set in the UpdateSystemInput on the SystemUpdateOne builder.
 func (c *SystemUpdateOne) SetInput(i UpdateSystemInput) *SystemUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateSystemSettingsInput represents a mutation input for creating systemsettingsslice.
+type CreateSystemSettingsInput struct {
+	Key         string
+	Value       map[string]interface{}
+	Description *string
+}
+
+// Mutate applies the CreateSystemSettingsInput on the SystemSettingsMutation builder.
+func (i *CreateSystemSettingsInput) Mutate(m *SystemSettingsMutation) {
+	m.SetKey(i.Key)
+	if v := i.Value; v != nil {
+		m.SetValue(v)
+	}
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateSystemSettingsInput on the SystemSettingsCreate builder.
+func (c *SystemSettingsCreate) SetInput(i CreateSystemSettingsInput) *SystemSettingsCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateSystemSettingsInput represents a mutation input for updating systemsettingsslice.
+type UpdateSystemSettingsInput struct {
+	Key              *string
+	Value            map[string]interface{}
+	ClearDescription bool
+	Description      *string
+}
+
+// Mutate applies the UpdateSystemSettingsInput on the SystemSettingsMutation builder.
+func (i *UpdateSystemSettingsInput) Mutate(m *SystemSettingsMutation) {
+	if v := i.Key; v != nil {
+		m.SetKey(*v)
+	}
+	if v := i.Value; v != nil {
+		m.SetValue(v)
+	}
+	if i.ClearDescription {
+		m.ClearDescription()
+	}
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateSystemSettingsInput on the SystemSettingsUpdate builder.
+func (c *SystemSettingsUpdate) SetInput(i UpdateSystemSettingsInput) *SystemSettingsUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateSystemSettingsInput on the SystemSettingsUpdateOne builder.
+func (c *SystemSettingsUpdateOne) SetInput(i UpdateSystemSettingsInput) *SystemSettingsUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }
@@ -878,6 +1237,7 @@ func (c *ThreadUpdateOne) SetInput(i UpdateThreadInput) *ThreadUpdateOne {
 // CreateTraceInput represents a mutation input for creating traces.
 type CreateTraceInput struct {
 	TraceID   string
+	Cost      *int64
 	ProjectID int
 	ThreadID  *int
 }
@@ -885,6 +1245,9 @@ type CreateTraceInput struct {
 // Mutate applies the CreateTraceInput on the TraceMutation builder.
 func (i *CreateTraceInput) Mutate(m *TraceMutation) {
 	m.SetTraceID(i.TraceID)
+	if v := i.Cost; v != nil {
+		m.SetCost(*v)
+	}
 	m.SetProjectID(i.ProjectID)
 	if v := i.ThreadID; v != nil {
 		m.SetThreadID(*v)
@@ -900,12 +1263,16 @@ func (c *TraceCreate) SetInput(i CreateTraceInput) *TraceCreate {
 // UpdateTraceInput represents a mutation input for updating traces.
 type UpdateTraceInput struct {
 	TraceID *string
+	Cost    *int64
 }
 
 // Mutate applies the UpdateTraceInput on the TraceMutation builder.
 func (i *UpdateTraceInput) Mutate(m *TraceMutation) {
 	if v := i.TraceID; v != nil {
 		m.SetTraceID(*v)
+	}
+	if v := i.Cost; v != nil {
+		m.SetCost(*v)
 	}
 }
 
@@ -937,6 +1304,7 @@ type CreateUsageLogInput struct {
 	Source                             *usagelog.Source
 	Format                             *string
 	RequestID                          int
+	APIKeyID                           *int
 	ProjectID                          int
 	ChannelID                          *int
 }
@@ -981,6 +1349,9 @@ func (i *CreateUsageLogInput) Mutate(m *UsageLogMutation) {
 		m.SetFormat(*v)
 	}
 	m.SetRequestID(i.RequestID)
+	if v := i.APIKeyID; v != nil {
+		m.SetAPIKeyID(*v)
+	}
 	m.SetProjectID(i.ProjectID)
 	if v := i.ChannelID; v != nil {
 		m.SetChannelID(*v)
@@ -1091,17 +1462,22 @@ func (c *UsageLogUpdateOne) SetInput(i UpdateUsageLogInput) *UsageLogUpdateOne {
 
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
-	Email          string
-	Status         *user.Status
-	PreferLanguage *string
-	Password       string
-	FirstName      *string
-	LastName       *string
-	Avatar         *string
-	IsOwner        *bool
-	Scopes         []string
-	ProjectIDs     []int
-	RoleIDs        []int
+	Email                string
+	Status               *user.Status
+	PreferLanguage       *string
+	Password             string
+	FirstName            *string
+	LastName             *string
+	Avatar               *string
+	IsOwner              *bool
+	Quota                *int64
+	UsedQuota            *int64
+	Scopes               []string
+	ProjectIDs           []int
+	RoleIDs              []int
+	ConsumptionRecordIDs []int
+	RedemptionCodeIDs    []int
+	RechargeRecordIDs    []int
 }
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
@@ -1126,6 +1502,12 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	if v := i.IsOwner; v != nil {
 		m.SetIsOwner(*v)
 	}
+	if v := i.Quota; v != nil {
+		m.SetQuota(*v)
+	}
+	if v := i.UsedQuota; v != nil {
+		m.SetUsedQuota(*v)
+	}
 	if v := i.Scopes; v != nil {
 		m.SetScopes(v)
 	}
@@ -1134,6 +1516,15 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.RoleIDs; len(v) > 0 {
 		m.AddRoleIDs(v...)
+	}
+	if v := i.ConsumptionRecordIDs; len(v) > 0 {
+		m.AddConsumptionRecordIDs(v...)
+	}
+	if v := i.RedemptionCodeIDs; len(v) > 0 {
+		m.AddRedemptionCodeIDs(v...)
+	}
+	if v := i.RechargeRecordIDs; len(v) > 0 {
+		m.AddRechargeRecordIDs(v...)
 	}
 }
 
@@ -1145,24 +1536,35 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 
 // UpdateUserInput represents a mutation input for updating users.
 type UpdateUserInput struct {
-	Email            *string
-	Status           *user.Status
-	PreferLanguage   *string
-	Password         *string
-	FirstName        *string
-	LastName         *string
-	ClearAvatar      bool
-	Avatar           *string
-	IsOwner          *bool
-	ClearScopes      bool
-	Scopes           []string
-	AppendScopes     []string
-	ClearProjects    bool
-	AddProjectIDs    []int
-	RemoveProjectIDs []int
-	ClearRoles       bool
-	AddRoleIDs       []int
-	RemoveRoleIDs    []int
+	Email                      *string
+	Status                     *user.Status
+	PreferLanguage             *string
+	Password                   *string
+	FirstName                  *string
+	LastName                   *string
+	ClearAvatar                bool
+	Avatar                     *string
+	IsOwner                    *bool
+	Quota                      *int64
+	UsedQuota                  *int64
+	ClearScopes                bool
+	Scopes                     []string
+	AppendScopes               []string
+	ClearProjects              bool
+	AddProjectIDs              []int
+	RemoveProjectIDs           []int
+	ClearRoles                 bool
+	AddRoleIDs                 []int
+	RemoveRoleIDs              []int
+	ClearConsumptionRecords    bool
+	AddConsumptionRecordIDs    []int
+	RemoveConsumptionRecordIDs []int
+	ClearRedemptionCodes       bool
+	AddRedemptionCodeIDs       []int
+	RemoveRedemptionCodeIDs    []int
+	ClearRechargeRecords       bool
+	AddRechargeRecordIDs       []int
+	RemoveRechargeRecordIDs    []int
 }
 
 // Mutate applies the UpdateUserInput on the UserMutation builder.
@@ -1194,6 +1596,12 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	if v := i.IsOwner; v != nil {
 		m.SetIsOwner(*v)
 	}
+	if v := i.Quota; v != nil {
+		m.SetQuota(*v)
+	}
+	if v := i.UsedQuota; v != nil {
+		m.SetUsedQuota(*v)
+	}
 	if i.ClearScopes {
 		m.ClearScopes()
 	}
@@ -1220,6 +1628,33 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.RemoveRoleIDs; len(v) > 0 {
 		m.RemoveRoleIDs(v...)
+	}
+	if i.ClearConsumptionRecords {
+		m.ClearConsumptionRecords()
+	}
+	if v := i.AddConsumptionRecordIDs; len(v) > 0 {
+		m.AddConsumptionRecordIDs(v...)
+	}
+	if v := i.RemoveConsumptionRecordIDs; len(v) > 0 {
+		m.RemoveConsumptionRecordIDs(v...)
+	}
+	if i.ClearRedemptionCodes {
+		m.ClearRedemptionCodes()
+	}
+	if v := i.AddRedemptionCodeIDs; len(v) > 0 {
+		m.AddRedemptionCodeIDs(v...)
+	}
+	if v := i.RemoveRedemptionCodeIDs; len(v) > 0 {
+		m.RemoveRedemptionCodeIDs(v...)
+	}
+	if i.ClearRechargeRecords {
+		m.ClearRechargeRecords()
+	}
+	if v := i.AddRechargeRecordIDs; len(v) > 0 {
+		m.AddRechargeRecordIDs(v...)
+	}
+	if v := i.RemoveRechargeRecordIDs; len(v) > 0 {
+		m.RemoveRechargeRecordIDs(v...)
 	}
 }
 

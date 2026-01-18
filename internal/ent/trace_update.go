@@ -50,6 +50,27 @@ func (_u *TraceUpdate) SetNillableTraceID(v *string) *TraceUpdate {
 	return _u
 }
 
+// SetCost sets the "cost" field.
+func (_u *TraceUpdate) SetCost(v int64) *TraceUpdate {
+	_u.mutation.ResetCost()
+	_u.mutation.SetCost(v)
+	return _u
+}
+
+// SetNillableCost sets the "cost" field if the given value is not nil.
+func (_u *TraceUpdate) SetNillableCost(v *int64) *TraceUpdate {
+	if v != nil {
+		_u.SetCost(*v)
+	}
+	return _u
+}
+
+// AddCost adds value to the "cost" field.
+func (_u *TraceUpdate) AddCost(v int64) *TraceUpdate {
+	_u.mutation.AddCost(v)
+	return _u
+}
+
 // AddRequestIDs adds the "requests" edge to the Request entity by IDs.
 func (_u *TraceUpdate) AddRequestIDs(ids ...int) *TraceUpdate {
 	_u.mutation.AddRequestIDs(ids...)
@@ -165,6 +186,12 @@ func (_u *TraceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.TraceID(); ok {
 		_spec.SetField(trace.FieldTraceID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Cost(); ok {
+		_spec.SetField(trace.FieldCost, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedCost(); ok {
+		_spec.AddField(trace.FieldCost, field.TypeInt64, value)
+	}
 	if _u.mutation.RequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -249,6 +276,27 @@ func (_u *TraceUpdateOne) SetNillableTraceID(v *string) *TraceUpdateOne {
 	if v != nil {
 		_u.SetTraceID(*v)
 	}
+	return _u
+}
+
+// SetCost sets the "cost" field.
+func (_u *TraceUpdateOne) SetCost(v int64) *TraceUpdateOne {
+	_u.mutation.ResetCost()
+	_u.mutation.SetCost(v)
+	return _u
+}
+
+// SetNillableCost sets the "cost" field if the given value is not nil.
+func (_u *TraceUpdateOne) SetNillableCost(v *int64) *TraceUpdateOne {
+	if v != nil {
+		_u.SetCost(*v)
+	}
+	return _u
+}
+
+// AddCost adds value to the "cost" field.
+func (_u *TraceUpdateOne) AddCost(v int64) *TraceUpdateOne {
+	_u.mutation.AddCost(v)
 	return _u
 }
 
@@ -396,6 +444,12 @@ func (_u *TraceUpdateOne) sqlSave(ctx context.Context) (_node *Trace, err error)
 	}
 	if value, ok := _u.mutation.TraceID(); ok {
 		_spec.SetField(trace.FieldTraceID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Cost(); ok {
+		_spec.SetField(trace.FieldCost, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedCost(); ok {
+		_spec.AddField(trace.FieldCost, field.TypeInt64, value)
 	}
 	if _u.mutation.RequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{

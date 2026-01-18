@@ -61,7 +61,7 @@ function getDuplicateBaseName(name: string) {
 function getNextDuplicateName(name: string, existingNames: Set<string>) {
   const baseName = getDuplicateBaseName(name);
   let i = 1;
-  for (;;) {
+  for (; ;) {
     const candidate = `${baseName} (${i})`;
     if (!existingNames.has(candidate)) {
       return candidate;
@@ -211,83 +211,88 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
     return getChannelTypeForApiFormat(selectedProvider, selectedApiFormat) || 'openai';
   }, [isEdit, currentRow, selectedProvider, selectedApiFormat, useGeminiVertex, useAnthropicAws]);
 
-  const formSchema = isEdit ? updateChannelInputSchema : createChannelInputSchema;
+  const formSchema = isEdit
+    ? updateChannelInputSchema.merge(z.object({ group: z.array(z.string()) }))
+    : createChannelInputSchema.merge(z.object({ group: z.array(z.string()).default(['default']) }));
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues:
       isEdit && currentRow
         ? {
-            type: currentRow.type,
-            baseURL: currentRow.baseURL,
-            name: currentRow.name,
-            supportedModels: currentRow.supportedModels,
-            autoSyncSupportedModels: currentRow.autoSyncSupportedModels,
-            defaultTestModel: currentRow.defaultTestModel,
-            tags: currentRow.tags || [],
-            remark: currentRow.remark || '',
+          type: currentRow.type,
+          baseURL: currentRow.baseURL,
+          name: currentRow.name,
+          supportedModels: currentRow.supportedModels,
+          autoSyncSupportedModels: currentRow.autoSyncSupportedModels,
+          defaultTestModel: currentRow.defaultTestModel,
+          tags: currentRow.tags || [],
+          remark: currentRow.remark || '',
+          credentials: {
+            apiKey: currentRow.credentials?.apiKey || '',
+            aws: {
+              accessKeyID: currentRow.credentials?.aws?.accessKeyID || '',
+              secretAccessKey: currentRow.credentials?.aws?.secretAccessKey || '',
+              region: currentRow.credentials?.aws?.region || '',
+            },
+            gcp: {
+              region: currentRow.credentials?.gcp?.region || '',
+              projectID: currentRow.credentials?.gcp?.projectID || '',
+              jsonData: currentRow.credentials?.gcp?.jsonData || '',
+            },
+          },
+          group: currentRow.group ? currentRow.group.split(',') : ['default'],
+        }
+        : duplicateFromRow
+          ? {
+            type: duplicateFromRow.type,
+            baseURL: duplicateFromRow.baseURL,
+            name: duplicateFromRow.name,
+            supportedModels: duplicateFromRow.supportedModels,
+            autoSyncSupportedModels: duplicateFromRow.autoSyncSupportedModels,
+            defaultTestModel: duplicateFromRow.defaultTestModel,
+            tags: duplicateFromRow.tags || [],
+            remark: duplicateFromRow.remark || '',
+            group: duplicateFromRow.group ? duplicateFromRow.group.split(',') : ['default'],
+            settings: duplicateFromRow.settings ?? undefined,
             credentials: {
-              apiKey: currentRow.credentials?.apiKey || '',
+              apiKey: duplicateFromRow.credentials?.apiKey || '',
               aws: {
-                accessKeyID: currentRow.credentials?.aws?.accessKeyID || '',
-                secretAccessKey: currentRow.credentials?.aws?.secretAccessKey || '',
-                region: currentRow.credentials?.aws?.region || '',
+                accessKeyID: duplicateFromRow.credentials?.aws?.accessKeyID || '',
+                secretAccessKey: duplicateFromRow.credentials?.aws?.secretAccessKey || '',
+                region: duplicateFromRow.credentials?.aws?.region || '',
               },
               gcp: {
-                region: currentRow.credentials?.gcp?.region || '',
-                projectID: currentRow.credentials?.gcp?.projectID || '',
-                jsonData: currentRow.credentials?.gcp?.jsonData || '',
+                region: duplicateFromRow.credentials?.gcp?.region || '',
+                projectID: duplicateFromRow.credentials?.gcp?.projectID || '',
+                jsonData: duplicateFromRow.credentials?.gcp?.jsonData || '',
               },
             },
           }
-        : duplicateFromRow
-          ? {
-              type: duplicateFromRow.type,
-              baseURL: duplicateFromRow.baseURL,
-              name: duplicateFromRow.name,
-              supportedModels: duplicateFromRow.supportedModels,
-              autoSyncSupportedModels: duplicateFromRow.autoSyncSupportedModels,
-              defaultTestModel: duplicateFromRow.defaultTestModel,
-              tags: duplicateFromRow.tags || [],
-              remark: duplicateFromRow.remark || '',
-              settings: duplicateFromRow.settings ?? undefined,
-              credentials: {
-                apiKey: duplicateFromRow.credentials?.apiKey || '',
-                aws: {
-                  accessKeyID: duplicateFromRow.credentials?.aws?.accessKeyID || '',
-                  secretAccessKey: duplicateFromRow.credentials?.aws?.secretAccessKey || '',
-                  region: duplicateFromRow.credentials?.aws?.region || '',
-                },
-                gcp: {
-                  region: duplicateFromRow.credentials?.gcp?.region || '',
-                  projectID: duplicateFromRow.credentials?.gcp?.projectID || '',
-                  jsonData: duplicateFromRow.credentials?.gcp?.jsonData || '',
-                },
-              },
-            }
           : {
-              type: derivedChannelType,
-              baseURL: getDefaultBaseURL(derivedChannelType),
-              name: '',
-              credentials: {
-                apiKey: '',
-                aws: {
-                  accessKeyID: '',
-                  secretAccessKey: '',
-                  region: '',
-                },
-                gcp: {
-                  region: '',
-                  projectID: '',
-                  jsonData: '',
-                },
+            type: derivedChannelType,
+            baseURL: getDefaultBaseURL(derivedChannelType),
+            name: '',
+            credentials: {
+              apiKey: '',
+              aws: {
+                accessKeyID: '',
+                secretAccessKey: '',
+                region: '',
               },
-              supportedModels: [],
-              defaultTestModel: '',
-              tags: [],
-              remark: '',
-              settings: undefined,
+              gcp: {
+                region: '',
+                projectID: '',
+                jsonData: '',
+              },
             },
+            supportedModels: [],
+            defaultTestModel: '',
+            tags: [],
+            remark: '',
+            group: ['default'],
+            settings: undefined,
+          },
   });
 
   useEffect(() => {
@@ -450,13 +455,14 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
       const valuesForSubmit = isEdit
         ? values
         : {
-            ...values,
-            type: derivedChannelType,
-          };
+          ...values,
+          type: derivedChannelType,
+        };
 
       const dataWithModels = {
         ...valuesForSubmit,
         supportedModels,
+        group: values.group?.join(',') || 'default',
       };
 
       if (isEdit && currentRow) {
@@ -491,7 +497,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
 
         await updateChannel.mutateAsync({
           id: currentRow.id,
-          input: updateInput,
+          input: updateInput as unknown as z.infer<typeof updateChannelInputSchema>,
         });
       } else {
         // For create mode, check if multiple API keys are provided
@@ -517,7 +523,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
         } else {
           // Single create: use existing mutation
           await createChannel.mutateAsync({
-            ...(dataWithModels as z.infer<typeof createChannelInputSchema>),
+            ...(dataWithModels as unknown as z.infer<typeof createChannelInputSchema>),
             settings: values.settings ?? duplicateFromRow?.settings ?? undefined,
           });
         }
@@ -806,13 +812,12 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                                   ref={(el) => {
                                     providerRefs.current[provider.key] = el;
                                   }}
-                                  className={`flex items-center space-x-3 rounded-lg border p-3 transition-colors ${
-                                    isEdit
-                                      ? isSelected
-                                        ? 'border-primary bg-muted/80 cursor-not-allowed shadow-sm'
-                                        : 'cursor-not-allowed opacity-60'
-                                      : (isSelected ? 'border-primary bg-accent/40 shadow-sm' : '') + ' hover:bg-accent/50'
-                                  }`}
+                                  className={`flex items-center space-x-3 rounded-lg border p-3 transition-colors ${isEdit
+                                    ? isSelected
+                                      ? 'border-primary bg-muted/80 cursor-not-allowed shadow-sm'
+                                      : 'cursor-not-allowed opacity-60'
+                                    : (isSelected ? 'border-primary bg-accent/40 shadow-sm' : '') + ' hover:bg-accent/50'
+                                    }`}
                                 >
                                   <RadioGroupItem
                                     value={provider.key}
@@ -860,9 +865,8 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                             {selectedApiFormat === 'gemini/contents' && (
                               <div className='mt-3'>
                                 <label
-                                  className={`flex items-center gap-2 text-sm ${
-                                    isEdit ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-                                  }`}
+                                  className={`flex items-center gap-2 text-sm ${isEdit ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                                    }`}
                                 >
                                   <Checkbox
                                     checked={useGeminiVertex}
@@ -876,9 +880,8 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                             {selectedApiFormat === 'anthropic/messages' && selectedProvider === 'anthropic' && (
                               <div className='mt-3'>
                                 <label
-                                  className={`flex items-center gap-2 text-sm ${
-                                    isEdit ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-                                  }`}
+                                  className={`flex items-center gap-2 text-sm ${isEdit ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                                    }`}
                                 >
                                   <Checkbox
                                     checked={useAnthropicAws}
@@ -910,6 +913,24 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                                 {...field}
                               />
                               <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name='group'
+                        render={({ field }) => (
+                          <FormItem className='grid grid-cols-8 items-start gap-x-6'>
+                            <FormLabel className='col-span-2 pt-2 text-right font-medium'>{t('Group')}</FormLabel>
+                            <div className='col-span-6 space-y-1'>
+                              <TagsAutocompleteInput
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                placeholder='Select group'
+                                suggestions={['default', 'vip', 'svip']}
+                              />
                             </div>
                           </FormItem>
                         )}
@@ -1383,13 +1404,12 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                       return (
                         <div
                           key={model}
-                          className={`flex items-center gap-2 rounded-md p-2 text-sm transition-colors ${
-                            isAdded && !isSelected
-                              ? 'bg-muted/50 text-muted-foreground'
-                              : isSelected
-                                ? 'bg-primary/10 border-primary/30 border'
-                                : 'hover:bg-accent cursor-pointer'
-                          }`}
+                          className={`flex items-center gap-2 rounded-md p-2 text-sm transition-colors ${isAdded && !isSelected
+                            ? 'bg-muted/50 text-muted-foreground'
+                            : isSelected
+                              ? 'bg-primary/10 border-primary/30 border'
+                              : 'hover:bg-accent cursor-pointer'
+                            }`}
                         >
                           <Checkbox checked={isSelected} onCheckedChange={() => toggleFetchedModelSelection(model)} />
                           <Tooltip>

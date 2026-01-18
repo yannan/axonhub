@@ -12,8 +12,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/looplj/axonhub/internal/ent/apikey"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/predicate"
 	"github.com/looplj/axonhub/internal/ent/project"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/thread"
@@ -102,6 +104,62 @@ func (_u *ProjectUpdate) SetStatus(v project.Status) *ProjectUpdate {
 func (_u *ProjectUpdate) SetNillableStatus(v *project.Status) *ProjectUpdate {
 	if v != nil {
 		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetQuota sets the "quota" field.
+func (_u *ProjectUpdate) SetQuota(v int64) *ProjectUpdate {
+	_u.mutation.ResetQuota()
+	_u.mutation.SetQuota(v)
+	return _u
+}
+
+// SetNillableQuota sets the "quota" field if the given value is not nil.
+func (_u *ProjectUpdate) SetNillableQuota(v *int64) *ProjectUpdate {
+	if v != nil {
+		_u.SetQuota(*v)
+	}
+	return _u
+}
+
+// AddQuota adds value to the "quota" field.
+func (_u *ProjectUpdate) AddQuota(v int64) *ProjectUpdate {
+	_u.mutation.AddQuota(v)
+	return _u
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (_u *ProjectUpdate) SetUsedQuota(v int64) *ProjectUpdate {
+	_u.mutation.ResetUsedQuota()
+	_u.mutation.SetUsedQuota(v)
+	return _u
+}
+
+// SetNillableUsedQuota sets the "used_quota" field if the given value is not nil.
+func (_u *ProjectUpdate) SetNillableUsedQuota(v *int64) *ProjectUpdate {
+	if v != nil {
+		_u.SetUsedQuota(*v)
+	}
+	return _u
+}
+
+// AddUsedQuota adds value to the "used_quota" field.
+func (_u *ProjectUpdate) AddUsedQuota(v int64) *ProjectUpdate {
+	_u.mutation.AddUsedQuota(v)
+	return _u
+}
+
+// SetGroup sets the "group" field.
+func (_u *ProjectUpdate) SetGroup(v string) *ProjectUpdate {
+	_u.mutation.SetGroup(v)
+	return _u
+}
+
+// SetNillableGroup sets the "group" field if the given value is not nil.
+func (_u *ProjectUpdate) SetNillableGroup(v *string) *ProjectUpdate {
+	if v != nil {
+		_u.SetGroup(*v)
 	}
 	return _u
 }
@@ -209,6 +267,36 @@ func (_u *ProjectUpdate) AddTraces(v ...*Trace) *ProjectUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddTraceIDs(ids...)
+}
+
+// AddConsumptionRecordIDs adds the "consumption_records" edge to the ConsumptionRecord entity by IDs.
+func (_u *ProjectUpdate) AddConsumptionRecordIDs(ids ...int) *ProjectUpdate {
+	_u.mutation.AddConsumptionRecordIDs(ids...)
+	return _u
+}
+
+// AddConsumptionRecords adds the "consumption_records" edges to the ConsumptionRecord entity.
+func (_u *ProjectUpdate) AddConsumptionRecords(v ...*ConsumptionRecord) *ProjectUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConsumptionRecordIDs(ids...)
+}
+
+// AddRechargeRecordIDs adds the "recharge_records" edge to the RechargeRecord entity by IDs.
+func (_u *ProjectUpdate) AddRechargeRecordIDs(ids ...int) *ProjectUpdate {
+	_u.mutation.AddRechargeRecordIDs(ids...)
+	return _u
+}
+
+// AddRechargeRecords adds the "recharge_records" edges to the RechargeRecord entity.
+func (_u *ProjectUpdate) AddRechargeRecords(v ...*RechargeRecord) *ProjectUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRechargeRecordIDs(ids...)
 }
 
 // AddProjectUserIDs adds the "project_users" edge to the UserProject entity by IDs.
@@ -378,6 +466,48 @@ func (_u *ProjectUpdate) RemoveTraces(v ...*Trace) *ProjectUpdate {
 	return _u.RemoveTraceIDs(ids...)
 }
 
+// ClearConsumptionRecords clears all "consumption_records" edges to the ConsumptionRecord entity.
+func (_u *ProjectUpdate) ClearConsumptionRecords() *ProjectUpdate {
+	_u.mutation.ClearConsumptionRecords()
+	return _u
+}
+
+// RemoveConsumptionRecordIDs removes the "consumption_records" edge to ConsumptionRecord entities by IDs.
+func (_u *ProjectUpdate) RemoveConsumptionRecordIDs(ids ...int) *ProjectUpdate {
+	_u.mutation.RemoveConsumptionRecordIDs(ids...)
+	return _u
+}
+
+// RemoveConsumptionRecords removes "consumption_records" edges to ConsumptionRecord entities.
+func (_u *ProjectUpdate) RemoveConsumptionRecords(v ...*ConsumptionRecord) *ProjectUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConsumptionRecordIDs(ids...)
+}
+
+// ClearRechargeRecords clears all "recharge_records" edges to the RechargeRecord entity.
+func (_u *ProjectUpdate) ClearRechargeRecords() *ProjectUpdate {
+	_u.mutation.ClearRechargeRecords()
+	return _u
+}
+
+// RemoveRechargeRecordIDs removes the "recharge_records" edge to RechargeRecord entities by IDs.
+func (_u *ProjectUpdate) RemoveRechargeRecordIDs(ids ...int) *ProjectUpdate {
+	_u.mutation.RemoveRechargeRecordIDs(ids...)
+	return _u
+}
+
+// RemoveRechargeRecords removes "recharge_records" edges to RechargeRecord entities.
+func (_u *ProjectUpdate) RemoveRechargeRecords(v ...*RechargeRecord) *ProjectUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRechargeRecordIDs(ids...)
+}
+
 // ClearProjectUsers clears all "project_users" edges to the UserProject entity.
 func (_u *ProjectUpdate) ClearProjectUsers() *ProjectUpdate {
 	_u.mutation.ClearProjectUsers()
@@ -486,6 +616,21 @@ func (_u *ProjectUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(project.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Quota(); ok {
+		_spec.SetField(project.FieldQuota, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedQuota(); ok {
+		_spec.AddField(project.FieldQuota, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.UsedQuota(); ok {
+		_spec.SetField(project.FieldUsedQuota, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedUsedQuota(); ok {
+		_spec.AddField(project.FieldUsedQuota, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.Group(); ok {
+		_spec.SetField(project.FieldGroup, field.TypeString, value)
 	}
 	if _u.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -814,6 +959,96 @@ func (_u *ProjectUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ConsumptionRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ConsumptionRecordsTable,
+			Columns: []string{project.ConsumptionRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionrecord.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConsumptionRecordsIDs(); len(nodes) > 0 && !_u.mutation.ConsumptionRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ConsumptionRecordsTable,
+			Columns: []string{project.ConsumptionRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionrecord.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConsumptionRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ConsumptionRecordsTable,
+			Columns: []string{project.ConsumptionRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionrecord.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RechargeRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.RechargeRecordsTable,
+			Columns: []string{project.RechargeRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargerecord.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRechargeRecordsIDs(); len(nodes) > 0 && !_u.mutation.RechargeRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.RechargeRecordsTable,
+			Columns: []string{project.RechargeRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargerecord.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RechargeRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.RechargeRecordsTable,
+			Columns: []string{project.RechargeRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargerecord.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.ProjectUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -950,6 +1185,62 @@ func (_u *ProjectUpdateOne) SetNillableStatus(v *project.Status) *ProjectUpdateO
 	return _u
 }
 
+// SetQuota sets the "quota" field.
+func (_u *ProjectUpdateOne) SetQuota(v int64) *ProjectUpdateOne {
+	_u.mutation.ResetQuota()
+	_u.mutation.SetQuota(v)
+	return _u
+}
+
+// SetNillableQuota sets the "quota" field if the given value is not nil.
+func (_u *ProjectUpdateOne) SetNillableQuota(v *int64) *ProjectUpdateOne {
+	if v != nil {
+		_u.SetQuota(*v)
+	}
+	return _u
+}
+
+// AddQuota adds value to the "quota" field.
+func (_u *ProjectUpdateOne) AddQuota(v int64) *ProjectUpdateOne {
+	_u.mutation.AddQuota(v)
+	return _u
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (_u *ProjectUpdateOne) SetUsedQuota(v int64) *ProjectUpdateOne {
+	_u.mutation.ResetUsedQuota()
+	_u.mutation.SetUsedQuota(v)
+	return _u
+}
+
+// SetNillableUsedQuota sets the "used_quota" field if the given value is not nil.
+func (_u *ProjectUpdateOne) SetNillableUsedQuota(v *int64) *ProjectUpdateOne {
+	if v != nil {
+		_u.SetUsedQuota(*v)
+	}
+	return _u
+}
+
+// AddUsedQuota adds value to the "used_quota" field.
+func (_u *ProjectUpdateOne) AddUsedQuota(v int64) *ProjectUpdateOne {
+	_u.mutation.AddUsedQuota(v)
+	return _u
+}
+
+// SetGroup sets the "group" field.
+func (_u *ProjectUpdateOne) SetGroup(v string) *ProjectUpdateOne {
+	_u.mutation.SetGroup(v)
+	return _u
+}
+
+// SetNillableGroup sets the "group" field if the given value is not nil.
+func (_u *ProjectUpdateOne) SetNillableGroup(v *string) *ProjectUpdateOne {
+	if v != nil {
+		_u.SetGroup(*v)
+	}
+	return _u
+}
+
 // AddUserIDs adds the "users" edge to the User entity by IDs.
 func (_u *ProjectUpdateOne) AddUserIDs(ids ...int) *ProjectUpdateOne {
 	_u.mutation.AddUserIDs(ids...)
@@ -1053,6 +1344,36 @@ func (_u *ProjectUpdateOne) AddTraces(v ...*Trace) *ProjectUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddTraceIDs(ids...)
+}
+
+// AddConsumptionRecordIDs adds the "consumption_records" edge to the ConsumptionRecord entity by IDs.
+func (_u *ProjectUpdateOne) AddConsumptionRecordIDs(ids ...int) *ProjectUpdateOne {
+	_u.mutation.AddConsumptionRecordIDs(ids...)
+	return _u
+}
+
+// AddConsumptionRecords adds the "consumption_records" edges to the ConsumptionRecord entity.
+func (_u *ProjectUpdateOne) AddConsumptionRecords(v ...*ConsumptionRecord) *ProjectUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddConsumptionRecordIDs(ids...)
+}
+
+// AddRechargeRecordIDs adds the "recharge_records" edge to the RechargeRecord entity by IDs.
+func (_u *ProjectUpdateOne) AddRechargeRecordIDs(ids ...int) *ProjectUpdateOne {
+	_u.mutation.AddRechargeRecordIDs(ids...)
+	return _u
+}
+
+// AddRechargeRecords adds the "recharge_records" edges to the RechargeRecord entity.
+func (_u *ProjectUpdateOne) AddRechargeRecords(v ...*RechargeRecord) *ProjectUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRechargeRecordIDs(ids...)
 }
 
 // AddProjectUserIDs adds the "project_users" edge to the UserProject entity by IDs.
@@ -1222,6 +1543,48 @@ func (_u *ProjectUpdateOne) RemoveTraces(v ...*Trace) *ProjectUpdateOne {
 	return _u.RemoveTraceIDs(ids...)
 }
 
+// ClearConsumptionRecords clears all "consumption_records" edges to the ConsumptionRecord entity.
+func (_u *ProjectUpdateOne) ClearConsumptionRecords() *ProjectUpdateOne {
+	_u.mutation.ClearConsumptionRecords()
+	return _u
+}
+
+// RemoveConsumptionRecordIDs removes the "consumption_records" edge to ConsumptionRecord entities by IDs.
+func (_u *ProjectUpdateOne) RemoveConsumptionRecordIDs(ids ...int) *ProjectUpdateOne {
+	_u.mutation.RemoveConsumptionRecordIDs(ids...)
+	return _u
+}
+
+// RemoveConsumptionRecords removes "consumption_records" edges to ConsumptionRecord entities.
+func (_u *ProjectUpdateOne) RemoveConsumptionRecords(v ...*ConsumptionRecord) *ProjectUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveConsumptionRecordIDs(ids...)
+}
+
+// ClearRechargeRecords clears all "recharge_records" edges to the RechargeRecord entity.
+func (_u *ProjectUpdateOne) ClearRechargeRecords() *ProjectUpdateOne {
+	_u.mutation.ClearRechargeRecords()
+	return _u
+}
+
+// RemoveRechargeRecordIDs removes the "recharge_records" edge to RechargeRecord entities by IDs.
+func (_u *ProjectUpdateOne) RemoveRechargeRecordIDs(ids ...int) *ProjectUpdateOne {
+	_u.mutation.RemoveRechargeRecordIDs(ids...)
+	return _u
+}
+
+// RemoveRechargeRecords removes "recharge_records" edges to RechargeRecord entities.
+func (_u *ProjectUpdateOne) RemoveRechargeRecords(v ...*RechargeRecord) *ProjectUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRechargeRecordIDs(ids...)
+}
+
 // ClearProjectUsers clears all "project_users" edges to the UserProject entity.
 func (_u *ProjectUpdateOne) ClearProjectUsers() *ProjectUpdateOne {
 	_u.mutation.ClearProjectUsers()
@@ -1360,6 +1723,21 @@ func (_u *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err er
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(project.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Quota(); ok {
+		_spec.SetField(project.FieldQuota, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedQuota(); ok {
+		_spec.AddField(project.FieldQuota, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.UsedQuota(); ok {
+		_spec.SetField(project.FieldUsedQuota, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedUsedQuota(); ok {
+		_spec.AddField(project.FieldUsedQuota, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.Group(); ok {
+		_spec.SetField(project.FieldGroup, field.TypeString, value)
 	}
 	if _u.mutation.UsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1681,6 +2059,96 @@ func (_u *ProjectUpdateOne) sqlSave(ctx context.Context) (_node *Project, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(trace.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ConsumptionRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ConsumptionRecordsTable,
+			Columns: []string{project.ConsumptionRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionrecord.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedConsumptionRecordsIDs(); len(nodes) > 0 && !_u.mutation.ConsumptionRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ConsumptionRecordsTable,
+			Columns: []string{project.ConsumptionRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionrecord.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ConsumptionRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.ConsumptionRecordsTable,
+			Columns: []string{project.ConsumptionRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionrecord.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RechargeRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.RechargeRecordsTable,
+			Columns: []string{project.RechargeRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargerecord.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRechargeRecordsIDs(); len(nodes) > 0 && !_u.mutation.RechargeRecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.RechargeRecordsTable,
+			Columns: []string{project.RechargeRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargerecord.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RechargeRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.RechargeRecordsTable,
+			Columns: []string{project.RechargeRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargerecord.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

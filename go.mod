@@ -28,6 +28,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.3
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.93.0
 	github.com/cespare/xxhash/v2 v2.3.0
+	github.com/cloudflare/ahocorasick v0.0.0-20240916140611-054963ec9396
 	github.com/dlclark/regexp2 v1.11.5
 	github.com/eko/gocache/lib/v4 v4.2.2
 	github.com/eko/gocache/store/go_cache/v4 v4.2.3
@@ -76,6 +77,8 @@ require (
 replace github.com/99designs/gqlgen => github.com/looplj/gqlgen v0.0.0-20251206072334-03e453169896
 
 replace github.com/tmaxmax/go-sse => github.com/looplj/go-sse v0.0.0-20250909130008-e74a1155bc3b
+
+replace github.com/ankknown/ahocorasick => github.com/cloudflare/ahocorasick v0.0.0-20240916140611-054963ec9396
 
 require (
 	ariga.io/atlas v0.38.0 // indirect

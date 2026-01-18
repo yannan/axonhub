@@ -40,6 +40,10 @@ const (
 	FieldAvatar = "avatar"
 	// FieldIsOwner holds the string denoting the is_owner field in the database.
 	FieldIsOwner = "is_owner"
+	// FieldQuota holds the string denoting the quota field in the database.
+	FieldQuota = "quota"
+	// FieldUsedQuota holds the string denoting the used_quota field in the database.
+	FieldUsedQuota = "used_quota"
 	// FieldScopes holds the string denoting the scopes field in the database.
 	FieldScopes = "scopes"
 	// EdgeProjects holds the string denoting the projects edge name in mutations.
@@ -50,6 +54,12 @@ const (
 	EdgeRoles = "roles"
 	// EdgeChannelOverrideTemplates holds the string denoting the channel_override_templates edge name in mutations.
 	EdgeChannelOverrideTemplates = "channel_override_templates"
+	// EdgeConsumptionRecords holds the string denoting the consumption_records edge name in mutations.
+	EdgeConsumptionRecords = "consumption_records"
+	// EdgeRedemptionCodes holds the string denoting the redemption_codes edge name in mutations.
+	EdgeRedemptionCodes = "redemption_codes"
+	// EdgeRechargeRecords holds the string denoting the recharge_records edge name in mutations.
+	EdgeRechargeRecords = "recharge_records"
 	// EdgeProjectUsers holds the string denoting the project_users edge name in mutations.
 	EdgeProjectUsers = "project_users"
 	// EdgeUserRoles holds the string denoting the user_roles edge name in mutations.
@@ -80,6 +90,27 @@ const (
 	ChannelOverrideTemplatesInverseTable = "channel_override_templates"
 	// ChannelOverrideTemplatesColumn is the table column denoting the channel_override_templates relation/edge.
 	ChannelOverrideTemplatesColumn = "user_id"
+	// ConsumptionRecordsTable is the table that holds the consumption_records relation/edge.
+	ConsumptionRecordsTable = "consumption_records"
+	// ConsumptionRecordsInverseTable is the table name for the ConsumptionRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "consumptionrecord" package.
+	ConsumptionRecordsInverseTable = "consumption_records"
+	// ConsumptionRecordsColumn is the table column denoting the consumption_records relation/edge.
+	ConsumptionRecordsColumn = "user_id"
+	// RedemptionCodesTable is the table that holds the redemption_codes relation/edge.
+	RedemptionCodesTable = "redemption_codes"
+	// RedemptionCodesInverseTable is the table name for the RedemptionCode entity.
+	// It exists in this package in order to avoid circular dependency with the "redemptioncode" package.
+	RedemptionCodesInverseTable = "redemption_codes"
+	// RedemptionCodesColumn is the table column denoting the redemption_codes relation/edge.
+	RedemptionCodesColumn = "used_by"
+	// RechargeRecordsTable is the table that holds the recharge_records relation/edge.
+	RechargeRecordsTable = "recharge_records"
+	// RechargeRecordsInverseTable is the table name for the RechargeRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "rechargerecord" package.
+	RechargeRecordsInverseTable = "recharge_records"
+	// RechargeRecordsColumn is the table column denoting the recharge_records relation/edge.
+	RechargeRecordsColumn = "user_id"
 	// ProjectUsersTable is the table that holds the project_users relation/edge.
 	ProjectUsersTable = "user_projects"
 	// ProjectUsersInverseTable is the table name for the UserProject entity.
@@ -110,6 +141,8 @@ var Columns = []string{
 	FieldLastName,
 	FieldAvatar,
 	FieldIsOwner,
+	FieldQuota,
+	FieldUsedQuota,
 	FieldScopes,
 }
 
@@ -157,6 +190,10 @@ var (
 	DefaultLastName string
 	// DefaultIsOwner holds the default value on creation for the "is_owner" field.
 	DefaultIsOwner bool
+	// DefaultQuota holds the default value on creation for the "quota" field.
+	DefaultQuota int64
+	// DefaultUsedQuota holds the default value on creation for the "used_quota" field.
+	DefaultUsedQuota int64
 	// DefaultScopes holds the default value on creation for the "scopes" field.
 	DefaultScopes []string
 )
@@ -250,6 +287,16 @@ func ByIsOwner(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsOwner, opts...).ToFunc()
 }
 
+// ByQuota orders the results by the quota field.
+func ByQuota(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQuota, opts...).ToFunc()
+}
+
+// ByUsedQuota orders the results by the used_quota field.
+func ByUsedQuota(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUsedQuota, opts...).ToFunc()
+}
+
 // ByProjectsCount orders the results by projects count.
 func ByProjectsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -306,6 +353,48 @@ func ByChannelOverrideTemplates(term sql.OrderTerm, terms ...sql.OrderTerm) Orde
 	}
 }
 
+// ByConsumptionRecordsCount orders the results by consumption_records count.
+func ByConsumptionRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConsumptionRecordsStep(), opts...)
+	}
+}
+
+// ByConsumptionRecords orders the results by consumption_records terms.
+func ByConsumptionRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConsumptionRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRedemptionCodesCount orders the results by redemption_codes count.
+func ByRedemptionCodesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRedemptionCodesStep(), opts...)
+	}
+}
+
+// ByRedemptionCodes orders the results by redemption_codes terms.
+func ByRedemptionCodes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRedemptionCodesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRechargeRecordsCount orders the results by recharge_records count.
+func ByRechargeRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRechargeRecordsStep(), opts...)
+	}
+}
+
+// ByRechargeRecords orders the results by recharge_records terms.
+func ByRechargeRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRechargeRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByProjectUsersCount orders the results by project_users count.
 func ByProjectUsersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -359,6 +448,27 @@ func newChannelOverrideTemplatesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ChannelOverrideTemplatesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ChannelOverrideTemplatesTable, ChannelOverrideTemplatesColumn),
+	)
+}
+func newConsumptionRecordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConsumptionRecordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConsumptionRecordsTable, ConsumptionRecordsColumn),
+	)
+}
+func newRedemptionCodesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RedemptionCodesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RedemptionCodesTable, RedemptionCodesColumn),
+	)
+}
+func newRechargeRecordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RechargeRecordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RechargeRecordsTable, RechargeRecordsColumn),
 	)
 }
 func newProjectUsersStep() *sqlgraph.Step {

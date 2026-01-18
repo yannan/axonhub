@@ -195,6 +195,20 @@ func (_c *ChannelCreate) SetNillableRemark(v *string) *ChannelCreate {
 	return _c
 }
 
+// SetGroup sets the "group" field.
+func (_c *ChannelCreate) SetGroup(v string) *ChannelCreate {
+	_c.mutation.SetGroup(v)
+	return _c
+}
+
+// SetNillableGroup sets the "group" field if the given value is not nil.
+func (_c *ChannelCreate) SetNillableGroup(v *string) *ChannelCreate {
+	if v != nil {
+		_c.SetGroup(*v)
+	}
+	return _c
+}
+
 // AddRequestIDs adds the "requests" edge to the Request entity by IDs.
 func (_c *ChannelCreate) AddRequestIDs(ids ...int) *ChannelCreate {
 	_c.mutation.AddRequestIDs(ids...)
@@ -338,6 +352,10 @@ func (_c *ChannelCreate) defaults() error {
 		v := channel.DefaultOrderingWeight
 		_c.mutation.SetOrderingWeight(v)
 	}
+	if _, ok := _c.mutation.Group(); !ok {
+		v := channel.DefaultGroup
+		_c.mutation.SetGroup(v)
+	}
 	return nil
 }
 
@@ -385,6 +403,9 @@ func (_c *ChannelCreate) check() error {
 	}
 	if _, ok := _c.mutation.OrderingWeight(); !ok {
 		return &ValidationError{Name: "ordering_weight", err: errors.New(`ent: missing required field "Channel.ordering_weight"`)}
+	}
+	if _, ok := _c.mutation.Group(); !ok {
+		return &ValidationError{Name: "group", err: errors.New(`ent: missing required field "Channel.group"`)}
 	}
 	return nil
 }
@@ -476,6 +497,10 @@ func (_c *ChannelCreate) createSpec() (*Channel, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(channel.FieldRemark, field.TypeString, value)
 		_node.Remark = &value
+	}
+	if value, ok := _c.mutation.Group(); ok {
+		_spec.SetField(channel.FieldGroup, field.TypeString, value)
+		_node.Group = value
 	}
 	if nodes := _c.mutation.RequestsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -803,6 +828,18 @@ func (u *ChannelUpsert) ClearRemark() *ChannelUpsert {
 	return u
 }
 
+// SetGroup sets the "group" field.
+func (u *ChannelUpsert) SetGroup(v string) *ChannelUpsert {
+	u.Set(channel.FieldGroup, v)
+	return u
+}
+
+// UpdateGroup sets the "group" field to the value that was provided on create.
+func (u *ChannelUpsert) UpdateGroup() *ChannelUpsert {
+	u.SetExcluded(channel.FieldGroup)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -1093,6 +1130,20 @@ func (u *ChannelUpsertOne) UpdateRemark() *ChannelUpsertOne {
 func (u *ChannelUpsertOne) ClearRemark() *ChannelUpsertOne {
 	return u.Update(func(s *ChannelUpsert) {
 		s.ClearRemark()
+	})
+}
+
+// SetGroup sets the "group" field.
+func (u *ChannelUpsertOne) SetGroup(v string) *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetGroup(v)
+	})
+}
+
+// UpdateGroup sets the "group" field to the value that was provided on create.
+func (u *ChannelUpsertOne) UpdateGroup() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateGroup()
 	})
 }
 
@@ -1552,6 +1603,20 @@ func (u *ChannelUpsertBulk) UpdateRemark() *ChannelUpsertBulk {
 func (u *ChannelUpsertBulk) ClearRemark() *ChannelUpsertBulk {
 	return u.Update(func(s *ChannelUpsert) {
 		s.ClearRemark()
+	})
+}
+
+// SetGroup sets the "group" field.
+func (u *ChannelUpsertBulk) SetGroup(v string) *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetGroup(v)
+	})
+}
+
+// UpdateGroup sets the "group" field to the value that was provided on create.
+func (u *ChannelUpsertBulk) UpdateGroup() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateGroup()
 	})
 }
 

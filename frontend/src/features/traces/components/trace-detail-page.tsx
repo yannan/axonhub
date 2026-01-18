@@ -2,11 +2,12 @@ import { useMemo, useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { zhCN, enUS } from 'date-fns/locale';
-import { ArrowLeft, FileText, Activity, RefreshCw } from 'lucide-react';
+import { ArrowLeft, FileText, Activity, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { extractNumberID } from '@/lib/utils';
 import { usePaginationSearch } from '@/hooks/use-pagination-search';
 import useInterval from '@/hooks/useInterval';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -30,6 +31,8 @@ export default function TraceDetailPage() {
   const { getSearchParams } = usePaginationSearch({ defaultPageSize: 20 });
 
   const { data: trace, isLoading, refetch } = useTraceWithSegments(traceId);
+  const blockedCount = trace?.blockedRequests?.totalCount ?? 0;
+  const isBlocked = blockedCount > 0;
 
   // Parse rawRootSegment JSON once per trace
   // 仅解析 rawRootSegment（完整 JSON）
@@ -37,6 +40,12 @@ export default function TraceDetailPage() {
     if (!trace?.rawRootSegment) return null;
     return parseRawRootSegment(trace.rawRootSegment);
   }, [trace]);
+
+  const formattedCost = useMemo(() => {
+    const value = trace?.cost ?? 0;
+    const localeTag = i18n.language === 'zh' ? 'zh-CN' : 'en-US';
+    return new Intl.NumberFormat(localeTag).format(value);
+  }, [trace?.cost, i18n.language]);
 
   // Auto-select first span when trace loads
   useEffect(() => {
@@ -136,6 +145,10 @@ export default function TraceDetailPage() {
             </div>
           </div>
           <div className='flex items-center space-x-2'>
+            <div className='text-muted-foreground flex items-center text-sm'>
+              <span>{t('traces.detail.costLabel')}</span>
+              <span className='text-foreground ml-2 font-medium'>{formattedCost}</span>
+            </div>
             <div className='flex items-center space-x-2'>
               <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} id='auto-refresh-switch' />
               <label htmlFor='auto-refresh-switch' className='text-muted-foreground cursor-pointer text-sm'>
@@ -151,6 +164,15 @@ export default function TraceDetailPage() {
       </Header>
 
       <Main className='flex-1 overflow-hidden'>
+        {isBlocked && (
+          <div className='border-border bg-muted/30 border-b px-6 py-4'>
+            <Alert>
+              <AlertTriangle />
+              <AlertTitle>{t('traces.detail.blockedTitle')}</AlertTitle>
+              <AlertDescription>{t('traces.detail.blockedDescription')}</AlertDescription>
+            </Alert>
+          </div>
+        )}
         {effectiveRootSegment ? (
           <div className='flex h-full'>
             {/* Left: Timeline */}

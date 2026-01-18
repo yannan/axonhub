@@ -13,7 +13,10 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/channeloverridetemplate"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/project"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
+	"github.com/looplj/axonhub/internal/ent/redemptioncode"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/user"
 	"github.com/looplj/axonhub/internal/ent/userproject"
@@ -166,6 +169,34 @@ func (_c *UserCreate) SetNillableIsOwner(v *bool) *UserCreate {
 	return _c
 }
 
+// SetQuota sets the "quota" field.
+func (_c *UserCreate) SetQuota(v int64) *UserCreate {
+	_c.mutation.SetQuota(v)
+	return _c
+}
+
+// SetNillableQuota sets the "quota" field if the given value is not nil.
+func (_c *UserCreate) SetNillableQuota(v *int64) *UserCreate {
+	if v != nil {
+		_c.SetQuota(*v)
+	}
+	return _c
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (_c *UserCreate) SetUsedQuota(v int64) *UserCreate {
+	_c.mutation.SetUsedQuota(v)
+	return _c
+}
+
+// SetNillableUsedQuota sets the "used_quota" field if the given value is not nil.
+func (_c *UserCreate) SetNillableUsedQuota(v *int64) *UserCreate {
+	if v != nil {
+		_c.SetUsedQuota(*v)
+	}
+	return _c
+}
+
 // SetScopes sets the "scopes" field.
 func (_c *UserCreate) SetScopes(v []string) *UserCreate {
 	_c.mutation.SetScopes(v)
@@ -230,6 +261,51 @@ func (_c *UserCreate) AddChannelOverrideTemplates(v ...*ChannelOverrideTemplate)
 		ids[i] = v[i].ID
 	}
 	return _c.AddChannelOverrideTemplateIDs(ids...)
+}
+
+// AddConsumptionRecordIDs adds the "consumption_records" edge to the ConsumptionRecord entity by IDs.
+func (_c *UserCreate) AddConsumptionRecordIDs(ids ...int) *UserCreate {
+	_c.mutation.AddConsumptionRecordIDs(ids...)
+	return _c
+}
+
+// AddConsumptionRecords adds the "consumption_records" edges to the ConsumptionRecord entity.
+func (_c *UserCreate) AddConsumptionRecords(v ...*ConsumptionRecord) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddConsumptionRecordIDs(ids...)
+}
+
+// AddRedemptionCodeIDs adds the "redemption_codes" edge to the RedemptionCode entity by IDs.
+func (_c *UserCreate) AddRedemptionCodeIDs(ids ...int) *UserCreate {
+	_c.mutation.AddRedemptionCodeIDs(ids...)
+	return _c
+}
+
+// AddRedemptionCodes adds the "redemption_codes" edges to the RedemptionCode entity.
+func (_c *UserCreate) AddRedemptionCodes(v ...*RedemptionCode) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRedemptionCodeIDs(ids...)
+}
+
+// AddRechargeRecordIDs adds the "recharge_records" edge to the RechargeRecord entity by IDs.
+func (_c *UserCreate) AddRechargeRecordIDs(ids ...int) *UserCreate {
+	_c.mutation.AddRechargeRecordIDs(ids...)
+	return _c
+}
+
+// AddRechargeRecords adds the "recharge_records" edges to the RechargeRecord entity.
+func (_c *UserCreate) AddRechargeRecords(v ...*RechargeRecord) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRechargeRecordIDs(ids...)
 }
 
 // AddProjectUserIDs adds the "project_users" edge to the UserProject entity by IDs.
@@ -337,6 +413,14 @@ func (_c *UserCreate) defaults() error {
 		v := user.DefaultIsOwner
 		_c.mutation.SetIsOwner(v)
 	}
+	if _, ok := _c.mutation.Quota(); !ok {
+		v := user.DefaultQuota
+		_c.mutation.SetQuota(v)
+	}
+	if _, ok := _c.mutation.UsedQuota(); !ok {
+		v := user.DefaultUsedQuota
+		_c.mutation.SetUsedQuota(v)
+	}
 	if _, ok := _c.mutation.Scopes(); !ok {
 		v := user.DefaultScopes
 		_c.mutation.SetScopes(v)
@@ -380,6 +464,12 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsOwner(); !ok {
 		return &ValidationError{Name: "is_owner", err: errors.New(`ent: missing required field "User.is_owner"`)}
+	}
+	if _, ok := _c.mutation.Quota(); !ok {
+		return &ValidationError{Name: "quota", err: errors.New(`ent: missing required field "User.quota"`)}
+	}
+	if _, ok := _c.mutation.UsedQuota(); !ok {
+		return &ValidationError{Name: "used_quota", err: errors.New(`ent: missing required field "User.used_quota"`)}
 	}
 	return nil
 }
@@ -452,6 +542,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldIsOwner, field.TypeBool, value)
 		_node.IsOwner = value
 	}
+	if value, ok := _c.mutation.Quota(); ok {
+		_spec.SetField(user.FieldQuota, field.TypeInt64, value)
+		_node.Quota = value
+	}
+	if value, ok := _c.mutation.UsedQuota(); ok {
+		_spec.SetField(user.FieldUsedQuota, field.TypeInt64, value)
+		_node.UsedQuota = value
+	}
 	if value, ok := _c.mutation.Scopes(); ok {
 		_spec.SetField(user.FieldScopes, field.TypeJSON, value)
 		_node.Scopes = value
@@ -521,6 +619,54 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(channeloverridetemplate.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ConsumptionRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ConsumptionRecordsTable,
+			Columns: []string{user.ConsumptionRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionrecord.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RedemptionCodesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RedemptionCodesTable,
+			Columns: []string{user.RedemptionCodesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(redemptioncode.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RechargeRecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RechargeRecordsTable,
+			Columns: []string{user.RechargeRecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rechargerecord.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -744,6 +890,42 @@ func (u *UserUpsert) UpdateIsOwner() *UserUpsert {
 	return u
 }
 
+// SetQuota sets the "quota" field.
+func (u *UserUpsert) SetQuota(v int64) *UserUpsert {
+	u.Set(user.FieldQuota, v)
+	return u
+}
+
+// UpdateQuota sets the "quota" field to the value that was provided on create.
+func (u *UserUpsert) UpdateQuota() *UserUpsert {
+	u.SetExcluded(user.FieldQuota)
+	return u
+}
+
+// AddQuota adds v to the "quota" field.
+func (u *UserUpsert) AddQuota(v int64) *UserUpsert {
+	u.Add(user.FieldQuota, v)
+	return u
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (u *UserUpsert) SetUsedQuota(v int64) *UserUpsert {
+	u.Set(user.FieldUsedQuota, v)
+	return u
+}
+
+// UpdateUsedQuota sets the "used_quota" field to the value that was provided on create.
+func (u *UserUpsert) UpdateUsedQuota() *UserUpsert {
+	u.SetExcluded(user.FieldUsedQuota)
+	return u
+}
+
+// AddUsedQuota adds v to the "used_quota" field.
+func (u *UserUpsert) AddUsedQuota(v int64) *UserUpsert {
+	u.Add(user.FieldUsedQuota, v)
+	return u
+}
+
 // SetScopes sets the "scopes" field.
 func (u *UserUpsert) SetScopes(v []string) *UserUpsert {
 	u.Set(user.FieldScopes, v)
@@ -958,6 +1140,48 @@ func (u *UserUpsertOne) SetIsOwner(v bool) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateIsOwner() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateIsOwner()
+	})
+}
+
+// SetQuota sets the "quota" field.
+func (u *UserUpsertOne) SetQuota(v int64) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetQuota(v)
+	})
+}
+
+// AddQuota adds v to the "quota" field.
+func (u *UserUpsertOne) AddQuota(v int64) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.AddQuota(v)
+	})
+}
+
+// UpdateQuota sets the "quota" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateQuota() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateQuota()
+	})
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (u *UserUpsertOne) SetUsedQuota(v int64) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUsedQuota(v)
+	})
+}
+
+// AddUsedQuota adds v to the "used_quota" field.
+func (u *UserUpsertOne) AddUsedQuota(v int64) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.AddUsedQuota(v)
+	})
+}
+
+// UpdateUsedQuota sets the "used_quota" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateUsedQuota() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUsedQuota()
 	})
 }
 
@@ -1344,6 +1568,48 @@ func (u *UserUpsertBulk) SetIsOwner(v bool) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateIsOwner() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateIsOwner()
+	})
+}
+
+// SetQuota sets the "quota" field.
+func (u *UserUpsertBulk) SetQuota(v int64) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetQuota(v)
+	})
+}
+
+// AddQuota adds v to the "quota" field.
+func (u *UserUpsertBulk) AddQuota(v int64) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.AddQuota(v)
+	})
+}
+
+// UpdateQuota sets the "quota" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateQuota() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateQuota()
+	})
+}
+
+// SetUsedQuota sets the "used_quota" field.
+func (u *UserUpsertBulk) SetUsedQuota(v int64) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUsedQuota(v)
+	})
+}
+
+// AddUsedQuota adds v to the "used_quota" field.
+func (u *UserUpsertBulk) AddUsedQuota(v int64) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.AddUsedQuota(v)
+	})
+}
+
+// UpdateUsedQuota sets the "used_quota" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateUsedQuota() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUsedQuota()
 	})
 }
 

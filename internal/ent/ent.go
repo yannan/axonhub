@@ -16,13 +16,19 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/channeloverridetemplate"
 	"github.com/looplj/axonhub/internal/ent/channelperformance"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelpricing"
 	"github.com/looplj/axonhub/internal/ent/project"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
+	"github.com/looplj/axonhub/internal/ent/redemptioncode"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
 	"github.com/looplj/axonhub/internal/ent/role"
+	"github.com/looplj/axonhub/internal/ent/sensitiveword"
 	"github.com/looplj/axonhub/internal/ent/system"
+	"github.com/looplj/axonhub/internal/ent/systemsettings"
 	"github.com/looplj/axonhub/internal/ent/thread"
 	"github.com/looplj/axonhub/internal/ent/trace"
 	"github.com/looplj/axonhub/internal/ent/usagelog"
@@ -93,13 +99,19 @@ func checkColumn(t, c string) error {
 			channel.Table:                 channel.ValidColumn,
 			channeloverridetemplate.Table: channeloverridetemplate.ValidColumn,
 			channelperformance.Table:      channelperformance.ValidColumn,
+			consumptionrecord.Table:       consumptionrecord.ValidColumn,
 			datastorage.Table:             datastorage.ValidColumn,
 			model.Table:                   model.ValidColumn,
+			modelpricing.Table:            modelpricing.ValidColumn,
 			project.Table:                 project.ValidColumn,
+			rechargerecord.Table:          rechargerecord.ValidColumn,
+			redemptioncode.Table:          redemptioncode.ValidColumn,
 			request.Table:                 request.ValidColumn,
 			requestexecution.Table:        requestexecution.ValidColumn,
 			role.Table:                    role.ValidColumn,
+			sensitiveword.Table:           sensitiveword.ValidColumn,
 			system.Table:                  system.ValidColumn,
+			systemsettings.Table:          systemsettings.ValidColumn,
 			thread.Table:                  thread.ValidColumn,
 			trace.Table:                   trace.ValidColumn,
 			usagelog.Table:                usagelog.ValidColumn,

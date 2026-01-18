@@ -1,0 +1,3103 @@
+openapi: 3.0.3
+info:
+  title: AxonHub API
+  version: 0.1.0
+  description: |
+    Generated from current server routes. This spec favors completeness of paths over strict request/response schemas.
+servers:
+  - url: http://localhost:8090
+    description: Local development
+tags:
+  - name: System
+  - name: Auth
+  - name: Admin
+  - name: User
+  - name: Project
+  - name: OpenAI
+  - name: Jina
+  - name: Anthropic
+  - name: Gemini
+paths:
+  /favicon:
+    get:
+      tags: [System]
+      summary: Get favicon
+      responses:
+        "200":
+          description: Favicon image
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      responses:
+        "200":
+          description: Health status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /admin/system/status:
+    get:
+      tags: [System, Admin]
+      summary: Get system status
+      responses:
+        "200":
+          description: System status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemStatusResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/system/initialize:
+    post:
+      tags: [System, Admin]
+      summary: Initialize system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitializeSystemRequest"
+      responses:
+        "200":
+          description: Initialization result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitializeSystemResponse"
+        "400":
+          description: Invalid request or already initialized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitializeSystemResponse"
+        "500":
+          description: Initialization failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitializeSystemResponse"
+  /admin/auth/signin:
+    post:
+      tags: [Auth]
+      summary: Admin sign in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInRequest"
+      responses:
+        "200":
+          description: Signed-in session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignInResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /admin/playground:
+    get:
+      tags: [Admin]
+      summary: GraphQL playground (HTML)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTML playground
+          content:
+            text/html:
+              schema:
+                type: string
+  /admin/graphql:
+    post:
+      tags: [Admin]
+      summary: GraphQL endpoint
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GraphQLRequest"
+      responses:
+        "200":
+          description: GraphQL response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericObject"
+  /admin/playground/chat:
+    post:
+      tags: [Admin]
+      summary: Playground chat completion
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenericObject"
+      responses:
+        "200":
+          description: Completion result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericObject"
+  /admin/redemption/generate:
+    post:
+      tags: [Admin]
+      summary: Generate redemption codes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedemptionGenerateRequest"
+      responses:
+        "200":
+          description: Generated codes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedemptionGenerateResponse"
+            application/vnd.ms-excel:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/redemption:
+    get:
+      tags: [Admin]
+      summary: List redemption codes
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RedemptionCodeQuery"
+        - $ref: "#/components/parameters/RedemptionStatusQuery"
+        - $ref: "#/components/parameters/RedemptionVoidedQuery"
+        - $ref: "#/components/parameters/RedemptionUsedByQuery"
+        - $ref: "#/components/parameters/RedemptionExpiredQuery"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Redemption codes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedemptionListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/redemption/delete:
+    post:
+      tags: [Admin]
+      summary: Delete redemption codes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteCodesRequest"
+      responses:
+        "200":
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/redemption/{id}/void:
+    post:
+      tags: [Admin]
+      summary: Void a redemption code
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Void result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/recharges:
+    get:
+      tags: [Admin]
+      summary: List recharge records (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RechargeUserIDQuery"
+        - $ref: "#/components/parameters/RechargeProjectIDQuery"
+        - $ref: "#/components/parameters/RechargeCodeIDQuery"
+        - $ref: "#/components/parameters/RechargeStatusQuery"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Recharge records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RechargeListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/filter/words:
+    post:
+      tags: [Admin]
+      summary: Add sensitive word
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddWordRequest"
+      responses:
+        "200":
+          description: Added word
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SensitiveWordResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+    get:
+      tags: [Admin]
+      summary: List sensitive words
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Sensitive words
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SensitiveWordListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/filter/words/{id}:
+    delete:
+      tags: [Admin]
+      summary: Delete sensitive word
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing:
+    get:
+      tags: [Admin]
+      summary: List pricing
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ModelQuery"
+      responses:
+        "200":
+          description: Pricing list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+    post:
+      tags: [Admin]
+      summary: Create pricing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingUpsertRequest"
+      responses:
+        "200":
+          description: Created pricing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingUpsertResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+    put:
+      tags: [Admin]
+      summary: Update pricing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingUpsertRequest"
+      responses:
+        "200":
+          description: Updated pricing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingUpsertResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: Pricing not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing/batch:
+    post:
+      tags: [Admin]
+      summary: Create pricing in batch
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingUpsertBatchRequest"
+      responses:
+        "200":
+          description: Created pricing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingUpsertBatchResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing/{model}:
+    delete:
+      tags: [Admin]
+      summary: Delete pricing by model
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ModelPath"
+      responses:
+        "200":
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: Pricing not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing/{model}/disable:
+    put:
+      tags: [Admin]
+      summary: Disable pricing by model (soft delete)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ModelPath"
+      responses:
+        "200":
+          description: Disable result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingToggleResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: Pricing not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing/{model}/enable:
+    put:
+      tags: [Admin]
+      summary: Enable pricing by model (restore)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ModelPath"
+      responses:
+        "200":
+          description: Enable result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingToggleResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: Pricing not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/billing/stats:
+    get:
+      tags: [Admin]
+      summary: Get aggregated consumption stats
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_id
+          in: query
+          required: false
+          description: Filter by project ID
+          schema:
+            type: integer
+        - name: model
+          in: query
+          required: false
+          description: Filter by model name
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: false
+          description: Start date (RFC3339 or YYYY-MM-DD)
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: false
+          description: End date (RFC3339 or YYYY-MM-DD)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Aggregated consumption stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumptionStatsResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/billing/export:
+    get:
+      tags: [Admin]
+      summary: Export aggregated consumption stats
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_id
+          in: query
+          required: false
+          description: Filter by project ID
+          schema:
+            type: integer
+        - name: model
+          in: query
+          required: false
+          description: Filter by model name
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: false
+          description: Start date (RFC3339 or YYYY-MM-DD)
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: false
+          description: End date (RFC3339 or YYYY-MM-DD)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CSV export
+          content:
+            application/vnd.ms-excel:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/system/settings:
+    get:
+      tags: [Admin]
+      summary: Get system settings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: query
+          required: false
+          description: Optional setting key to fetch a single setting
+          schema:
+            type: string
+      responses:
+        "200":
+          description: System settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSystemSettingsResponse"
+        "404":
+          description: Setting not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [Admin]
+      summary: Update system setting
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSystemSettingsRequest"
+      responses:
+        "200":
+          description: Update result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateSystemSettingsResponse"
+        "400":
+          description: Invalid request or update failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateSystemSettingsResponse"
+  /user/redemption/redeem:
+    post:
+      tags: [User]
+      summary: Redeem a code for user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedeemRequest"
+      responses:
+        "200":
+          description: Redeem result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedeemResponse"
+        "400":
+          description: Invalid request or code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /user/recharges:
+    get:
+      tags: [User]
+      summary: List recharge records (user)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Recharge records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RechargeListResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /user/billing/subscription:
+    get:
+      tags: [User]
+      summary: Get user subscription info
+      deprecated: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Subscription info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /user/billing/usage:
+    get:
+      tags: [User]
+      summary: Get user billing usage
+      deprecated: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Usage info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/redemption/redeem:
+    post:
+      tags: [Project]
+      summary: Redeem a code for project
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedeemRequest"
+      responses:
+        "200":
+          description: Redeem result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedeemResponse"
+        "400":
+          description: Invalid request or code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/recharges:
+    get:
+      tags: [Project]
+      summary: List recharge records (project)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Recharge records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RechargeListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/billing/subscription:
+    get:
+      tags: [Project]
+      summary: Get project subscription info
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Subscription info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/billing/usage:
+    get:
+      tags: [Project]
+      summary: Get project billing usage
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Usage info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/dashboard/stats:
+    get:
+      tags: [Project]
+      summary: Get project dashboard stats
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          required: false
+          description: Start date (RFC3339 or YYYY-MM-DD)
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: false
+          description: End date (RFC3339 or YYYY-MM-DD)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStatsResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /v1/chat/completions:
+    post:
+      tags: [OpenAI]
+      summary: OpenAI-compatible chat completions
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatCompletionRequest"
+      responses:
+        "200":
+          description: Completion response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatCompletionResponse"
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/responses:
+    post:
+      tags: [OpenAI]
+      summary: OpenAI-compatible responses
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResponsesRequest"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsesResponse"
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/models:
+    get:
+      tags: [OpenAI]
+      summary: List models
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: Model list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenAIModelsResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/embeddings:
+    post:
+      tags: [OpenAI]
+      summary: Create embeddings
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmbeddingRequest"
+      responses:
+        "200":
+          description: Embedding response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmbeddingResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/rerank:
+    post:
+      tags: [OpenAI, Jina]
+      summary: Rerank (OpenAI-compatible)
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RerankRequest"
+      responses:
+        "200":
+          description: Rerank response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RerankResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /jina/v1/embeddings:
+    post:
+      tags: [Jina]
+      summary: Jina embeddings
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenericObject"
+      responses:
+        "200":
+          description: Embedding response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericObject"
+  /jina/v1/rerank:
+    post:
+      tags: [Jina]
+      summary: Jina rerank
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenericObject"
+      responses:
+        "200":
+          description: Rerank response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericObject"
+  /anthropic/v1/messages:
+    post:
+      tags: [Anthropic]
+      summary: Anthropic messages
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnthropicMessageRequest"
+      responses:
+        "200":
+          description: Message response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnthropicMessageResponse"
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /anthropic/v1/models:
+    get:
+      tags: [Anthropic]
+      summary: List Anthropic models
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: Model list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnthropicModelsResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /gemini/{gemini-api-version}/models:
+    get:
+      tags: [Gemini]
+      summary: List Gemini models
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/GeminiVersionPath"
+      responses:
+        "200":
+          description: Model list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiModelsResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /gemini/{gemini-api-version}/models/{model}:generateContent:
+    post:
+      tags: [Gemini]
+      summary: Generate content (Gemini)
+      description: |
+        The actual server route accepts a wildcard after /models/. This endpoint models the common
+        `{model}:generateContent` usage used by the Gemini API.
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/GeminiVersionPath"
+        - $ref: "#/components/parameters/GeminiModelPath"
+        - $ref: "#/components/parameters/GeminiAltQuery"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeminiGenerateContentRequest"
+      responses:
+        "200":
+          description: Generate content response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiGenerateContentResponse"
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        API key sent in one of the supported headers (Authorization, X-API-Key, API-Key, etc).
+        Authorization supports optional prefixes: Bearer, Token, Api-Key.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    ModelPath:
+      name: model
+      in: path
+      required: true
+      schema:
+        type: string
+    ModelQuery:
+      name: model
+      in: query
+      required: false
+      description: Filter by model name (fuzzy match)
+      schema:
+        type: string
+    GeminiVersionPath:
+      name: gemini-api-version
+      in: path
+      required: true
+      schema:
+        type: string
+      example: v1beta
+    GeminiModelPath:
+      name: model
+      in: path
+      required: true
+      schema:
+        type: string
+      example: gemini-1.5-pro
+    GeminiAltQuery:
+      name: alt
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [sse]
+    Offset:
+      name: offset
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+    RedemptionCodeQuery:
+      name: code
+      in: query
+      required: false
+      schema:
+        type: string
+    RedemptionStatusQuery:
+      name: status
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [active, used, disabled]
+    RedemptionVoidedQuery:
+      name: voided
+      in: query
+      required: false
+      schema:
+        type: boolean
+    RedemptionUsedByQuery:
+      name: used_by
+      in: query
+      required: false
+      schema:
+        type: integer
+    RedemptionExpiredQuery:
+      name: expired
+      in: query
+      required: false
+      schema:
+        type: boolean
+    RechargeUserIDQuery:
+      name: user_id
+      in: query
+      required: false
+      schema:
+        type: integer
+    RechargeProjectIDQuery:
+      name: project_id
+      in: query
+      required: false
+      schema:
+        type: integer
+    RechargeCodeIDQuery:
+      name: code_id
+      in: query
+      required: false
+      schema:
+        type: integer
+    RechargeStatusQuery:
+      name: status
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [success, failed]
+  schemas:
+    GenericObject:
+      type: object
+      additionalProperties: true
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        build:
+          $ref: "#/components/schemas/BuildInfo"
+        uptime:
+          type: string
+      required: [status]
+    BuildInfo:
+      type: object
+      properties:
+        version:
+          type: string
+        commit:
+          type: string
+        build_time:
+          type: string
+        go_version:
+          type: string
+        platform:
+          type: string
+        uptime:
+          type: string
+      required: [version, go_version, platform, uptime]
+    SystemStatusResponse:
+      type: object
+      properties:
+        isInitialized:
+          type: boolean
+      required: [isInitialized]
+    InitializeSystemRequest:
+      type: object
+      properties:
+        ownerEmail:
+          type: string
+          format: email
+        ownerPassword:
+          type: string
+          minLength: 6
+        ownerFirstName:
+          type: string
+        ownerLastName:
+          type: string
+        brandName:
+          type: string
+      required: [ownerEmail, ownerPassword, ownerFirstName, ownerLastName, brandName]
+      additionalProperties: false
+    InitializeSystemResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required: [success, message]
+    GetSystemSettingsResponse:
+      type: object
+      properties:
+        settings:
+          type: array
+          items:
+            $ref: "#/components/schemas/SettingItem"
+      required: [settings]
+    SettingItem:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: object
+          additionalProperties: true
+        description:
+          type: string
+        updated_at:
+          type: string
+      required: [key, value, description, updated_at]
+    UpdateSystemSettingsRequest:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: object
+          additionalProperties: true
+        description:
+          type: string
+      required: [key, value]
+      additionalProperties: false
+    UpdateSystemSettingsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        setting:
+          $ref: "#/components/schemas/SettingItem"
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorObject"
+      required: [error]
+    ErrorObject:
+      type: object
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+      required: [type, message]
+    ErrorMessageResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    SignInRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email, password]
+      additionalProperties: false
+    SignInResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserInfo"
+      required: [token, user]
+    GUID:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: integer
+      required: [type, id]
+    UserInfo:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/GUID"
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        isOwner:
+          type: boolean
+        preferLanguage:
+          type: string
+        avatar:
+          type: string
+          nullable: true
+        scopes:
+          type: array
+          items:
+            type: string
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleInfo"
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserProjectInfo"
+      required: [id, email, firstName, lastName, isOwner, preferLanguage, scopes, roles, projects]
+    RoleInfo:
+      type: object
+      properties:
+        name:
+          type: string
+      required: [name]
+    UserProjectInfo:
+      type: object
+      properties:
+        projectID:
+          $ref: "#/components/schemas/GUID"
+        isOwner:
+          type: boolean
+        scopes:
+          type: array
+          items:
+            type: string
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleInfo"
+      required: [projectID, isOwner, scopes, roles]
+    GraphQLRequest:
+      type: object
+      properties:
+        query:
+          type: string
+        variables:
+          type: object
+          additionalProperties: true
+        operationName:
+          type: string
+      required: [query]
+    DeleteCodesRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+      required: [ids]
+    RedemptionGenerateRequest:
+      type: object
+      properties:
+        count:
+          type: integer
+          minimum: 1
+        quota:
+          type: integer
+          minimum: 1
+        max_uses:
+          type: integer
+          minimum: 1
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        export:
+          type: boolean
+      required: [count, quota]
+      additionalProperties: false
+    RedemptionGenerateResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: string
+      required: [data]
+    RedeemRequest:
+      type: object
+      properties:
+        code:
+          type: string
+      required: [code]
+      additionalProperties: false
+    RedeemResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        quota:
+          type: integer
+      required: [status, quota]
+    RedemptionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RedemptionCode"
+      required: [success, data]
+    RedemptionCode:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        quota:
+          type: integer
+        status:
+          type: string
+          enum: [active, used, disabled]
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        max_uses:
+          type: integer
+        used_times:
+          type: integer
+        voided:
+          type: boolean
+        used_by:
+          type: integer
+          nullable: true
+        used_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: integer
+      required: [id, code, quota, status, max_uses, used_times, voided, created_at, updated_at, deleted_at]
+    RechargeListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RechargeRecord"
+      required: [success, data]
+    RechargeRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        project_id:
+          type: integer
+        code_id:
+          type: integer
+        amount:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [success, failed]
+        trace_id:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, user_id, project_id, code_id, amount, status, created_at, updated_at]
+    SubscriptionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/SubscriptionData"
+      required: [success, data]
+    SubscriptionData:
+      type: object
+      properties:
+        quota:
+          type: integer
+          format: int64
+        used_quota:
+          type: integer
+          format: int64
+      required: [quota, used_quota]
+    UsageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsumptionRecord"
+      required: [success, data]
+    DashboardStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/DashboardStatsData"
+      required: [success, data]
+    DashboardStatsData:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+        completed_requests:
+          type: integer
+        failed_requests:
+          type: integer
+        canceled_requests:
+          type: integer
+        blocked_requests:
+          type: integer
+        average_latency_ms:
+          type: integer
+          format: int64
+          nullable: true
+        average_first_token_latency_ms:
+          type: integer
+          format: int64
+          nullable: true
+        prompt_tokens:
+          type: integer
+          format: int64
+        completion_tokens:
+          type: integer
+          format: int64
+        total_tokens:
+          type: integer
+          format: int64
+      required:
+        [
+          total_requests,
+          completed_requests,
+          failed_requests,
+          canceled_requests,
+          blocked_requests,
+          prompt_tokens,
+          completion_tokens,
+          total_tokens,
+        ]
+    ConsumptionStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsumptionStatsRow"
+      required: [success, data]
+    ConsumptionStatsRow:
+      type: object
+      properties:
+        project_id:
+          type: integer
+        model:
+          type: string
+        date:
+          type: string
+          format: date
+        count:
+          type: integer
+        quota:
+          type: integer
+          format: int64
+        prompt_tokens:
+          type: integer
+          format: int64
+        completion_tokens:
+          type: integer
+          format: int64
+        total_tokens:
+          type: integer
+          format: int64
+      required:
+        [project_id, model, date, count, quota, prompt_tokens, completion_tokens, total_tokens]
+    ConsumptionRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        project_id:
+          type: integer
+        model:
+          type: string
+        quota:
+          type: integer
+        billing_multiplier:
+          type: number
+          format: float
+        group_multiplier:
+          type: number
+          format: float
+        model_multiplier:
+          type: number
+          format: float
+        completion_ratio:
+          type: number
+          format: float
+        trace_id:
+          type: string
+          nullable: true
+        api_key_id:
+          type: integer
+          nullable: true
+        api_key_name:
+          type: string
+          nullable: true
+        prompt_tokens:
+          type: integer
+        completion_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+        content:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [chat, image]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        [id, user_id, project_id, model, quota, billing_multiplier, group_multiplier, model_multiplier, completion_ratio, prompt_tokens, completion_tokens, total_tokens, type, created_at, updated_at]
+    ChatCompletionRequest:
+      type: object
+      properties:
+        model:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+        stream:
+          type: boolean
+        temperature:
+          type: number
+        top_p:
+          type: number
+        max_tokens:
+          type: integer
+        n:
+          type: integer
+        stop:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        presence_penalty:
+          type: number
+        frequency_penalty:
+          type: number
+        user:
+          type: string
+      required: [model, messages]
+      additionalProperties: true
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant, tool]
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/ChatMessageContentPart"
+        name:
+          type: string
+        tool_call_id:
+          type: string
+        tool_calls:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolCall"
+      required: [role, content]
+      additionalProperties: true
+    ChatMessageContentPart:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [text, image_url]
+        text:
+          type: string
+        image_url:
+          $ref: "#/components/schemas/ImageURL"
+      required: [type]
+      additionalProperties: true
+    ImageURL:
+      type: object
+      properties:
+        url:
+          type: string
+        detail:
+          type: string
+          enum: [low, high, auto]
+      required: [url]
+    ToolCall:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        function:
+          $ref: "#/components/schemas/ToolFunction"
+      required: [id, type]
+      additionalProperties: true
+    ToolFunction:
+      type: object
+      properties:
+        name:
+          type: string
+        arguments:
+          type: string
+      required: [name, arguments]
+    ChatCompletionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatCompletionChoice"
+        usage:
+          $ref: "#/components/schemas/Usage"
+      required: [id, object, created, model, choices]
+    ChatCompletionChoice:
+      type: object
+      properties:
+        index:
+          type: integer
+        message:
+          $ref: "#/components/schemas/ChatMessage"
+        finish_reason:
+          type: string
+        logprobs:
+          type: object
+          nullable: true
+      required: [index, message]
+    Usage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+        completion_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+      required: [prompt_tokens, total_tokens]
+    ResponsesRequest:
+      type: object
+      properties:
+        model:
+          type: string
+        input:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/ResponseInputItem"
+        stream:
+          type: boolean
+        temperature:
+          type: number
+        top_p:
+          type: number
+        max_output_tokens:
+          type: integer
+        user:
+          type: string
+      required: [model, input]
+      additionalProperties: true
+    ResponseInputItem:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant]
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/ResponseContentPart"
+      required: [role, content]
+      additionalProperties: true
+    ResponseContentPart:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [input_text, input_image, text]
+        text:
+          type: string
+        image_url:
+          $ref: "#/components/schemas/ImageURL"
+      required: [type]
+      additionalProperties: true
+    ResponsesResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+        model:
+          type: string
+        output:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseOutputItem"
+        usage:
+          $ref: "#/components/schemas/Usage"
+      required: [id, object, created, model, output]
+    ResponseOutputItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseContentPart"
+      required: [id, type, content]
+      additionalProperties: true
+    EmbeddingRequest:
+      type: object
+      properties:
+        model:
+          type: string
+        input:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+            - type: array
+              items:
+                type: number
+            - type: array
+              items:
+                type: array
+                items:
+                  type: number
+        encoding_format:
+          type: string
+          enum: [float, base64]
+        dimensions:
+          type: integer
+        user:
+          type: string
+      required: [model, input]
+      additionalProperties: true
+    EmbeddingResponse:
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbeddingObject"
+        model:
+          type: string
+        usage:
+          $ref: "#/components/schemas/EmbeddingUsage"
+      required: [object, data, model]
+    EmbeddingObject:
+      type: object
+      properties:
+        object:
+          type: string
+        index:
+          type: integer
+        embedding:
+          type: array
+          items:
+            type: number
+      required: [object, index, embedding]
+    EmbeddingUsage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+      required: [prompt_tokens, total_tokens]
+    OpenAIModelsResponse:
+      type: object
+      properties:
+        object:
+          type: string
+          enum: [list]
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenAIModel"
+      required: [object, data]
+    OpenAIModel:
+      type: object
+      properties:
+        id:
+          type: string
+        created:
+          type: integer
+        owned_by:
+          type: string
+      required: [id, created, owned_by]
+    RerankRequest:
+      type: object
+      properties:
+        model:
+          type: string
+        query:
+          type: string
+        documents:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: array
+              items:
+                type: object
+                additionalProperties: true
+        top_n:
+          type: integer
+        return_documents:
+          type: boolean
+      required: [model, query, documents]
+      additionalProperties: true
+    RerankResponse:
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RerankResult"
+      required: [data]
+    RerankResult:
+      type: object
+      properties:
+        index:
+          type: integer
+        relevance_score:
+          type: number
+        document:
+          type: object
+          additionalProperties: true
+      required: [index, relevance_score]
+    AnthropicMessageRequest:
+      type: object
+      properties:
+        model:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnthropicMessageInput"
+        system:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/AnthropicContentBlock"
+        max_tokens:
+          type: integer
+        temperature:
+          type: number
+        top_p:
+          type: number
+        top_k:
+          type: integer
+        stop_sequences:
+          type: array
+          items:
+            type: string
+        stream:
+          type: boolean
+        metadata:
+          type: object
+          additionalProperties: true
+      required: [model, messages]
+      additionalProperties: true
+    AnthropicMessageInput:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/AnthropicContentBlock"
+      required: [role, content]
+      additionalProperties: true
+    AnthropicContentBlock:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [text, image, tool_use, tool_result]
+        text:
+          type: string
+        source:
+          type: object
+          additionalProperties: true
+        name:
+          type: string
+        input:
+          type: object
+          additionalProperties: true
+        tool_use_id:
+          type: string
+      required: [type]
+      additionalProperties: true
+    AnthropicMessageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        role:
+          type: string
+        model:
+          type: string
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnthropicContentBlock"
+        stop_reason:
+          type: string
+        stop_sequence:
+          type: string
+          nullable: true
+        usage:
+          $ref: "#/components/schemas/AnthropicUsage"
+      required: [id, type, role, model, content, usage]
+    AnthropicUsage:
+      type: object
+      properties:
+        input_tokens:
+          type: integer
+        output_tokens:
+          type: integer
+      required: [input_tokens, output_tokens]
+    AnthropicModelsResponse:
+      type: object
+      properties:
+        object:
+          type: string
+          enum: [list]
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnthropicModel"
+        has_more:
+          type: boolean
+        first_id:
+          type: string
+        last_id:
+          type: string
+      required: [object, data, has_more]
+    AnthropicModel:
+      type: object
+      properties:
+        id:
+          type: string
+        display_name:
+          type: string
+        created:
+          type: string
+          format: date-time
+      required: [id, display_name, created]
+    GeminiGenerateContentRequest:
+      type: object
+      properties:
+        contents:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiContent"
+        generationConfig:
+          $ref: "#/components/schemas/GeminiGenerationConfig"
+        safetySettings:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiSafetySetting"
+        tools:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiTool"
+        toolConfig:
+          $ref: "#/components/schemas/GeminiToolConfig"
+      required: [contents]
+      additionalProperties: true
+    GeminiContent:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, model, system]
+        parts:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiPart"
+      required: [parts]
+      additionalProperties: true
+    GeminiPart:
+      type: object
+      properties:
+        text:
+          type: string
+        inlineData:
+          $ref: "#/components/schemas/GeminiInlineData"
+        fileData:
+          $ref: "#/components/schemas/GeminiFileData"
+        functionCall:
+          $ref: "#/components/schemas/GeminiFunctionCall"
+        functionResponse:
+          $ref: "#/components/schemas/GeminiFunctionResponse"
+      additionalProperties: true
+    GeminiInlineData:
+      type: object
+      properties:
+        mimeType:
+          type: string
+        data:
+          type: string
+      required: [mimeType, data]
+    GeminiFileData:
+      type: object
+      properties:
+        mimeType:
+          type: string
+        fileUri:
+          type: string
+      required: [mimeType, fileUri]
+    GeminiGenerationConfig:
+      type: object
+      properties:
+        temperature:
+          type: number
+        topP:
+          type: number
+        topK:
+          type: integer
+        maxOutputTokens:
+          type: integer
+        stopSequences:
+          type: array
+          items:
+            type: string
+      additionalProperties: true
+    GeminiSafetySetting:
+      type: object
+      properties:
+        category:
+          type: string
+        threshold:
+          type: string
+      required: [category, threshold]
+      additionalProperties: true
+    GeminiGenerateContentResponse:
+      type: object
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiCandidate"
+        promptFeedback:
+          type: object
+          additionalProperties: true
+      required: [candidates]
+      additionalProperties: true
+    GeminiCandidate:
+      type: object
+      properties:
+        content:
+          $ref: "#/components/schemas/GeminiContent"
+        finishReason:
+          type: string
+        index:
+          type: integer
+        safetyRatings:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required: [content]
+      additionalProperties: true
+    GeminiModelsResponse:
+      type: object
+      properties:
+        object:
+          type: string
+          enum: [list]
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiModel"
+      required: [object, data]
+    GeminiTool:
+      type: object
+      properties:
+        functionDeclarations:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiFunctionDeclaration"
+      required: [functionDeclarations]
+      additionalProperties: true
+    GeminiToolConfig:
+      type: object
+      properties:
+        functionCallingConfig:
+          $ref: "#/components/schemas/GeminiFunctionCallingConfig"
+      additionalProperties: true
+    GeminiFunctionCallingConfig:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [AUTO, ANY, NONE]
+        allowedFunctionNames:
+          type: array
+          items:
+            type: string
+      additionalProperties: true
+    GeminiFunctionDeclaration:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parameters:
+          $ref: "#/components/schemas/JsonSchema"
+      required: [name]
+      additionalProperties: true
+    GeminiFunctionCall:
+      type: object
+      properties:
+        name:
+          type: string
+        args:
+          type: object
+          additionalProperties: true
+      required: [name, args]
+      additionalProperties: true
+    GeminiFunctionResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        response:
+          type: object
+          additionalProperties: true
+      required: [name, response]
+      additionalProperties: true
+    JsonSchema:
+      type: object
+      properties:
+        type:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/JsonSchema"
+        required:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        enum:
+          type: array
+          items:
+            type: string
+        items:
+          $ref: "#/components/schemas/JsonSchema"
+      additionalProperties: true
+    GeminiModel:
+      type: object
+      properties:
+        name:
+          type: string
+        baseModelId:
+          type: string
+        version:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+      required: [name, baseModelId, version, displayName]
+    AddWordRequest:
+      type: object
+      properties:
+        word:
+          type: string
+        type:
+          type: string
+          enum: [block, replace]
+      required: [word]
+      additionalProperties: false
+    SensitiveWordResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/SensitiveWord"
+      required: [data]
+    SensitiveWordListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SensitiveWord"
+      required: [data]
+    SensitiveWord:
+      type: object
+      properties:
+        id:
+          type: integer
+        word:
+          type: string
+        type:
+          type: string
+          enum: [block, replace]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: integer
+      required: [id, word, type, created_at, updated_at, deleted_at]
+    PricingUpsertRequest:
+      type: object
+      properties:
+        model:
+          type: string
+        type:
+          type: string
+          enum: [quota, connection]
+        quota:
+          type: number
+        price:
+          type: number
+        completion_ratio:
+          type: number
+      required: [model]
+      additionalProperties: false
+    PricingUpsertBatchRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PricingUpsertRequest"
+      required: [items]
+      additionalProperties: false
+    PricingUpsertResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/ModelPricing"
+      required: [success, data]
+    PricingUpsertBatchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelPricing"
+      required: [success, data]
+    PricingListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelPricing"
+      required: [success, data]
+    ModelPricing:
+      type: object
+      properties:
+        id:
+          type: integer
+        model:
+          type: string
+        type:
+          type: string
+          enum: [quota, connection]
+        quota:
+          type: number
+        completion_ratio:
+          type: number
+        price:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: integer
+      required: [id, model, type, quota, completion_ratio, price, created_at, updated_at, deleted_at]
+    PricingToggleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/ModelPricing"
+      required: [success]
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required: [success]
+    StatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]

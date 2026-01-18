@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/request"
@@ -56,6 +57,20 @@ func (_c *UsageLogCreate) SetNillableUpdatedAt(v *time.Time) *UsageLogCreate {
 // SetRequestID sets the "request_id" field.
 func (_c *UsageLogCreate) SetRequestID(v int) *UsageLogCreate {
 	_c.mutation.SetRequestID(v)
+	return _c
+}
+
+// SetAPIKeyID sets the "api_key_id" field.
+func (_c *UsageLogCreate) SetAPIKeyID(v int) *UsageLogCreate {
+	_c.mutation.SetAPIKeyID(v)
+	return _c
+}
+
+// SetNillableAPIKeyID sets the "api_key_id" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableAPIKeyID(v *int) *UsageLogCreate {
+	if v != nil {
+		_c.SetAPIKeyID(*v)
+	}
 	return _c
 }
 
@@ -264,6 +279,11 @@ func (_c *UsageLogCreate) SetNillableFormat(v *string) *UsageLogCreate {
 // SetRequest sets the "request" edge to the Request entity.
 func (_c *UsageLogCreate) SetRequest(v *Request) *UsageLogCreate {
 	return _c.SetRequestID(v.ID)
+}
+
+// SetAPIKey sets the "api_key" edge to the APIKey entity.
+func (_c *UsageLogCreate) SetAPIKey(v *APIKey) *UsageLogCreate {
+	return _c.SetAPIKeyID(v.ID)
 }
 
 // SetProject sets the "project" edge to the Project entity.
@@ -527,6 +547,23 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.RequestID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.APIKeyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   usagelog.APIKeyTable,
+			Columns: []string{usagelog.APIKeyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.APIKeyID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.ProjectIDs(); len(nodes) > 0 {
@@ -883,6 +920,9 @@ func (u *UsageLogUpsertOne) UpdateNewValues() *UsageLogUpsertOne {
 		}
 		if _, exists := u.create.mutation.RequestID(); exists {
 			s.SetIgnore(usagelog.FieldRequestID)
+		}
+		if _, exists := u.create.mutation.APIKeyID(); exists {
+			s.SetIgnore(usagelog.FieldAPIKeyID)
 		}
 		if _, exists := u.create.mutation.ProjectID(); exists {
 			s.SetIgnore(usagelog.FieldProjectID)
@@ -1402,6 +1442,9 @@ func (u *UsageLogUpsertBulk) UpdateNewValues() *UsageLogUpsertBulk {
 			}
 			if _, exists := b.mutation.RequestID(); exists {
 				s.SetIgnore(usagelog.FieldRequestID)
+			}
+			if _, exists := b.mutation.APIKeyID(); exists {
+				s.SetIgnore(usagelog.FieldAPIKeyID)
 			}
 			if _, exists := b.mutation.ProjectID(); exists {
 				s.SetIgnore(usagelog.FieldProjectID)

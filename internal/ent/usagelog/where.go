@@ -70,6 +70,11 @@ func RequestID(v int) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldRequestID, v))
 }
 
+// APIKeyID applies equality check predicate on the "api_key_id" field. It's identical to APIKeyIDEQ.
+func APIKeyID(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldAPIKeyID, v))
+}
+
 // ProjectID applies equality check predicate on the "project_id" field. It's identical to ProjectIDEQ.
 func ProjectID(v int) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldProjectID, v))
@@ -238,6 +243,36 @@ func RequestIDIn(vs ...int) predicate.UsageLog {
 // RequestIDNotIn applies the NotIn predicate on the "request_id" field.
 func RequestIDNotIn(vs ...int) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldNotIn(FieldRequestID, vs...))
+}
+
+// APIKeyIDEQ applies the EQ predicate on the "api_key_id" field.
+func APIKeyIDEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldAPIKeyID, v))
+}
+
+// APIKeyIDNEQ applies the NEQ predicate on the "api_key_id" field.
+func APIKeyIDNEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldAPIKeyID, v))
+}
+
+// APIKeyIDIn applies the In predicate on the "api_key_id" field.
+func APIKeyIDIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldAPIKeyID, vs...))
+}
+
+// APIKeyIDNotIn applies the NotIn predicate on the "api_key_id" field.
+func APIKeyIDNotIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldAPIKeyID, vs...))
+}
+
+// APIKeyIDIsNil applies the IsNil predicate on the "api_key_id" field.
+func APIKeyIDIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldAPIKeyID))
+}
+
+// APIKeyIDNotNil applies the NotNil predicate on the "api_key_id" field.
+func APIKeyIDNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldAPIKeyID))
 }
 
 // ProjectIDEQ applies the EQ predicate on the "project_id" field.
@@ -925,6 +960,29 @@ func HasRequest() predicate.UsageLog {
 func HasRequestWith(preds ...predicate.Request) predicate.UsageLog {
 	return predicate.UsageLog(func(s *sql.Selector) {
 		step := newRequestStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAPIKey applies the HasEdge predicate on the "api_key" edge.
+func HasAPIKey() predicate.UsageLog {
+	return predicate.UsageLog(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, APIKeyTable, APIKeyColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAPIKeyWith applies the HasEdge predicate on the "api_key" edge with a given conditions (other predicates).
+func HasAPIKeyWith(preds ...predicate.APIKey) predicate.UsageLog {
+	return predicate.UsageLog(func(s *sql.Selector) {
+		step := newAPIKeyStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

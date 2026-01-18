@@ -8,6 +8,9 @@
       "name": "名称",
       "description": "描述",
       "status": "状态",
+      "group": "计费分组",
+      "quota": "额度",
+      "usedQuota": "已用额度",
       "createdAt": "创建时间",
       "updatedAt": "更新时间",
       "actions": "操作",
@@ -53,6 +56,20 @@
           "label": "项目描述",
           "placeholder": "输入项目描述",
           "description": "项目的详细描述"
+        },
+        "group": {
+          "label": "计费分组",
+          "placeholder": "default",
+          "description": "项目计费分组（如 default/vip/svip）"
+        },
+        "quota": {
+          "label": "项目额度",
+          "placeholder": "0",
+          "description": "项目的总额度"
+        },
+        "usedQuota": {
+          "label": "已用额度",
+          "description": "项目已消耗的额度"
         }
       },
       "buttons": {

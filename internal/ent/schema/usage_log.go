@@ -25,6 +25,8 @@ func (UsageLog) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("request_id").
 			StorageKey("usage_logs_by_request_id"),
+		index.Fields("api_key_id").
+			StorageKey("usage_logs_by_api_key_id"),
 		index.Fields("project_id").
 			StorageKey("usage_logs_by_project_id"),
 		index.Fields("channel_id").
@@ -44,6 +46,7 @@ func (UsageLog) Indexes() []ent.Index {
 func (UsageLog) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("request_id").Immutable().Comment("Related request ID"),
+		field.Int("api_key_id").Optional().Immutable().Comment("API Key ID used for the request"),
 		field.Int("project_id").Immutable().Default(1).Comment("Project ID, default to 1 for backward compatibility"),
 		field.Int("channel_id").Optional().Comment("Channel ID used for the request"),
 		field.String("model_id").Immutable().Comment("Model identifier used for the request"),
@@ -76,6 +79,11 @@ func (UsageLog) Edges() []ent.Edge {
 			Ref("usage_logs").
 			Field("request_id").
 			Required().
+			Immutable().
+			Unique(),
+		edge.From("api_key", APIKey.Type).
+			Ref("usage_logs").
+			Field("api_key_id").
 			Immutable().
 			Unique(),
 		edge.From("project", Project.Type).

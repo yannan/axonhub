@@ -2,7 +2,15 @@ import { createFileRoute } from '@tanstack/react-router';
 import { RouteGuard } from '@/components/route-guard';
 import SystemManagement from '@/features/system';
 
-type SystemTabKey = 'brand' | 'storage' | 'retry' | 'about';
+type SystemTabKey =
+  | 'brand'
+  | 'storage'
+  | 'retry'
+  | 'redemption'
+  | 'billing'
+  | 'sensitive-words'
+  | 'about'
+  | 'group-settings';
 
 function ProtectedSystem() {
   const search = Route.useSearch();

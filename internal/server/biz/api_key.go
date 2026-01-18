@@ -98,6 +98,9 @@ func (s *APIKeyService) CreateAPIKey(ctx context.Context, input ent.CreateAPIKey
 			create.SetScopes([]string{})
 		}
 	}
+	if input.IPWhitelist != nil {
+		create.SetIPWhitelist(strings.TrimSpace(*input.IPWhitelist))
+	}
 
 	apiKey, err := create.Save(ctx)
 	if err != nil {
@@ -136,6 +139,12 @@ func (s *APIKeyService) UpdateAPIKey(ctx context.Context, id int, input ent.Upda
 		if input.ClearScopes {
 			update.ClearScopes()
 		}
+	}
+	if input.ClearIPWhitelist {
+		update.ClearIPWhitelist()
+	}
+	if input.IPWhitelist != nil {
+		update.SetIPWhitelist(strings.TrimSpace(*input.IPWhitelist))
 	}
 
 	apiKey, err = update.Save(ctx)

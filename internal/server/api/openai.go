@@ -11,6 +11,7 @@ import (
 	"github.com/looplj/axonhub/internal/pkg/httpclient"
 	"github.com/looplj/axonhub/internal/server/biz"
 	"github.com/looplj/axonhub/internal/server/orchestrator"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 )
 
 type OpenAIHandlersParams struct {
@@ -22,6 +23,7 @@ type OpenAIHandlersParams struct {
 	SystemService   *biz.SystemService
 	UsageLogService *biz.UsageLogService
 	HttpClient      *httpclient.HttpClient
+	ValidationEngine *filter.ValidationEngine
 }
 
 type OpenAIHandlers struct {
@@ -44,6 +46,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				openai.NewInboundTransformer(),
 				params.SystemService,
 				params.UsageLogService,
+				params.ValidationEngine,
 			),
 		},
 		ResponseCompletionHandlers: &ChatCompletionHandlers{
@@ -55,6 +58,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				responses.NewInboundTransformer(),
 				params.SystemService,
 				params.UsageLogService,
+				params.ValidationEngine,
 			),
 		},
 		EmbeddingHandlers: &ChatCompletionHandlers{
@@ -66,6 +70,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				openai.NewEmbeddingInboundTransformer(),
 				params.SystemService,
 				params.UsageLogService,
+				params.ValidationEngine,
 			),
 		},
 		ChannelService: params.ChannelService,

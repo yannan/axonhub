@@ -18,6 +18,7 @@ function buildTracesQuery() {
           node {
             id
             traceID
+            cost
             firstUserQuery
             createdAt
             updatedAt
@@ -26,6 +27,9 @@ function buildTracesQuery() {
               threadID
             }
             requests(where: { status: completed }) {
+              totalCount
+            }
+            blockedRequests: requests(where: { status: blocked }) {
               totalCount
             }
           }
@@ -51,6 +55,7 @@ function buildTraceDetailQuery() {
         ... on Trace {
           id
           traceID
+          cost
           createdAt
           updatedAt
           project {
@@ -62,6 +67,9 @@ function buildTraceDetailQuery() {
             threadID
           }
           requests(where: { status: completed }) {
+            totalCount
+          }
+          blockedRequests: requests(where: { status: blocked }) {
             totalCount
           }
         }
@@ -77,6 +85,7 @@ function buildTraceWithRequestTracesQuery() {
         ... on Trace {
           id
           traceID
+          cost
           createdAt
           updatedAt
           project {
@@ -88,6 +97,9 @@ function buildTraceWithRequestTracesQuery() {
             threadID
           }
           requests(where: { status: completed }) {
+            totalCount
+          }
+          blockedRequests: requests(where: { status: blocked }) {
             totalCount
           }
           rawRootSegment

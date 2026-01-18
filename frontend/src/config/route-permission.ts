@@ -57,6 +57,11 @@ export const routeConfigs: RouteGroup[] = [
         mode: 'hidden',
       },
       {
+        path: '/pricing',
+        requiredScopes: ['read_system'],
+        mode: 'hidden',
+      },
+      {
         path: '/system',
         requiredScopes: ['read_system'],
         mode: 'hidden',
@@ -84,6 +89,11 @@ export const routeConfigs: RouteGroup[] = [
       {
         path: '/project/api-keys',
         requiredScopes: ['read_api_keys'],
+        mode: 'hidden',
+      },
+      {
+        path: '/project/billing',
+        requiredScopes: ['read_requests'],
         mode: 'hidden',
       },
       {

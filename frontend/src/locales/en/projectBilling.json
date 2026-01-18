@@ -1,0 +1,94 @@
+{
+  "projectBilling": {
+    "title": "Project Billing",
+    "description": "Manage project quota, redemptions, and recharge history.",
+    "cards": {
+      "quota": "Total Quota",
+      "quotaDescription": "All available quota for this project.",
+      "usedQuota": "Used Quota",
+      "usedQuotaDescription": "Quota already consumed by requests.",
+      "remainingQuota": "Remaining Quota",
+      "remainingQuotaDescription": "Quota left for this project."
+    },
+    "dashboard": {
+      "title": "Usage Overview",
+      "description": "Request volume, token usage, and latency metrics for this project.",
+      "cards": {
+        "requests": "Requests",
+        "requestsDescription": "All requests recorded for this project.",
+        "tokens": "Token Usage",
+        "tokensDescription": "Tokens consumed by project requests.",
+        "latency": "Latency",
+        "latencyDescription": "Average response and first token latency."
+      },
+      "stats": {
+        "completed": "Completed",
+        "failed": "Failed",
+        "blocked": "Blocked",
+        "canceled": "Canceled",
+        "successRate": "Success rate",
+        "prompt": "Prompt",
+        "completion": "Completion",
+        "avgLatency": "Avg response latency",
+        "avgFirstToken": "Avg first token"
+      }
+    },
+    "redeem": {
+      "title": "Redeem Code",
+      "description": "Apply a redemption code to increase project quota.",
+      "placeholder": "Enter redemption code",
+      "submit": "Redeem",
+      "submitting": "Redeeming...",
+      "errorTitle": "Redeem failed",
+      "errors": {
+        "notFound": "Redemption code not found.",
+        "invalid": "Redemption code is invalid or already used.",
+        "voided": "Redemption code has been voided.",
+        "expired": "Redemption code has expired.",
+        "limit": "Redemption code usage limit reached."
+      }
+    },
+    "usage": {
+      "title": "Usage Records",
+      "description": "Latest usage records for this project.",
+      "empty": "No usage records yet.",
+      "columns": {
+        "model": "Model",
+        "type": "Type",
+        "quota": "Quota",
+        "multiplier": "Multiplier",
+        "groupMultiplier": "Group Multiplier",
+        "modelMultiplier": "Model Multiplier",
+        "completionRatio": "Completion Ratio",
+        "tokens": "Tokens",
+        "apiKey": "API Key",
+        "trace": "Trace",
+        "createdAt": "Created At"
+      },
+      "tokens": {
+        "prompt": "Prompt",
+        "completion": "Completion"
+      },
+      "types": {
+        "chat": "Chat",
+        "image": "Image"
+      }
+    },
+    "recharges": {
+      "title": "Recharge Records",
+      "description": "Recent redemption activity for this project.",
+      "empty": "No recharge records yet.",
+      "columns": {
+        "codeId": "Code ID",
+        "amount": "Amount",
+        "status": "Status",
+        "trace": "Trace",
+        "createdAt": "Created At"
+      },
+      "status": {
+        "success": "Success",
+        "failed": "Failed"
+      }
+    }
+  }
+}

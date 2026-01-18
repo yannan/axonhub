@@ -17,6 +17,9 @@ const PROJECTS_QUERY = `
           name
           description
           status
+          quota
+          usedQuota
+          group
         }
         cursor
       }
@@ -40,6 +43,9 @@ const CREATE_PROJECT_MUTATION = `
       status
       createdAt
       updatedAt
+      quota
+      usedQuota
+      group
     }
   }
 `;
@@ -53,6 +59,9 @@ const UPDATE_PROJECT_MUTATION = `
       status
       createdAt
       updatedAt
+      quota
+      usedQuota
+      group
     }
   }
 `;
@@ -66,6 +75,9 @@ const UPDATE_PROJECT_STATUS_MUTATION = `
       status
       createdAt
       updatedAt
+      quota
+      usedQuota
+      group
     }
   }
 `;
@@ -79,6 +91,9 @@ const MY_PROJECTS_QUERY = `
         status
         createdAt
         updatedAt
+        quota
+        usedQuota
+        group
     }
   }
 `;

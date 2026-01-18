@@ -30,6 +30,7 @@ func NewUsageLogService(ent *ent.Client, systemService *SystemService) *UsageLog
 func (s *UsageLogService) CreateUsageLog(
 	ctx context.Context,
 	requestID int,
+	apiKeyID *int,
 	projectID int,
 	channelID *int,
 	modelID string,
@@ -52,6 +53,10 @@ func (s *UsageLogService) CreateUsageLog(
 		SetTotalTokens(usage.TotalTokens).
 		SetSource(source).
 		SetFormat(format)
+
+	if apiKeyID != nil {
+		mut = mut.SetAPIKeyID(*apiKeyID)
+	}
 
 	// Set channel ID if provided
 	if channelID != nil {
@@ -132,6 +137,7 @@ func (s *UsageLogService) CreateUsageLogFromRequest(
 	return s.CreateUsageLog(
 		ctx,
 		request.ID,
+		optionalID(request.APIKeyID),
 		request.ProjectID,
 		channelID,
 		request.ModelID,
@@ -139,4 +145,11 @@ func (s *UsageLogService) CreateUsageLogFromRequest(
 		usagelog.Source(request.Source),
 		request.Format,
 	)
+}
+
+func optionalID(id int) *int {
+	if id == 0 {
+		return nil
+	}
+	return &id
 }

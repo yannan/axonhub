@@ -40,6 +40,10 @@ type User struct {
 	Avatar string `json:"avatar,omitempty"`
 	// IsOwner holds the value of the "is_owner" field.
 	IsOwner bool `json:"is_owner,omitempty"`
+	// 当前用户额度
+	Quota int64 `json:"quota,omitempty"`
+	// 已使用额度
+	UsedQuota int64 `json:"used_quota,omitempty"`
 	// User scopes in system level: write_channels, read_channels, add_users, read_users, etc.
 	Scopes []string `json:"scopes,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -58,20 +62,29 @@ type UserEdges struct {
 	Roles []*Role `json:"roles,omitempty"`
 	// ChannelOverrideTemplates holds the value of the channel_override_templates edge.
 	ChannelOverrideTemplates []*ChannelOverrideTemplate `json:"channel_override_templates,omitempty"`
+	// ConsumptionRecords holds the value of the consumption_records edge.
+	ConsumptionRecords []*ConsumptionRecord `json:"consumption_records,omitempty"`
+	// RedemptionCodes holds the value of the redemption_codes edge.
+	RedemptionCodes []*RedemptionCode `json:"redemption_codes,omitempty"`
+	// RechargeRecords holds the value of the recharge_records edge.
+	RechargeRecords []*RechargeRecord `json:"recharge_records,omitempty"`
 	// ProjectUsers holds the value of the project_users edge.
 	ProjectUsers []*UserProject `json:"project_users,omitempty"`
 	// UserRoles holds the value of the user_roles edge.
 	UserRoles []*UserRole `json:"user_roles,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [9]bool
 	// totalCount holds the count of the edges above.
-	totalCount [6]map[string]int
+	totalCount [9]map[string]int
 
 	namedProjects                 map[string][]*Project
 	namedAPIKeys                  map[string][]*APIKey
 	namedRoles                    map[string][]*Role
 	namedChannelOverrideTemplates map[string][]*ChannelOverrideTemplate
+	namedConsumptionRecords       map[string][]*ConsumptionRecord
+	namedRedemptionCodes          map[string][]*RedemptionCode
+	namedRechargeRecords          map[string][]*RechargeRecord
 	namedProjectUsers             map[string][]*UserProject
 	namedUserRoles                map[string][]*UserRole
 }
@@ -112,10 +125,37 @@ func (e UserEdges) ChannelOverrideTemplatesOrErr() ([]*ChannelOverrideTemplate, 
 	return nil, &NotLoadedError{edge: "channel_override_templates"}
 }
 
+// ConsumptionRecordsOrErr returns the ConsumptionRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ConsumptionRecordsOrErr() ([]*ConsumptionRecord, error) {
+	if e.loadedTypes[4] {
+		return e.ConsumptionRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "consumption_records"}
+}
+
+// RedemptionCodesOrErr returns the RedemptionCodes value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RedemptionCodesOrErr() ([]*RedemptionCode, error) {
+	if e.loadedTypes[5] {
+		return e.RedemptionCodes, nil
+	}
+	return nil, &NotLoadedError{edge: "redemption_codes"}
+}
+
+// RechargeRecordsOrErr returns the RechargeRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RechargeRecordsOrErr() ([]*RechargeRecord, error) {
+	if e.loadedTypes[6] {
+		return e.RechargeRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "recharge_records"}
+}
+
 // ProjectUsersOrErr returns the ProjectUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) ProjectUsersOrErr() ([]*UserProject, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[7] {
 		return e.ProjectUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "project_users"}
@@ -124,7 +164,7 @@ func (e UserEdges) ProjectUsersOrErr() ([]*UserProject, error) {
 // UserRolesOrErr returns the UserRoles value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserRolesOrErr() ([]*UserRole, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[8] {
 		return e.UserRoles, nil
 	}
 	return nil, &NotLoadedError{edge: "user_roles"}
@@ -139,7 +179,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case user.FieldIsOwner:
 			values[i] = new(sql.NullBool)
-		case user.FieldID, user.FieldDeletedAt:
+		case user.FieldID, user.FieldDeletedAt, user.FieldQuota, user.FieldUsedQuota:
 			values[i] = new(sql.NullInt64)
 		case user.FieldEmail, user.FieldStatus, user.FieldPreferLanguage, user.FieldPassword, user.FieldFirstName, user.FieldLastName, user.FieldAvatar:
 			values[i] = new(sql.NullString)
@@ -232,6 +272,18 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsOwner = value.Bool
 			}
+		case user.FieldQuota:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field quota", values[i])
+			} else if value.Valid {
+				_m.Quota = value.Int64
+			}
+		case user.FieldUsedQuota:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field used_quota", values[i])
+			} else if value.Valid {
+				_m.UsedQuota = value.Int64
+			}
 		case user.FieldScopes:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field scopes", values[i])
@@ -271,6 +323,21 @@ func (_m *User) QueryRoles() *RoleQuery {
 // QueryChannelOverrideTemplates queries the "channel_override_templates" edge of the User entity.
 func (_m *User) QueryChannelOverrideTemplates() *ChannelOverrideTemplateQuery {
 	return NewUserClient(_m.config).QueryChannelOverrideTemplates(_m)
+}
+
+// QueryConsumptionRecords queries the "consumption_records" edge of the User entity.
+func (_m *User) QueryConsumptionRecords() *ConsumptionRecordQuery {
+	return NewUserClient(_m.config).QueryConsumptionRecords(_m)
+}
+
+// QueryRedemptionCodes queries the "redemption_codes" edge of the User entity.
+func (_m *User) QueryRedemptionCodes() *RedemptionCodeQuery {
+	return NewUserClient(_m.config).QueryRedemptionCodes(_m)
+}
+
+// QueryRechargeRecords queries the "recharge_records" edge of the User entity.
+func (_m *User) QueryRechargeRecords() *RechargeRecordQuery {
+	return NewUserClient(_m.config).QueryRechargeRecords(_m)
 }
 
 // QueryProjectUsers queries the "project_users" edge of the User entity.
@@ -337,6 +404,12 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_owner=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsOwner))
+	builder.WriteString(", ")
+	builder.WriteString("quota=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Quota))
+	builder.WriteString(", ")
+	builder.WriteString("used_quota=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UsedQuota))
 	builder.WriteString(", ")
 	builder.WriteString("scopes=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Scopes))
@@ -437,6 +510,78 @@ func (_m *User) appendNamedChannelOverrideTemplates(name string, edges ...*Chann
 		_m.Edges.namedChannelOverrideTemplates[name] = []*ChannelOverrideTemplate{}
 	} else {
 		_m.Edges.namedChannelOverrideTemplates[name] = append(_m.Edges.namedChannelOverrideTemplates[name], edges...)
+	}
+}
+
+// NamedConsumptionRecords returns the ConsumptionRecords named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *User) NamedConsumptionRecords(name string) ([]*ConsumptionRecord, error) {
+	if _m.Edges.namedConsumptionRecords == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedConsumptionRecords[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *User) appendNamedConsumptionRecords(name string, edges ...*ConsumptionRecord) {
+	if _m.Edges.namedConsumptionRecords == nil {
+		_m.Edges.namedConsumptionRecords = make(map[string][]*ConsumptionRecord)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedConsumptionRecords[name] = []*ConsumptionRecord{}
+	} else {
+		_m.Edges.namedConsumptionRecords[name] = append(_m.Edges.namedConsumptionRecords[name], edges...)
+	}
+}
+
+// NamedRedemptionCodes returns the RedemptionCodes named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *User) NamedRedemptionCodes(name string) ([]*RedemptionCode, error) {
+	if _m.Edges.namedRedemptionCodes == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedRedemptionCodes[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *User) appendNamedRedemptionCodes(name string, edges ...*RedemptionCode) {
+	if _m.Edges.namedRedemptionCodes == nil {
+		_m.Edges.namedRedemptionCodes = make(map[string][]*RedemptionCode)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedRedemptionCodes[name] = []*RedemptionCode{}
+	} else {
+		_m.Edges.namedRedemptionCodes[name] = append(_m.Edges.namedRedemptionCodes[name], edges...)
+	}
+}
+
+// NamedRechargeRecords returns the RechargeRecords named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *User) NamedRechargeRecords(name string) ([]*RechargeRecord, error) {
+	if _m.Edges.namedRechargeRecords == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedRechargeRecords[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *User) appendNamedRechargeRecords(name string, edges ...*RechargeRecord) {
+	if _m.Edges.namedRechargeRecords == nil {
+		_m.Edges.namedRechargeRecords = make(map[string][]*RechargeRecord)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedRechargeRecords[name] = []*RechargeRecord{}
+	} else {
+		_m.Edges.namedRechargeRecords[name] = append(_m.Edges.namedRechargeRecords[name], edges...)
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/looplj/axonhub/internal/llm/transformer/gemini"
 	"github.com/looplj/axonhub/internal/log"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/pkg/httpclient"
 	"github.com/looplj/axonhub/internal/pkg/streams"
 	"github.com/looplj/axonhub/internal/server/biz"
@@ -18,12 +19,13 @@ import (
 type GeminiHandlersParams struct {
 	fx.In
 
-	ChannelService  *biz.ChannelService
-	ModelService    *biz.ModelService
-	RequestService  *biz.RequestService
-	SystemService   *biz.SystemService
-	UsageLogService *biz.UsageLogService
-	HttpClient      *httpclient.HttpClient
+	ChannelService   *biz.ChannelService
+	ModelService     *biz.ModelService
+	RequestService   *biz.RequestService
+	SystemService    *biz.SystemService
+	UsageLogService  *biz.UsageLogService
+	HttpClient       *httpclient.HttpClient
+	ValidationEngine *filter.ValidationEngine
 }
 
 type GeminiHandlers struct {
@@ -43,6 +45,7 @@ func NewGeminiHandlers(params GeminiHandlersParams) *GeminiHandlers {
 				gemini.NewInboundTransformer(),
 				params.SystemService,
 				params.UsageLogService,
+				params.ValidationEngine,
 			),
 		),
 		ChannelService: params.ChannelService,

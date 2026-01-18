@@ -18,14 +18,26 @@ type ChannelOverrideTemplate func(*sql.Selector)
 // ChannelPerformance is the predicate function for channelperformance builders.
 type ChannelPerformance func(*sql.Selector)
 
+// ConsumptionRecord is the predicate function for consumptionrecord builders.
+type ConsumptionRecord func(*sql.Selector)
+
 // DataStorage is the predicate function for datastorage builders.
 type DataStorage func(*sql.Selector)
 
 // Model is the predicate function for model builders.
 type Model func(*sql.Selector)
 
+// ModelPricing is the predicate function for modelpricing builders.
+type ModelPricing func(*sql.Selector)
+
 // Project is the predicate function for project builders.
 type Project func(*sql.Selector)
+
+// RechargeRecord is the predicate function for rechargerecord builders.
+type RechargeRecord func(*sql.Selector)
+
+// RedemptionCode is the predicate function for redemptioncode builders.
+type RedemptionCode func(*sql.Selector)
 
 // Request is the predicate function for request builders.
 type Request func(*sql.Selector)
@@ -36,8 +48,14 @@ type RequestExecution func(*sql.Selector)
 // Role is the predicate function for role builders.
 type Role func(*sql.Selector)
 
+// SensitiveWord is the predicate function for sensitiveword builders.
+type SensitiveWord func(*sql.Selector)
+
 // System is the predicate function for system builders.
 type System func(*sql.Selector)
+
+// SystemSettings is the predicate function for systemsettings builders.
+type SystemSettings func(*sql.Selector)
 
 // Thread is the predicate function for thread builders.
 type Thread func(*sql.Selector)

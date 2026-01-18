@@ -24,6 +24,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldRequestID holds the string denoting the request_id field in the database.
 	FieldRequestID = "request_id"
+	// FieldAPIKeyID holds the string denoting the api_key_id field in the database.
+	FieldAPIKeyID = "api_key_id"
 	// FieldProjectID holds the string denoting the project_id field in the database.
 	FieldProjectID = "project_id"
 	// FieldChannelID holds the string denoting the channel_id field in the database.
@@ -56,6 +58,8 @@ const (
 	FieldFormat = "format"
 	// EdgeRequest holds the string denoting the request edge name in mutations.
 	EdgeRequest = "request"
+	// EdgeAPIKey holds the string denoting the api_key edge name in mutations.
+	EdgeAPIKey = "api_key"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeChannel holds the string denoting the channel edge name in mutations.
@@ -69,6 +73,13 @@ const (
 	RequestInverseTable = "requests"
 	// RequestColumn is the table column denoting the request relation/edge.
 	RequestColumn = "request_id"
+	// APIKeyTable is the table that holds the api_key relation/edge.
+	APIKeyTable = "usage_logs"
+	// APIKeyInverseTable is the table name for the APIKey entity.
+	// It exists in this package in order to avoid circular dependency with the "apikey" package.
+	APIKeyInverseTable = "api_keys"
+	// APIKeyColumn is the table column denoting the api_key relation/edge.
+	APIKeyColumn = "api_key_id"
 	// ProjectTable is the table that holds the project relation/edge.
 	ProjectTable = "usage_logs"
 	// ProjectInverseTable is the table name for the Project entity.
@@ -91,6 +102,7 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldRequestID,
+	FieldAPIKeyID,
 	FieldProjectID,
 	FieldChannelID,
 	FieldModelID,
@@ -208,6 +220,11 @@ func ByRequestID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRequestID, opts...).ToFunc()
 }
 
+// ByAPIKeyID orders the results by the api_key_id field.
+func ByAPIKeyID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAPIKeyID, opts...).ToFunc()
+}
+
 // ByProjectID orders the results by the project_id field.
 func ByProjectID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProjectID, opts...).ToFunc()
@@ -290,6 +307,13 @@ func ByRequestField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByAPIKeyField orders the results by api_key field.
+func ByAPIKeyField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAPIKeyStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByProjectField orders the results by project field.
 func ByProjectField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -308,6 +332,13 @@ func newRequestStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RequestInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, RequestTable, RequestColumn),
+	)
+}
+func newAPIKeyStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(APIKeyInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, APIKeyTable, APIKeyColumn),
 	)
 }
 func newProjectStep() *sqlgraph.Step {

@@ -116,6 +116,12 @@
           "label": "API Key",
           "placeholder": "输入 API Key",
           "description": "API Key 值"
+        },
+        "ipWhitelist": {
+          "label": "IP 白名单",
+          "placeholder": "每行一个 IP 或 CIDR 段",
+          "description": "非白名单 IP 的请求会被拒绝，留空表示允许所有 IP。",
+          "allowAll": "允许所有 IP"
         }
       },
       "buttons": {}

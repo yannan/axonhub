@@ -15,6 +15,7 @@ import (
 	"github.com/looplj/axonhub/internal/llm/transformer/aisdk"
 	"github.com/looplj/axonhub/internal/log"
 	"github.com/looplj/axonhub/internal/objects"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/pkg/httpclient"
 	"github.com/looplj/axonhub/internal/pkg/xerrors"
 	"github.com/looplj/axonhub/internal/server/biz"
@@ -32,12 +33,13 @@ type PlaygroundResponseError struct {
 type PlaygroundHandlersParams struct {
 	fx.In
 
-	ChannelService  *biz.ChannelService
-	ModelService    *biz.ModelService
-	RequestService  *biz.RequestService
-	SystemService   *biz.SystemService
-	UsageLogService *biz.UsageLogService
-	HttpClient      *httpclient.HttpClient
+	ChannelService   *biz.ChannelService
+	ModelService     *biz.ModelService
+	RequestService   *biz.RequestService
+	SystemService    *biz.SystemService
+	UsageLogService  *biz.UsageLogService
+	HttpClient       *httpclient.HttpClient
+	ValidationEngine *filter.ValidationEngine
 }
 
 type PlaygroundHandlers struct {
@@ -56,6 +58,7 @@ func NewPlaygroundHandlers(params PlaygroundHandlersParams) *PlaygroundHandlers 
 			aisdk.NewDataStreamTransformer(),
 			params.SystemService,
 			params.UsageLogService,
+			params.ValidationEngine,
 		),
 	}
 }

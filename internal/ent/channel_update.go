@@ -247,6 +247,20 @@ func (_u *ChannelUpdate) ClearRemark() *ChannelUpdate {
 	return _u
 }
 
+// SetGroup sets the "group" field.
+func (_u *ChannelUpdate) SetGroup(v string) *ChannelUpdate {
+	_u.mutation.SetGroup(v)
+	return _u
+}
+
+// SetNillableGroup sets the "group" field if the given value is not nil.
+func (_u *ChannelUpdate) SetNillableGroup(v *string) *ChannelUpdate {
+	if v != nil {
+		_u.SetGroup(*v)
+	}
+	return _u
+}
+
 // AddRequestIDs adds the "requests" edge to the Request entity by IDs.
 func (_u *ChannelUpdate) AddRequestIDs(ids ...int) *ChannelUpdate {
 	_u.mutation.AddRequestIDs(ids...)
@@ -527,6 +541,9 @@ func (_u *ChannelUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(channel.FieldRemark, field.TypeString)
+	}
+	if value, ok := _u.mutation.Group(); ok {
+		_spec.SetField(channel.FieldGroup, field.TypeString, value)
 	}
 	if _u.mutation.RequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -926,6 +943,20 @@ func (_u *ChannelUpdateOne) ClearRemark() *ChannelUpdateOne {
 	return _u
 }
 
+// SetGroup sets the "group" field.
+func (_u *ChannelUpdateOne) SetGroup(v string) *ChannelUpdateOne {
+	_u.mutation.SetGroup(v)
+	return _u
+}
+
+// SetNillableGroup sets the "group" field if the given value is not nil.
+func (_u *ChannelUpdateOne) SetNillableGroup(v *string) *ChannelUpdateOne {
+	if v != nil {
+		_u.SetGroup(*v)
+	}
+	return _u
+}
+
 // AddRequestIDs adds the "requests" edge to the Request entity by IDs.
 func (_u *ChannelUpdateOne) AddRequestIDs(ids ...int) *ChannelUpdateOne {
 	_u.mutation.AddRequestIDs(ids...)
@@ -1236,6 +1267,9 @@ func (_u *ChannelUpdateOne) sqlSave(ctx context.Context) (_node *Channel, err er
 	}
 	if _u.mutation.RemarkCleared() {
 		_spec.ClearField(channel.FieldRemark, field.TypeString)
+	}
+	if value, ok := _u.mutation.Group(); ok {
+		_spec.SetField(channel.FieldGroup, field.TypeString, value)
 	}
 	if _u.mutation.RequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{

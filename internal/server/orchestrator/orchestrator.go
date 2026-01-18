@@ -2,14 +2,17 @@ package orchestrator
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/looplj/axonhub/internal/contexts"
 	"github.com/looplj/axonhub/internal/llm/pipeline"
 	"github.com/looplj/axonhub/internal/llm/pipeline/stream"
 	"github.com/looplj/axonhub/internal/llm/transformer"
 	"github.com/looplj/axonhub/internal/log"
 	"github.com/looplj/axonhub/internal/objects"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/pkg/httpclient"
 	"github.com/looplj/axonhub/internal/pkg/streams"
 	"github.com/looplj/axonhub/internal/pkg/xcontext"
@@ -24,6 +27,7 @@ func NewChatCompletionOrchestrator(
 	inbound transformer.Inbound,
 	systemService *biz.SystemService,
 	usageLogService *biz.UsageLogService,
+	validationEngine *filter.ValidationEngine,
 ) *ChatCompletionOrchestrator {
 	connectionTracker := NewDefaultConnectionTracker(256)
 
@@ -39,16 +43,16 @@ func NewChatCompletionOrchestrator(
 	weightedLoadBalancer := NewLoadBalancer(systemService, NewWeightStrategy())
 
 	return &ChatCompletionOrchestrator{
-		Inbound:         inbound,
-		RequestService:  requestService,
-		ChannelService:  channelService,
-		SystemService:   systemService,
-		UsageLogService: usageLogService,
+		Inbound:          inbound,
+		RequestService:   requestService,
+		ChannelService:   channelService,
+		SystemService:    systemService,
+		UsageLogService:  usageLogService,
+		ValidationEngine: validationEngine,
 		Middlewares: []pipeline.Middleware{
 			stream.EnsureUsage(),
 		},
 		PipelineFactory:      pipeline.NewFactory(httpClient),
-		ModelMapper:          NewModelMapper(),
 		channelSelector:      NewDefaultSelector(channelService, modelService, systemService),
 		selectedChannelIds:   []int{},
 		connectionTracker:    connectionTracker,
@@ -59,14 +63,15 @@ func NewChatCompletionOrchestrator(
 }
 
 type ChatCompletionOrchestrator struct {
-	Inbound         transformer.Inbound
-	RequestService  *biz.RequestService
-	ChannelService  *biz.ChannelService
-	SystemService   *biz.SystemService
-	UsageLogService *biz.UsageLogService
-	Middlewares     []pipeline.Middleware
-	PipelineFactory *pipeline.Factory
-	ModelMapper     *ModelMapper
+	Inbound          transformer.Inbound
+	RequestService   *biz.RequestService
+	ChannelService   *biz.ChannelService
+	SystemService    *biz.SystemService
+	UsageLogService  *biz.UsageLogService
+	Middlewares      []pipeline.Middleware
+	PipelineFactory  *pipeline.Factory
+	Internal         func(*gin.Context)
+	ValidationEngine *filter.ValidationEngine
 
 	// The runtime fields.
 
@@ -146,7 +151,7 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 		RetryPolicyProvider: processor.SystemService,
 		CandidateSelector:   processor.channelSelector,
 		LoadBalancer:        loadBalancer,
-		ModelMapper:         processor.ModelMapper,
+		ModelMapper:         NewModelMapper(),
 		Proxy:               processor.proxy,
 		CandidateIndex:      0,
 	}
@@ -175,6 +180,7 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 		applyApiKeyModelMapping(inbound),
 		selectCandidates(inbound),
 		persistRequest(inbound),
+		validateContent(inbound, processor.ValidationEngine),
 	)
 
 	// Add outbound middlewares (executed after outbound.TransformRequest)
@@ -244,4 +250,17 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 		ChatCompletion:       result.Response,
 		ChatCompletionStream: nil,
 	}, nil
+}
+
+func validateContent(inbound transformer.Inbound, engine *filter.ValidationEngine) pipeline.Middleware {
+	return pipeline.OnRawRequest("validate-content", func(ctx context.Context, request *httpclient.Request) (*httpclient.Request, error) {
+		// Skip body check for now or ensure stream bodies are handled.
+		// Assuming prompt is in body and body is string-ish.
+		if engine != nil {
+			if valid, word := engine.Validate(string(request.Body)); !valid {
+				return nil, fmt.Errorf("content blocked: sensitive word '%s' found in request", word)
+			}
+		}
+		return request, nil
+	})
 }

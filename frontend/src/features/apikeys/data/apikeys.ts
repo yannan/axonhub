@@ -32,6 +32,7 @@ function buildApiKeysQuery(permissions: { canViewUsers: boolean }) {
             type
             status
             scopes
+            ipWhitelist
           }
           cursor
         }
@@ -69,6 +70,7 @@ function buildApiKeyQuery(permissions: { canViewUsers: boolean }) {
         type
         status
         scopes
+        ipWhitelist
         profiles {
           activeProfile
           profiles {
@@ -106,6 +108,7 @@ function buildCreateApiKeyMutation(permissions: { canViewUsers: boolean }) {
         type
         status
         scopes
+        ipWhitelist
       }
     }
   `;
@@ -132,6 +135,7 @@ function buildUpdateApiKeyMutation(permissions: { canViewUsers: boolean }) {
         type
         status
         scopes
+        ipWhitelist
       }
     }
   `;

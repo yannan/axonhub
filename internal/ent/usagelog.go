@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/request"
@@ -26,6 +27,8 @@ type UsageLog struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Related request ID
 	RequestID int `json:"request_id,omitempty"`
+	// API Key ID used for the request
+	APIKeyID int `json:"api_key_id,omitempty"`
 	// Project ID, default to 1 for backward compatibility
 	ProjectID int `json:"project_id,omitempty"`
 	// Channel ID used for the request
@@ -66,15 +69,17 @@ type UsageLog struct {
 type UsageLogEdges struct {
 	// Request holds the value of the request edge.
 	Request *Request `json:"request,omitempty"`
+	// APIKey holds the value of the api_key edge.
+	APIKey *APIKey `json:"api_key,omitempty"`
 	// Project holds the value of the project edge.
 	Project *Project `json:"project,omitempty"`
 	// Channel holds the value of the channel edge.
 	Channel *Channel `json:"channel,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [4]map[string]int
 }
 
 // RequestOrErr returns the Request value or an error if the edge
@@ -88,12 +93,23 @@ func (e UsageLogEdges) RequestOrErr() (*Request, error) {
 	return nil, &NotLoadedError{edge: "request"}
 }
 
+// APIKeyOrErr returns the APIKey value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UsageLogEdges) APIKeyOrErr() (*APIKey, error) {
+	if e.APIKey != nil {
+		return e.APIKey, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: apikey.Label}
+	}
+	return nil, &NotLoadedError{edge: "api_key"}
+}
+
 // ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UsageLogEdges) ProjectOrErr() (*Project, error) {
 	if e.Project != nil {
 		return e.Project, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: project.Label}
 	}
 	return nil, &NotLoadedError{edge: "project"}
@@ -104,7 +120,7 @@ func (e UsageLogEdges) ProjectOrErr() (*Project, error) {
 func (e UsageLogEdges) ChannelOrErr() (*Channel, error) {
 	if e.Channel != nil {
 		return e.Channel, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: channel.Label}
 	}
 	return nil, &NotLoadedError{edge: "channel"}
@@ -115,7 +131,7 @@ func (*UsageLog) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case usagelog.FieldID, usagelog.FieldRequestID, usagelog.FieldProjectID, usagelog.FieldChannelID, usagelog.FieldPromptTokens, usagelog.FieldCompletionTokens, usagelog.FieldTotalTokens, usagelog.FieldPromptAudioTokens, usagelog.FieldPromptCachedTokens, usagelog.FieldPromptWriteCachedTokens, usagelog.FieldCompletionAudioTokens, usagelog.FieldCompletionReasoningTokens, usagelog.FieldCompletionAcceptedPredictionTokens, usagelog.FieldCompletionRejectedPredictionTokens:
+		case usagelog.FieldID, usagelog.FieldRequestID, usagelog.FieldAPIKeyID, usagelog.FieldProjectID, usagelog.FieldChannelID, usagelog.FieldPromptTokens, usagelog.FieldCompletionTokens, usagelog.FieldTotalTokens, usagelog.FieldPromptAudioTokens, usagelog.FieldPromptCachedTokens, usagelog.FieldPromptWriteCachedTokens, usagelog.FieldCompletionAudioTokens, usagelog.FieldCompletionReasoningTokens, usagelog.FieldCompletionAcceptedPredictionTokens, usagelog.FieldCompletionRejectedPredictionTokens:
 			values[i] = new(sql.NullInt64)
 		case usagelog.FieldModelID, usagelog.FieldSource, usagelog.FieldFormat:
 			values[i] = new(sql.NullString)
@@ -159,6 +175,12 @@ func (_m *UsageLog) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field request_id", values[i])
 			} else if value.Valid {
 				_m.RequestID = int(value.Int64)
+			}
+		case usagelog.FieldAPIKeyID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field api_key_id", values[i])
+			} else if value.Valid {
+				_m.APIKeyID = int(value.Int64)
 			}
 		case usagelog.FieldProjectID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -268,6 +290,11 @@ func (_m *UsageLog) QueryRequest() *RequestQuery {
 	return NewUsageLogClient(_m.config).QueryRequest(_m)
 }
 
+// QueryAPIKey queries the "api_key" edge of the UsageLog entity.
+func (_m *UsageLog) QueryAPIKey() *APIKeyQuery {
+	return NewUsageLogClient(_m.config).QueryAPIKey(_m)
+}
+
 // QueryProject queries the "project" edge of the UsageLog entity.
 func (_m *UsageLog) QueryProject() *ProjectQuery {
 	return NewUsageLogClient(_m.config).QueryProject(_m)
@@ -309,6 +336,9 @@ func (_m *UsageLog) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("request_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.RequestID))
+	builder.WriteString(", ")
+	builder.WriteString("api_key_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.APIKeyID))
 	builder.WriteString(", ")
 	builder.WriteString("project_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ProjectID))

@@ -14,13 +14,19 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/channeloverridetemplate"
 	"github.com/looplj/axonhub/internal/ent/channelperformance"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelpricing"
 	"github.com/looplj/axonhub/internal/ent/project"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
+	"github.com/looplj/axonhub/internal/ent/redemptioncode"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
 	"github.com/looplj/axonhub/internal/ent/role"
+	"github.com/looplj/axonhub/internal/ent/sensitiveword"
 	"github.com/looplj/axonhub/internal/ent/system"
+	"github.com/looplj/axonhub/internal/ent/systemsettings"
 	"github.com/looplj/axonhub/internal/ent/thread"
 	"github.com/looplj/axonhub/internal/ent/trace"
 	"github.com/looplj/axonhub/internal/ent/usagelog"
@@ -169,6 +175,95 @@ func (_q *APIKeyQuery) collectField(ctx context.Context, oneNode bool, opCtx *gr
 			_q.WithNamedRequests(alias, func(wq *RequestQuery) {
 				*wq = *query
 			})
+
+		case "usageLogs":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UsageLogClient{config: _q.config}).Query()
+			)
+			args := newUsageLogPaginateArgs(fieldArgs(ctx, new(UsageLogWhereInput), path...))
+			if err := validateFirstLast(args.first, args.last); err != nil {
+				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			}
+			pager, err := newUsageLogPager(args.opts, args.last != nil)
+			if err != nil {
+				return fmt.Errorf("create new pager in path %q: %w", path, err)
+			}
+			if query, err = pager.applyFilter(query); err != nil {
+				return err
+			}
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
+					query := query.Clone()
+					_q.loadTotal = append(_q.loadTotal, func(ctx context.Context, nodes []*APIKey) error {
+						ids := make([]driver.Value, len(nodes))
+						for i := range nodes {
+							ids[i] = nodes[i].ID
+						}
+						var v []struct {
+							NodeID int `sql:"api_key_id"`
+							Count  int `sql:"count"`
+						}
+						query.Where(func(s *sql.Selector) {
+							s.Where(sql.InValues(s.C(apikey.UsageLogsColumn), ids...))
+						})
+						if err := query.GroupBy(apikey.UsageLogsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+							return err
+						}
+						m := make(map[int]int, len(v))
+						for i := range v {
+							m[v[i].NodeID] = v[i].Count
+						}
+						for i := range nodes {
+							n := m[nodes[i].ID]
+							if nodes[i].Edges.totalCount[3] == nil {
+								nodes[i].Edges.totalCount[3] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[3][alias] = n
+						}
+						return nil
+					})
+				} else {
+					_q.loadTotal = append(_q.loadTotal, func(_ context.Context, nodes []*APIKey) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.UsageLogs)
+							if nodes[i].Edges.totalCount[3] == nil {
+								nodes[i].Edges.totalCount[3] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[3][alias] = n
+						}
+						return nil
+					})
+				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+				continue
+			}
+			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
+				return err
+			}
+			path = append(path, edgesField, nodeField)
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, usagelogImplementors)...); err != nil {
+					return err
+				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				if oneNode {
+					pager.applyOrder(query.Limit(limit))
+				} else {
+					modify := entgql.LimitPerRow(apikey.UsageLogsColumn, limit, pager.orderExpr(query))
+					query.modifiers = append(query.modifiers, modify)
+				}
+			} else {
+				query = pager.applyOrder(query)
+			}
+			_q.WithNamedUsageLogs(alias, func(wq *UsageLogQuery) {
+				*wq = *query
+			})
 		case "createdAt":
 			if _, ok := fieldSeen[apikey.FieldCreatedAt]; !ok {
 				selectedFields = append(selectedFields, apikey.FieldCreatedAt)
@@ -223,6 +318,11 @@ func (_q *APIKeyQuery) collectField(ctx context.Context, oneNode bool, opCtx *gr
 			if _, ok := fieldSeen[apikey.FieldProfiles]; !ok {
 				selectedFields = append(selectedFields, apikey.FieldProfiles)
 				fieldSeen[apikey.FieldProfiles] = struct{}{}
+			}
+		case "ipWhitelist":
+			if _, ok := fieldSeen[apikey.FieldIPWhitelist]; !ok {
+				selectedFields = append(selectedFields, apikey.FieldIPWhitelist)
+				fieldSeen[apikey.FieldIPWhitelist] = struct{}{}
 			}
 		case "id":
 		case "__typename":
@@ -661,6 +761,11 @@ func (_q *ChannelQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 				selectedFields = append(selectedFields, channel.FieldRemark)
 				fieldSeen[channel.FieldRemark] = struct{}{}
 			}
+		case "group":
+			if _, ok := fieldSeen[channel.FieldGroup]; !ok {
+				selectedFields = append(selectedFields, channel.FieldGroup)
+				fieldSeen[channel.FieldGroup] = struct{}{}
+			}
 		case "id":
 		case "__typename":
 		default:
@@ -1073,6 +1178,180 @@ func newChannelPerformancePaginateArgs(rv map[string]any) *channelperformancePag
 	}
 	if v, ok := rv[whereField].(*ChannelPerformanceWhereInput); ok {
 		args.opts = append(args.opts, WithChannelPerformanceFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (_q *ConsumptionRecordQuery) CollectFields(ctx context.Context, satisfies ...string) (*ConsumptionRecordQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return _q, nil
+	}
+	if err := _q.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return _q, nil
+}
+
+func (_q *ConsumptionRecordQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(consumptionrecord.Columns))
+		selectedFields = []string{consumptionrecord.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: _q.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			_q.withUser = query
+			if _, ok := fieldSeen[consumptionrecord.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldUserID)
+				fieldSeen[consumptionrecord.FieldUserID] = struct{}{}
+			}
+
+		case "project":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProjectClient{config: _q.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, projectImplementors)...); err != nil {
+				return err
+			}
+			_q.withProject = query
+			if _, ok := fieldSeen[consumptionrecord.FieldProjectID]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldProjectID)
+				fieldSeen[consumptionrecord.FieldProjectID] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[consumptionrecord.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldCreatedAt)
+				fieldSeen[consumptionrecord.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[consumptionrecord.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldUpdatedAt)
+				fieldSeen[consumptionrecord.FieldUpdatedAt] = struct{}{}
+			}
+		case "userID":
+			if _, ok := fieldSeen[consumptionrecord.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldUserID)
+				fieldSeen[consumptionrecord.FieldUserID] = struct{}{}
+			}
+		case "projectID":
+			if _, ok := fieldSeen[consumptionrecord.FieldProjectID]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldProjectID)
+				fieldSeen[consumptionrecord.FieldProjectID] = struct{}{}
+			}
+		case "model":
+			if _, ok := fieldSeen[consumptionrecord.FieldModel]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldModel)
+				fieldSeen[consumptionrecord.FieldModel] = struct{}{}
+			}
+		case "quota":
+			if _, ok := fieldSeen[consumptionrecord.FieldQuota]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldQuota)
+				fieldSeen[consumptionrecord.FieldQuota] = struct{}{}
+			}
+		case "traceID":
+			if _, ok := fieldSeen[consumptionrecord.FieldTraceID]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldTraceID)
+				fieldSeen[consumptionrecord.FieldTraceID] = struct{}{}
+			}
+		case "promptTokens":
+			if _, ok := fieldSeen[consumptionrecord.FieldPromptTokens]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldPromptTokens)
+				fieldSeen[consumptionrecord.FieldPromptTokens] = struct{}{}
+			}
+		case "completionTokens":
+			if _, ok := fieldSeen[consumptionrecord.FieldCompletionTokens]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldCompletionTokens)
+				fieldSeen[consumptionrecord.FieldCompletionTokens] = struct{}{}
+			}
+		case "totalTokens":
+			if _, ok := fieldSeen[consumptionrecord.FieldTotalTokens]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldTotalTokens)
+				fieldSeen[consumptionrecord.FieldTotalTokens] = struct{}{}
+			}
+		case "content":
+			if _, ok := fieldSeen[consumptionrecord.FieldContent]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldContent)
+				fieldSeen[consumptionrecord.FieldContent] = struct{}{}
+			}
+		case "type":
+			if _, ok := fieldSeen[consumptionrecord.FieldType]; !ok {
+				selectedFields = append(selectedFields, consumptionrecord.FieldType)
+				fieldSeen[consumptionrecord.FieldType] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		_q.Select(selectedFields...)
+	}
+	return nil
+}
+
+type consumptionrecordPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ConsumptionRecordPaginateOption
+}
+
+func newConsumptionRecordPaginateArgs(rv map[string]any) *consumptionrecordPaginateArgs {
+	args := &consumptionrecordPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &ConsumptionRecordOrder{Field: &ConsumptionRecordOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithConsumptionRecordOrder(order))
+			}
+		case *ConsumptionRecordOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithConsumptionRecordOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*ConsumptionRecordWhereInput); ok {
+		args.opts = append(args.opts, WithConsumptionRecordFilter(v.Filter))
 	}
 	return args
 }
@@ -1529,6 +1808,130 @@ func newModelPaginateArgs(rv map[string]any) *modelPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*ModelWhereInput); ok {
 		args.opts = append(args.opts, WithModelFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (_q *ModelPricingQuery) CollectFields(ctx context.Context, satisfies ...string) (*ModelPricingQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return _q, nil
+	}
+	if err := _q.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return _q, nil
+}
+
+func (_q *ModelPricingQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(modelpricing.Columns))
+		selectedFields = []string{modelpricing.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "createdAt":
+			if _, ok := fieldSeen[modelpricing.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, modelpricing.FieldCreatedAt)
+				fieldSeen[modelpricing.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[modelpricing.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, modelpricing.FieldUpdatedAt)
+				fieldSeen[modelpricing.FieldUpdatedAt] = struct{}{}
+			}
+		case "deletedAt":
+			if _, ok := fieldSeen[modelpricing.FieldDeletedAt]; !ok {
+				selectedFields = append(selectedFields, modelpricing.FieldDeletedAt)
+				fieldSeen[modelpricing.FieldDeletedAt] = struct{}{}
+			}
+		case "model":
+			if _, ok := fieldSeen[modelpricing.FieldModel]; !ok {
+				selectedFields = append(selectedFields, modelpricing.FieldModel)
+				fieldSeen[modelpricing.FieldModel] = struct{}{}
+			}
+		case "type":
+			if _, ok := fieldSeen[modelpricing.FieldType]; !ok {
+				selectedFields = append(selectedFields, modelpricing.FieldType)
+				fieldSeen[modelpricing.FieldType] = struct{}{}
+			}
+		case "quota":
+			if _, ok := fieldSeen[modelpricing.FieldQuota]; !ok {
+				selectedFields = append(selectedFields, modelpricing.FieldQuota)
+				fieldSeen[modelpricing.FieldQuota] = struct{}{}
+			}
+		case "completionRatio":
+			if _, ok := fieldSeen[modelpricing.FieldCompletionRatio]; !ok {
+				selectedFields = append(selectedFields, modelpricing.FieldCompletionRatio)
+				fieldSeen[modelpricing.FieldCompletionRatio] = struct{}{}
+			}
+		case "price":
+			if _, ok := fieldSeen[modelpricing.FieldPrice]; !ok {
+				selectedFields = append(selectedFields, modelpricing.FieldPrice)
+				fieldSeen[modelpricing.FieldPrice] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		_q.Select(selectedFields...)
+	}
+	return nil
+}
+
+type modelpricingPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ModelPricingPaginateOption
+}
+
+func newModelPricingPaginateArgs(rv map[string]any) *modelpricingPaginateArgs {
+	args := &modelpricingPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &ModelPricingOrder{Field: &ModelPricingOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithModelPricingOrder(order))
+			}
+		case *ModelPricingOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithModelPricingOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*ModelPricingWhereInput); ok {
+		args.opts = append(args.opts, WithModelPricingFilter(v.Filter))
 	}
 	return args
 }
@@ -2182,6 +2585,184 @@ func (_q *ProjectQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 				*wq = *query
 			})
 
+		case "consumptionRecords":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ConsumptionRecordClient{config: _q.config}).Query()
+			)
+			args := newConsumptionRecordPaginateArgs(fieldArgs(ctx, new(ConsumptionRecordWhereInput), path...))
+			if err := validateFirstLast(args.first, args.last); err != nil {
+				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			}
+			pager, err := newConsumptionRecordPager(args.opts, args.last != nil)
+			if err != nil {
+				return fmt.Errorf("create new pager in path %q: %w", path, err)
+			}
+			if query, err = pager.applyFilter(query); err != nil {
+				return err
+			}
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
+					query := query.Clone()
+					_q.loadTotal = append(_q.loadTotal, func(ctx context.Context, nodes []*Project) error {
+						ids := make([]driver.Value, len(nodes))
+						for i := range nodes {
+							ids[i] = nodes[i].ID
+						}
+						var v []struct {
+							NodeID int `sql:"project_id"`
+							Count  int `sql:"count"`
+						}
+						query.Where(func(s *sql.Selector) {
+							s.Where(sql.InValues(s.C(project.ConsumptionRecordsColumn), ids...))
+						})
+						if err := query.GroupBy(project.ConsumptionRecordsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+							return err
+						}
+						m := make(map[int]int, len(v))
+						for i := range v {
+							m[v[i].NodeID] = v[i].Count
+						}
+						for i := range nodes {
+							n := m[nodes[i].ID]
+							if nodes[i].Edges.totalCount[7] == nil {
+								nodes[i].Edges.totalCount[7] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[7][alias] = n
+						}
+						return nil
+					})
+				} else {
+					_q.loadTotal = append(_q.loadTotal, func(_ context.Context, nodes []*Project) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.ConsumptionRecords)
+							if nodes[i].Edges.totalCount[7] == nil {
+								nodes[i].Edges.totalCount[7] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[7][alias] = n
+						}
+						return nil
+					})
+				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+				continue
+			}
+			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
+				return err
+			}
+			path = append(path, edgesField, nodeField)
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, consumptionrecordImplementors)...); err != nil {
+					return err
+				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				if oneNode {
+					pager.applyOrder(query.Limit(limit))
+				} else {
+					modify := entgql.LimitPerRow(project.ConsumptionRecordsColumn, limit, pager.orderExpr(query))
+					query.modifiers = append(query.modifiers, modify)
+				}
+			} else {
+				query = pager.applyOrder(query)
+			}
+			_q.WithNamedConsumptionRecords(alias, func(wq *ConsumptionRecordQuery) {
+				*wq = *query
+			})
+
+		case "rechargeRecords":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&RechargeRecordClient{config: _q.config}).Query()
+			)
+			args := newRechargeRecordPaginateArgs(fieldArgs(ctx, new(RechargeRecordWhereInput), path...))
+			if err := validateFirstLast(args.first, args.last); err != nil {
+				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			}
+			pager, err := newRechargeRecordPager(args.opts, args.last != nil)
+			if err != nil {
+				return fmt.Errorf("create new pager in path %q: %w", path, err)
+			}
+			if query, err = pager.applyFilter(query); err != nil {
+				return err
+			}
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
+					query := query.Clone()
+					_q.loadTotal = append(_q.loadTotal, func(ctx context.Context, nodes []*Project) error {
+						ids := make([]driver.Value, len(nodes))
+						for i := range nodes {
+							ids[i] = nodes[i].ID
+						}
+						var v []struct {
+							NodeID int `sql:"project_id"`
+							Count  int `sql:"count"`
+						}
+						query.Where(func(s *sql.Selector) {
+							s.Where(sql.InValues(s.C(project.RechargeRecordsColumn), ids...))
+						})
+						if err := query.GroupBy(project.RechargeRecordsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+							return err
+						}
+						m := make(map[int]int, len(v))
+						for i := range v {
+							m[v[i].NodeID] = v[i].Count
+						}
+						for i := range nodes {
+							n := m[nodes[i].ID]
+							if nodes[i].Edges.totalCount[8] == nil {
+								nodes[i].Edges.totalCount[8] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[8][alias] = n
+						}
+						return nil
+					})
+				} else {
+					_q.loadTotal = append(_q.loadTotal, func(_ context.Context, nodes []*Project) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.RechargeRecords)
+							if nodes[i].Edges.totalCount[8] == nil {
+								nodes[i].Edges.totalCount[8] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[8][alias] = n
+						}
+						return nil
+					})
+				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+				continue
+			}
+			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
+				return err
+			}
+			path = append(path, edgesField, nodeField)
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, rechargerecordImplementors)...); err != nil {
+					return err
+				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				if oneNode {
+					pager.applyOrder(query.Limit(limit))
+				} else {
+					modify := entgql.LimitPerRow(project.RechargeRecordsColumn, limit, pager.orderExpr(query))
+					query.modifiers = append(query.modifiers, modify)
+				}
+			} else {
+				query = pager.applyOrder(query)
+			}
+			_q.WithNamedRechargeRecords(alias, func(wq *RechargeRecordQuery) {
+				*wq = *query
+			})
+
 		case "projectUsers":
 			var (
 				alias = field.Alias
@@ -2225,10 +2806,10 @@ func (_q *ProjectQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[7] == nil {
-								nodes[i].Edges.totalCount[7] = make(map[string]int)
+							if nodes[i].Edges.totalCount[9] == nil {
+								nodes[i].Edges.totalCount[9] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[7][alias] = n
+							nodes[i].Edges.totalCount[9][alias] = n
 						}
 						return nil
 					})
@@ -2236,10 +2817,10 @@ func (_q *ProjectQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 					_q.loadTotal = append(_q.loadTotal, func(_ context.Context, nodes []*Project) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.ProjectUsers)
-							if nodes[i].Edges.totalCount[7] == nil {
-								nodes[i].Edges.totalCount[7] = make(map[string]int)
+							if nodes[i].Edges.totalCount[9] == nil {
+								nodes[i].Edges.totalCount[9] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[7][alias] = n
+							nodes[i].Edges.totalCount[9][alias] = n
 						}
 						return nil
 					})
@@ -2300,6 +2881,21 @@ func (_q *ProjectQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 				selectedFields = append(selectedFields, project.FieldStatus)
 				fieldSeen[project.FieldStatus] = struct{}{}
 			}
+		case "quota":
+			if _, ok := fieldSeen[project.FieldQuota]; !ok {
+				selectedFields = append(selectedFields, project.FieldQuota)
+				fieldSeen[project.FieldQuota] = struct{}{}
+			}
+		case "usedQuota":
+			if _, ok := fieldSeen[project.FieldUsedQuota]; !ok {
+				selectedFields = append(selectedFields, project.FieldUsedQuota)
+				fieldSeen[project.FieldUsedQuota] = struct{}{}
+			}
+		case "group":
+			if _, ok := fieldSeen[project.FieldGroup]; !ok {
+				selectedFields = append(selectedFields, project.FieldGroup)
+				fieldSeen[project.FieldGroup] = struct{}{}
+			}
 		case "id":
 		case "__typename":
 		default:
@@ -2359,6 +2955,347 @@ func newProjectPaginateArgs(rv map[string]any) *projectPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*ProjectWhereInput); ok {
 		args.opts = append(args.opts, WithProjectFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (_q *RechargeRecordQuery) CollectFields(ctx context.Context, satisfies ...string) (*RechargeRecordQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return _q, nil
+	}
+	if err := _q.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return _q, nil
+}
+
+func (_q *RechargeRecordQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(rechargerecord.Columns))
+		selectedFields = []string{rechargerecord.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: _q.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			_q.withUser = query
+			if _, ok := fieldSeen[rechargerecord.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldUserID)
+				fieldSeen[rechargerecord.FieldUserID] = struct{}{}
+			}
+
+		case "project":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProjectClient{config: _q.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, projectImplementors)...); err != nil {
+				return err
+			}
+			_q.withProject = query
+			if _, ok := fieldSeen[rechargerecord.FieldProjectID]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldProjectID)
+				fieldSeen[rechargerecord.FieldProjectID] = struct{}{}
+			}
+
+		case "redemptionCode":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&RedemptionCodeClient{config: _q.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, redemptioncodeImplementors)...); err != nil {
+				return err
+			}
+			_q.withRedemptionCode = query
+			if _, ok := fieldSeen[rechargerecord.FieldCodeID]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldCodeID)
+				fieldSeen[rechargerecord.FieldCodeID] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[rechargerecord.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldCreatedAt)
+				fieldSeen[rechargerecord.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[rechargerecord.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldUpdatedAt)
+				fieldSeen[rechargerecord.FieldUpdatedAt] = struct{}{}
+			}
+		case "userID":
+			if _, ok := fieldSeen[rechargerecord.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldUserID)
+				fieldSeen[rechargerecord.FieldUserID] = struct{}{}
+			}
+		case "projectID":
+			if _, ok := fieldSeen[rechargerecord.FieldProjectID]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldProjectID)
+				fieldSeen[rechargerecord.FieldProjectID] = struct{}{}
+			}
+		case "codeID":
+			if _, ok := fieldSeen[rechargerecord.FieldCodeID]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldCodeID)
+				fieldSeen[rechargerecord.FieldCodeID] = struct{}{}
+			}
+		case "amount":
+			if _, ok := fieldSeen[rechargerecord.FieldAmount]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldAmount)
+				fieldSeen[rechargerecord.FieldAmount] = struct{}{}
+			}
+		case "status":
+			if _, ok := fieldSeen[rechargerecord.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldStatus)
+				fieldSeen[rechargerecord.FieldStatus] = struct{}{}
+			}
+		case "traceID":
+			if _, ok := fieldSeen[rechargerecord.FieldTraceID]; !ok {
+				selectedFields = append(selectedFields, rechargerecord.FieldTraceID)
+				fieldSeen[rechargerecord.FieldTraceID] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		_q.Select(selectedFields...)
+	}
+	return nil
+}
+
+type rechargerecordPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []RechargeRecordPaginateOption
+}
+
+func newRechargeRecordPaginateArgs(rv map[string]any) *rechargerecordPaginateArgs {
+	args := &rechargerecordPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &RechargeRecordOrder{Field: &RechargeRecordOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithRechargeRecordOrder(order))
+			}
+		case *RechargeRecordOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithRechargeRecordOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*RechargeRecordWhereInput); ok {
+		args.opts = append(args.opts, WithRechargeRecordFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (_q *RedemptionCodeQuery) CollectFields(ctx context.Context, satisfies ...string) (*RedemptionCodeQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return _q, nil
+	}
+	if err := _q.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return _q, nil
+}
+
+func (_q *RedemptionCodeQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(redemptioncode.Columns))
+		selectedFields = []string{redemptioncode.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: _q.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			_q.withUser = query
+			if _, ok := fieldSeen[redemptioncode.FieldUsedBy]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldUsedBy)
+				fieldSeen[redemptioncode.FieldUsedBy] = struct{}{}
+			}
+
+		case "rechargeRecords":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&RechargeRecordClient{config: _q.config}).Query()
+			)
+			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, rechargerecordImplementors)...); err != nil {
+				return err
+			}
+			_q.WithNamedRechargeRecords(alias, func(wq *RechargeRecordQuery) {
+				*wq = *query
+			})
+		case "createdAt":
+			if _, ok := fieldSeen[redemptioncode.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldCreatedAt)
+				fieldSeen[redemptioncode.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[redemptioncode.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldUpdatedAt)
+				fieldSeen[redemptioncode.FieldUpdatedAt] = struct{}{}
+			}
+		case "deletedAt":
+			if _, ok := fieldSeen[redemptioncode.FieldDeletedAt]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldDeletedAt)
+				fieldSeen[redemptioncode.FieldDeletedAt] = struct{}{}
+			}
+		case "code":
+			if _, ok := fieldSeen[redemptioncode.FieldCode]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldCode)
+				fieldSeen[redemptioncode.FieldCode] = struct{}{}
+			}
+		case "quota":
+			if _, ok := fieldSeen[redemptioncode.FieldQuota]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldQuota)
+				fieldSeen[redemptioncode.FieldQuota] = struct{}{}
+			}
+		case "status":
+			if _, ok := fieldSeen[redemptioncode.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldStatus)
+				fieldSeen[redemptioncode.FieldStatus] = struct{}{}
+			}
+		case "expiresAt":
+			if _, ok := fieldSeen[redemptioncode.FieldExpiresAt]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldExpiresAt)
+				fieldSeen[redemptioncode.FieldExpiresAt] = struct{}{}
+			}
+		case "maxUses":
+			if _, ok := fieldSeen[redemptioncode.FieldMaxUses]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldMaxUses)
+				fieldSeen[redemptioncode.FieldMaxUses] = struct{}{}
+			}
+		case "usedTimes":
+			if _, ok := fieldSeen[redemptioncode.FieldUsedTimes]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldUsedTimes)
+				fieldSeen[redemptioncode.FieldUsedTimes] = struct{}{}
+			}
+		case "voided":
+			if _, ok := fieldSeen[redemptioncode.FieldVoided]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldVoided)
+				fieldSeen[redemptioncode.FieldVoided] = struct{}{}
+			}
+		case "usedBy":
+			if _, ok := fieldSeen[redemptioncode.FieldUsedBy]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldUsedBy)
+				fieldSeen[redemptioncode.FieldUsedBy] = struct{}{}
+			}
+		case "usedAt":
+			if _, ok := fieldSeen[redemptioncode.FieldUsedAt]; !ok {
+				selectedFields = append(selectedFields, redemptioncode.FieldUsedAt)
+				fieldSeen[redemptioncode.FieldUsedAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		_q.Select(selectedFields...)
+	}
+	return nil
+}
+
+type redemptioncodePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []RedemptionCodePaginateOption
+}
+
+func newRedemptionCodePaginateArgs(rv map[string]any) *redemptioncodePaginateArgs {
+	args := &redemptioncodePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &RedemptionCodeOrder{Field: &RedemptionCodeOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithRedemptionCodeOrder(order))
+			}
+		case *RedemptionCodeOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithRedemptionCodeOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*RedemptionCodeWhereInput); ok {
+		args.opts = append(args.opts, WithRedemptionCodeFilter(v.Filter))
 	}
 	return args
 }
@@ -3326,6 +4263,115 @@ func newRolePaginateArgs(rv map[string]any) *rolePaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (_q *SensitiveWordQuery) CollectFields(ctx context.Context, satisfies ...string) (*SensitiveWordQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return _q, nil
+	}
+	if err := _q.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return _q, nil
+}
+
+func (_q *SensitiveWordQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(sensitiveword.Columns))
+		selectedFields = []string{sensitiveword.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "createdAt":
+			if _, ok := fieldSeen[sensitiveword.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, sensitiveword.FieldCreatedAt)
+				fieldSeen[sensitiveword.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[sensitiveword.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, sensitiveword.FieldUpdatedAt)
+				fieldSeen[sensitiveword.FieldUpdatedAt] = struct{}{}
+			}
+		case "deletedAt":
+			if _, ok := fieldSeen[sensitiveword.FieldDeletedAt]; !ok {
+				selectedFields = append(selectedFields, sensitiveword.FieldDeletedAt)
+				fieldSeen[sensitiveword.FieldDeletedAt] = struct{}{}
+			}
+		case "word":
+			if _, ok := fieldSeen[sensitiveword.FieldWord]; !ok {
+				selectedFields = append(selectedFields, sensitiveword.FieldWord)
+				fieldSeen[sensitiveword.FieldWord] = struct{}{}
+			}
+		case "type":
+			if _, ok := fieldSeen[sensitiveword.FieldType]; !ok {
+				selectedFields = append(selectedFields, sensitiveword.FieldType)
+				fieldSeen[sensitiveword.FieldType] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		_q.Select(selectedFields...)
+	}
+	return nil
+}
+
+type sensitivewordPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []SensitiveWordPaginateOption
+}
+
+func newSensitiveWordPaginateArgs(rv map[string]any) *sensitivewordPaginateArgs {
+	args := &sensitivewordPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &SensitiveWordOrder{Field: &SensitiveWordOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithSensitiveWordOrder(order))
+			}
+		case *SensitiveWordOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithSensitiveWordOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*SensitiveWordWhereInput); ok {
+		args.opts = append(args.opts, WithSensitiveWordFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (_q *SystemQuery) CollectFields(ctx context.Context, satisfies ...string) (*SystemQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -3430,6 +4476,120 @@ func newSystemPaginateArgs(rv map[string]any) *systemPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*SystemWhereInput); ok {
 		args.opts = append(args.opts, WithSystemFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (_q *SystemSettingsQuery) CollectFields(ctx context.Context, satisfies ...string) (*SystemSettingsQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return _q, nil
+	}
+	if err := _q.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return _q, nil
+}
+
+func (_q *SystemSettingsQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(systemsettings.Columns))
+		selectedFields = []string{systemsettings.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "createdAt":
+			if _, ok := fieldSeen[systemsettings.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, systemsettings.FieldCreatedAt)
+				fieldSeen[systemsettings.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[systemsettings.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, systemsettings.FieldUpdatedAt)
+				fieldSeen[systemsettings.FieldUpdatedAt] = struct{}{}
+			}
+		case "deletedAt":
+			if _, ok := fieldSeen[systemsettings.FieldDeletedAt]; !ok {
+				selectedFields = append(selectedFields, systemsettings.FieldDeletedAt)
+				fieldSeen[systemsettings.FieldDeletedAt] = struct{}{}
+			}
+		case "key":
+			if _, ok := fieldSeen[systemsettings.FieldKey]; !ok {
+				selectedFields = append(selectedFields, systemsettings.FieldKey)
+				fieldSeen[systemsettings.FieldKey] = struct{}{}
+			}
+		case "value":
+			if _, ok := fieldSeen[systemsettings.FieldValue]; !ok {
+				selectedFields = append(selectedFields, systemsettings.FieldValue)
+				fieldSeen[systemsettings.FieldValue] = struct{}{}
+			}
+		case "description":
+			if _, ok := fieldSeen[systemsettings.FieldDescription]; !ok {
+				selectedFields = append(selectedFields, systemsettings.FieldDescription)
+				fieldSeen[systemsettings.FieldDescription] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		_q.Select(selectedFields...)
+	}
+	return nil
+}
+
+type systemsettingsPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []SystemSettingsPaginateOption
+}
+
+func newSystemSettingsPaginateArgs(rv map[string]any) *systemsettingsPaginateArgs {
+	args := &systemsettingsPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]any:
+			var (
+				err1, err2 error
+				order      = &SystemSettingsOrder{Field: &SystemSettingsOrderField{}, Direction: entgql.OrderDirectionAsc}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithSystemSettingsOrder(order))
+			}
+		case *SystemSettingsOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithSystemSettingsOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*SystemSettingsWhereInput); ok {
+		args.opts = append(args.opts, WithSystemSettingsFilter(v.Filter))
 	}
 	return args
 }
@@ -3807,6 +4967,11 @@ func (_q *TraceQuery) collectField(ctx context.Context, oneNode bool, opCtx *gra
 				selectedFields = append(selectedFields, trace.FieldThreadID)
 				fieldSeen[trace.FieldThreadID] = struct{}{}
 			}
+		case "cost":
+			if _, ok := fieldSeen[trace.FieldCost]; !ok {
+				selectedFields = append(selectedFields, trace.FieldCost)
+				fieldSeen[trace.FieldCost] = struct{}{}
+			}
 		case "id":
 		case "__typename":
 		default:
@@ -3907,6 +5072,21 @@ func (_q *UsageLogQuery) collectField(ctx context.Context, oneNode bool, opCtx *
 				fieldSeen[usagelog.FieldRequestID] = struct{}{}
 			}
 
+		case "apiKey":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&APIKeyClient{config: _q.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, apikeyImplementors)...); err != nil {
+				return err
+			}
+			_q.withAPIKey = query
+			if _, ok := fieldSeen[usagelog.FieldAPIKeyID]; !ok {
+				selectedFields = append(selectedFields, usagelog.FieldAPIKeyID)
+				fieldSeen[usagelog.FieldAPIKeyID] = struct{}{}
+			}
+
 		case "project":
 			var (
 				alias = field.Alias
@@ -3950,6 +5130,11 @@ func (_q *UsageLogQuery) collectField(ctx context.Context, oneNode bool, opCtx *
 			if _, ok := fieldSeen[usagelog.FieldRequestID]; !ok {
 				selectedFields = append(selectedFields, usagelog.FieldRequestID)
 				fieldSeen[usagelog.FieldRequestID] = struct{}{}
+			}
+		case "apiKeyID":
+			if _, ok := fieldSeen[usagelog.FieldAPIKeyID]; !ok {
+				selectedFields = append(selectedFields, usagelog.FieldAPIKeyID)
+				fieldSeen[usagelog.FieldAPIKeyID] = struct{}{}
 			}
 		case "projectID":
 			if _, ok := fieldSeen[usagelog.FieldProjectID]; !ok {
@@ -4475,6 +5660,273 @@ func (_q *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 				*wq = *query
 			})
 
+		case "consumptionRecords":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ConsumptionRecordClient{config: _q.config}).Query()
+			)
+			args := newConsumptionRecordPaginateArgs(fieldArgs(ctx, new(ConsumptionRecordWhereInput), path...))
+			if err := validateFirstLast(args.first, args.last); err != nil {
+				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			}
+			pager, err := newConsumptionRecordPager(args.opts, args.last != nil)
+			if err != nil {
+				return fmt.Errorf("create new pager in path %q: %w", path, err)
+			}
+			if query, err = pager.applyFilter(query); err != nil {
+				return err
+			}
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
+					query := query.Clone()
+					_q.loadTotal = append(_q.loadTotal, func(ctx context.Context, nodes []*User) error {
+						ids := make([]driver.Value, len(nodes))
+						for i := range nodes {
+							ids[i] = nodes[i].ID
+						}
+						var v []struct {
+							NodeID int `sql:"user_id"`
+							Count  int `sql:"count"`
+						}
+						query.Where(func(s *sql.Selector) {
+							s.Where(sql.InValues(s.C(user.ConsumptionRecordsColumn), ids...))
+						})
+						if err := query.GroupBy(user.ConsumptionRecordsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+							return err
+						}
+						m := make(map[int]int, len(v))
+						for i := range v {
+							m[v[i].NodeID] = v[i].Count
+						}
+						for i := range nodes {
+							n := m[nodes[i].ID]
+							if nodes[i].Edges.totalCount[4] == nil {
+								nodes[i].Edges.totalCount[4] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[4][alias] = n
+						}
+						return nil
+					})
+				} else {
+					_q.loadTotal = append(_q.loadTotal, func(_ context.Context, nodes []*User) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.ConsumptionRecords)
+							if nodes[i].Edges.totalCount[4] == nil {
+								nodes[i].Edges.totalCount[4] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[4][alias] = n
+						}
+						return nil
+					})
+				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+				continue
+			}
+			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
+				return err
+			}
+			path = append(path, edgesField, nodeField)
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, consumptionrecordImplementors)...); err != nil {
+					return err
+				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				if oneNode {
+					pager.applyOrder(query.Limit(limit))
+				} else {
+					modify := entgql.LimitPerRow(user.ConsumptionRecordsColumn, limit, pager.orderExpr(query))
+					query.modifiers = append(query.modifiers, modify)
+				}
+			} else {
+				query = pager.applyOrder(query)
+			}
+			_q.WithNamedConsumptionRecords(alias, func(wq *ConsumptionRecordQuery) {
+				*wq = *query
+			})
+
+		case "redemptionCodes":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&RedemptionCodeClient{config: _q.config}).Query()
+			)
+			args := newRedemptionCodePaginateArgs(fieldArgs(ctx, new(RedemptionCodeWhereInput), path...))
+			if err := validateFirstLast(args.first, args.last); err != nil {
+				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			}
+			pager, err := newRedemptionCodePager(args.opts, args.last != nil)
+			if err != nil {
+				return fmt.Errorf("create new pager in path %q: %w", path, err)
+			}
+			if query, err = pager.applyFilter(query); err != nil {
+				return err
+			}
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
+					query := query.Clone()
+					_q.loadTotal = append(_q.loadTotal, func(ctx context.Context, nodes []*User) error {
+						ids := make([]driver.Value, len(nodes))
+						for i := range nodes {
+							ids[i] = nodes[i].ID
+						}
+						var v []struct {
+							NodeID int `sql:"used_by"`
+							Count  int `sql:"count"`
+						}
+						query.Where(func(s *sql.Selector) {
+							s.Where(sql.InValues(s.C(user.RedemptionCodesColumn), ids...))
+						})
+						if err := query.GroupBy(user.RedemptionCodesColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+							return err
+						}
+						m := make(map[int]int, len(v))
+						for i := range v {
+							m[v[i].NodeID] = v[i].Count
+						}
+						for i := range nodes {
+							n := m[nodes[i].ID]
+							if nodes[i].Edges.totalCount[5] == nil {
+								nodes[i].Edges.totalCount[5] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[5][alias] = n
+						}
+						return nil
+					})
+				} else {
+					_q.loadTotal = append(_q.loadTotal, func(_ context.Context, nodes []*User) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.RedemptionCodes)
+							if nodes[i].Edges.totalCount[5] == nil {
+								nodes[i].Edges.totalCount[5] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[5][alias] = n
+						}
+						return nil
+					})
+				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+				continue
+			}
+			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
+				return err
+			}
+			path = append(path, edgesField, nodeField)
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, redemptioncodeImplementors)...); err != nil {
+					return err
+				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				if oneNode {
+					pager.applyOrder(query.Limit(limit))
+				} else {
+					modify := entgql.LimitPerRow(user.RedemptionCodesColumn, limit, pager.orderExpr(query))
+					query.modifiers = append(query.modifiers, modify)
+				}
+			} else {
+				query = pager.applyOrder(query)
+			}
+			_q.WithNamedRedemptionCodes(alias, func(wq *RedemptionCodeQuery) {
+				*wq = *query
+			})
+
+		case "rechargeRecords":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&RechargeRecordClient{config: _q.config}).Query()
+			)
+			args := newRechargeRecordPaginateArgs(fieldArgs(ctx, new(RechargeRecordWhereInput), path...))
+			if err := validateFirstLast(args.first, args.last); err != nil {
+				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			}
+			pager, err := newRechargeRecordPager(args.opts, args.last != nil)
+			if err != nil {
+				return fmt.Errorf("create new pager in path %q: %w", path, err)
+			}
+			if query, err = pager.applyFilter(query); err != nil {
+				return err
+			}
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
+					query := query.Clone()
+					_q.loadTotal = append(_q.loadTotal, func(ctx context.Context, nodes []*User) error {
+						ids := make([]driver.Value, len(nodes))
+						for i := range nodes {
+							ids[i] = nodes[i].ID
+						}
+						var v []struct {
+							NodeID int `sql:"user_id"`
+							Count  int `sql:"count"`
+						}
+						query.Where(func(s *sql.Selector) {
+							s.Where(sql.InValues(s.C(user.RechargeRecordsColumn), ids...))
+						})
+						if err := query.GroupBy(user.RechargeRecordsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+							return err
+						}
+						m := make(map[int]int, len(v))
+						for i := range v {
+							m[v[i].NodeID] = v[i].Count
+						}
+						for i := range nodes {
+							n := m[nodes[i].ID]
+							if nodes[i].Edges.totalCount[6] == nil {
+								nodes[i].Edges.totalCount[6] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[6][alias] = n
+						}
+						return nil
+					})
+				} else {
+					_q.loadTotal = append(_q.loadTotal, func(_ context.Context, nodes []*User) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.RechargeRecords)
+							if nodes[i].Edges.totalCount[6] == nil {
+								nodes[i].Edges.totalCount[6] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[6][alias] = n
+						}
+						return nil
+					})
+				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+				continue
+			}
+			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
+				return err
+			}
+			path = append(path, edgesField, nodeField)
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, false, opCtx, *field, path, mayAddCondition(satisfies, rechargerecordImplementors)...); err != nil {
+					return err
+				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				if oneNode {
+					pager.applyOrder(query.Limit(limit))
+				} else {
+					modify := entgql.LimitPerRow(user.RechargeRecordsColumn, limit, pager.orderExpr(query))
+					query.modifiers = append(query.modifiers, modify)
+				}
+			} else {
+				query = pager.applyOrder(query)
+			}
+			_q.WithNamedRechargeRecords(alias, func(wq *RechargeRecordQuery) {
+				*wq = *query
+			})
+
 		case "projectUsers":
 			var (
 				alias = field.Alias
@@ -4518,10 +5970,10 @@ func (_q *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[4] == nil {
-								nodes[i].Edges.totalCount[4] = make(map[string]int)
+							if nodes[i].Edges.totalCount[7] == nil {
+								nodes[i].Edges.totalCount[7] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[4][alias] = n
+							nodes[i].Edges.totalCount[7][alias] = n
 						}
 						return nil
 					})
@@ -4529,10 +5981,10 @@ func (_q *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 					_q.loadTotal = append(_q.loadTotal, func(_ context.Context, nodes []*User) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.ProjectUsers)
-							if nodes[i].Edges.totalCount[4] == nil {
-								nodes[i].Edges.totalCount[4] = make(map[string]int)
+							if nodes[i].Edges.totalCount[7] == nil {
+								nodes[i].Edges.totalCount[7] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[4][alias] = n
+							nodes[i].Edges.totalCount[7][alias] = n
 						}
 						return nil
 					})
@@ -4607,10 +6059,10 @@ func (_q *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 						}
 						for i := range nodes {
 							n := m[nodes[i].ID]
-							if nodes[i].Edges.totalCount[5] == nil {
-								nodes[i].Edges.totalCount[5] = make(map[string]int)
+							if nodes[i].Edges.totalCount[8] == nil {
+								nodes[i].Edges.totalCount[8] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[5][alias] = n
+							nodes[i].Edges.totalCount[8][alias] = n
 						}
 						return nil
 					})
@@ -4618,10 +6070,10 @@ func (_q *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 					_q.loadTotal = append(_q.loadTotal, func(_ context.Context, nodes []*User) error {
 						for i := range nodes {
 							n := len(nodes[i].Edges.UserRoles)
-							if nodes[i].Edges.totalCount[5] == nil {
-								nodes[i].Edges.totalCount[5] = make(map[string]int)
+							if nodes[i].Edges.totalCount[8] == nil {
+								nodes[i].Edges.totalCount[8] = make(map[string]int)
 							}
-							nodes[i].Edges.totalCount[5][alias] = n
+							nodes[i].Edges.totalCount[8][alias] = n
 						}
 						return nil
 					})
@@ -4701,6 +6153,16 @@ func (_q *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 			if _, ok := fieldSeen[user.FieldIsOwner]; !ok {
 				selectedFields = append(selectedFields, user.FieldIsOwner)
 				fieldSeen[user.FieldIsOwner] = struct{}{}
+			}
+		case "quota":
+			if _, ok := fieldSeen[user.FieldQuota]; !ok {
+				selectedFields = append(selectedFields, user.FieldQuota)
+				fieldSeen[user.FieldQuota] = struct{}{}
+			}
+		case "usedQuota":
+			if _, ok := fieldSeen[user.FieldUsedQuota]; !ok {
+				selectedFields = append(selectedFields, user.FieldUsedQuota)
+				fieldSeen[user.FieldUsedQuota] = struct{}{}
 			}
 		case "scopes":
 			if _, ok := fieldSeen[user.FieldScopes]; !ok {

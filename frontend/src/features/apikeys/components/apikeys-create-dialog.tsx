@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 import { useApiKeysContext } from '../context/apikeys-context';
 import { useCreateApiKey } from '../data/apikeys';
 import { CreateApiKeyInput, createApiKeyInputSchema } from '../data/schema';
@@ -26,6 +27,7 @@ export function ApiKeysCreateDialog() {
       name: '',
       type: 'user',
       scopes: undefined, // Don't set scopes for user type
+      ipWhitelist: '',
     },
   });
 
@@ -125,6 +127,20 @@ export function ApiKeysCreateDialog() {
                 )}
               />
             )}
+            <FormField
+              control={form.control}
+              name='ipWhitelist'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('apikeys.dialogs.fields.ipWhitelist.label')}</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder={t('apikeys.dialogs.fields.ipWhitelist.placeholder')} rows={4} {...field} />
+                  </FormControl>
+                  <FormDescription>{t('apikeys.dialogs.fields.ipWhitelist.description')}</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter className='flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end'>
               <div className='flex w-full gap-2 sm:w-auto'>

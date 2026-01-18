@@ -5,8 +5,9 @@ import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useApiKeysContext } from '../context/apikeys-context';
 import { useUpdateApiKey } from '../data/apikeys';
 import { UpdateApiKeyInput, updateApiKeyInputSchemaFactory } from '../data/schema';
@@ -25,6 +26,7 @@ export function ApiKeysEditDialog() {
     defaultValues: {
       name: '',
       scopes: [],
+      ipWhitelist: '',
     },
   });
 
@@ -33,6 +35,7 @@ export function ApiKeysEditDialog() {
       form.reset({
         name: selectedApiKey.name,
         scopes: selectedApiKey.scopes || [],
+        ipWhitelist: selectedApiKey.ipWhitelist ?? '',
       });
     }
   }, [selectedApiKey, isDialogOpen.edit, form]);
@@ -44,6 +47,7 @@ export function ApiKeysEditDialog() {
     try {
       const input: UpdateApiKeyInput = {
         name: data.name,
+        ipWhitelist: data.ipWhitelist?.trim(),
       };
 
       if (selectedApiKey.type === 'service_account') {
@@ -106,6 +110,20 @@ export function ApiKeysEditDialog() {
                 )}
               />
             )}
+            <FormField
+              control={form.control}
+              name='ipWhitelist'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('apikeys.dialogs.fields.ipWhitelist.label')}</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder={t('apikeys.dialogs.fields.ipWhitelist.placeholder')} rows={4} {...field} />
+                  </FormControl>
+                  <FormDescription>{t('apikeys.dialogs.fields.ipWhitelist.description')}</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className='space-y-4'>
               <div>
                 <div className='flex items-center justify-between'>

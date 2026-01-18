@@ -104,6 +104,9 @@ func (Channel) Fields() []ent.Field {
 		field.String("remark").
 			Optional().Nillable().
 			Comment("User-defined remark or note for the channel"),
+		field.String("group").
+			Default("default").
+			Comment("Billing group: default/vip/svip"),
 	}
 }
 

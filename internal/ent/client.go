@@ -19,13 +19,19 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/channeloverridetemplate"
 	"github.com/looplj/axonhub/internal/ent/channelperformance"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelpricing"
 	"github.com/looplj/axonhub/internal/ent/project"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
+	"github.com/looplj/axonhub/internal/ent/redemptioncode"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
 	"github.com/looplj/axonhub/internal/ent/role"
+	"github.com/looplj/axonhub/internal/ent/sensitiveword"
 	"github.com/looplj/axonhub/internal/ent/system"
+	"github.com/looplj/axonhub/internal/ent/systemsettings"
 	"github.com/looplj/axonhub/internal/ent/thread"
 	"github.com/looplj/axonhub/internal/ent/trace"
 	"github.com/looplj/axonhub/internal/ent/usagelog"
@@ -47,20 +53,32 @@ type Client struct {
 	ChannelOverrideTemplate *ChannelOverrideTemplateClient
 	// ChannelPerformance is the client for interacting with the ChannelPerformance builders.
 	ChannelPerformance *ChannelPerformanceClient
+	// ConsumptionRecord is the client for interacting with the ConsumptionRecord builders.
+	ConsumptionRecord *ConsumptionRecordClient
 	// DataStorage is the client for interacting with the DataStorage builders.
 	DataStorage *DataStorageClient
 	// Model is the client for interacting with the Model builders.
 	Model *ModelClient
+	// ModelPricing is the client for interacting with the ModelPricing builders.
+	ModelPricing *ModelPricingClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
+	// RechargeRecord is the client for interacting with the RechargeRecord builders.
+	RechargeRecord *RechargeRecordClient
+	// RedemptionCode is the client for interacting with the RedemptionCode builders.
+	RedemptionCode *RedemptionCodeClient
 	// Request is the client for interacting with the Request builders.
 	Request *RequestClient
 	// RequestExecution is the client for interacting with the RequestExecution builders.
 	RequestExecution *RequestExecutionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// SensitiveWord is the client for interacting with the SensitiveWord builders.
+	SensitiveWord *SensitiveWordClient
 	// System is the client for interacting with the System builders.
 	System *SystemClient
+	// SystemSettings is the client for interacting with the SystemSettings builders.
+	SystemSettings *SystemSettingsClient
 	// Thread is the client for interacting with the Thread builders.
 	Thread *ThreadClient
 	// Trace is the client for interacting with the Trace builders.
@@ -90,13 +108,19 @@ func (c *Client) init() {
 	c.Channel = NewChannelClient(c.config)
 	c.ChannelOverrideTemplate = NewChannelOverrideTemplateClient(c.config)
 	c.ChannelPerformance = NewChannelPerformanceClient(c.config)
+	c.ConsumptionRecord = NewConsumptionRecordClient(c.config)
 	c.DataStorage = NewDataStorageClient(c.config)
 	c.Model = NewModelClient(c.config)
+	c.ModelPricing = NewModelPricingClient(c.config)
 	c.Project = NewProjectClient(c.config)
+	c.RechargeRecord = NewRechargeRecordClient(c.config)
+	c.RedemptionCode = NewRedemptionCodeClient(c.config)
 	c.Request = NewRequestClient(c.config)
 	c.RequestExecution = NewRequestExecutionClient(c.config)
 	c.Role = NewRoleClient(c.config)
+	c.SensitiveWord = NewSensitiveWordClient(c.config)
 	c.System = NewSystemClient(c.config)
+	c.SystemSettings = NewSystemSettingsClient(c.config)
 	c.Thread = NewThreadClient(c.config)
 	c.Trace = NewTraceClient(c.config)
 	c.UsageLog = NewUsageLogClient(c.config)
@@ -199,13 +223,19 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Channel:                 NewChannelClient(cfg),
 		ChannelOverrideTemplate: NewChannelOverrideTemplateClient(cfg),
 		ChannelPerformance:      NewChannelPerformanceClient(cfg),
+		ConsumptionRecord:       NewConsumptionRecordClient(cfg),
 		DataStorage:             NewDataStorageClient(cfg),
 		Model:                   NewModelClient(cfg),
+		ModelPricing:            NewModelPricingClient(cfg),
 		Project:                 NewProjectClient(cfg),
+		RechargeRecord:          NewRechargeRecordClient(cfg),
+		RedemptionCode:          NewRedemptionCodeClient(cfg),
 		Request:                 NewRequestClient(cfg),
 		RequestExecution:        NewRequestExecutionClient(cfg),
 		Role:                    NewRoleClient(cfg),
+		SensitiveWord:           NewSensitiveWordClient(cfg),
 		System:                  NewSystemClient(cfg),
+		SystemSettings:          NewSystemSettingsClient(cfg),
 		Thread:                  NewThreadClient(cfg),
 		Trace:                   NewTraceClient(cfg),
 		UsageLog:                NewUsageLogClient(cfg),
@@ -235,13 +265,19 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Channel:                 NewChannelClient(cfg),
 		ChannelOverrideTemplate: NewChannelOverrideTemplateClient(cfg),
 		ChannelPerformance:      NewChannelPerformanceClient(cfg),
+		ConsumptionRecord:       NewConsumptionRecordClient(cfg),
 		DataStorage:             NewDataStorageClient(cfg),
 		Model:                   NewModelClient(cfg),
+		ModelPricing:            NewModelPricingClient(cfg),
 		Project:                 NewProjectClient(cfg),
+		RechargeRecord:          NewRechargeRecordClient(cfg),
+		RedemptionCode:          NewRedemptionCodeClient(cfg),
 		Request:                 NewRequestClient(cfg),
 		RequestExecution:        NewRequestExecutionClient(cfg),
 		Role:                    NewRoleClient(cfg),
+		SensitiveWord:           NewSensitiveWordClient(cfg),
 		System:                  NewSystemClient(cfg),
+		SystemSettings:          NewSystemSettingsClient(cfg),
 		Thread:                  NewThreadClient(cfg),
 		Trace:                   NewTraceClient(cfg),
 		UsageLog:                NewUsageLogClient(cfg),
@@ -278,8 +314,10 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.APIKey, c.Channel, c.ChannelOverrideTemplate, c.ChannelPerformance,
-		c.DataStorage, c.Model, c.Project, c.Request, c.RequestExecution, c.Role,
-		c.System, c.Thread, c.Trace, c.UsageLog, c.User, c.UserProject, c.UserRole,
+		c.ConsumptionRecord, c.DataStorage, c.Model, c.ModelPricing, c.Project,
+		c.RechargeRecord, c.RedemptionCode, c.Request, c.RequestExecution, c.Role,
+		c.SensitiveWord, c.System, c.SystemSettings, c.Thread, c.Trace, c.UsageLog,
+		c.User, c.UserProject, c.UserRole,
 	} {
 		n.Use(hooks...)
 	}
@@ -290,8 +328,10 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.APIKey, c.Channel, c.ChannelOverrideTemplate, c.ChannelPerformance,
-		c.DataStorage, c.Model, c.Project, c.Request, c.RequestExecution, c.Role,
-		c.System, c.Thread, c.Trace, c.UsageLog, c.User, c.UserProject, c.UserRole,
+		c.ConsumptionRecord, c.DataStorage, c.Model, c.ModelPricing, c.Project,
+		c.RechargeRecord, c.RedemptionCode, c.Request, c.RequestExecution, c.Role,
+		c.SensitiveWord, c.System, c.SystemSettings, c.Thread, c.Trace, c.UsageLog,
+		c.User, c.UserProject, c.UserRole,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -308,20 +348,32 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ChannelOverrideTemplate.mutate(ctx, m)
 	case *ChannelPerformanceMutation:
 		return c.ChannelPerformance.mutate(ctx, m)
+	case *ConsumptionRecordMutation:
+		return c.ConsumptionRecord.mutate(ctx, m)
 	case *DataStorageMutation:
 		return c.DataStorage.mutate(ctx, m)
 	case *ModelMutation:
 		return c.Model.mutate(ctx, m)
+	case *ModelPricingMutation:
+		return c.ModelPricing.mutate(ctx, m)
 	case *ProjectMutation:
 		return c.Project.mutate(ctx, m)
+	case *RechargeRecordMutation:
+		return c.RechargeRecord.mutate(ctx, m)
+	case *RedemptionCodeMutation:
+		return c.RedemptionCode.mutate(ctx, m)
 	case *RequestMutation:
 		return c.Request.mutate(ctx, m)
 	case *RequestExecutionMutation:
 		return c.RequestExecution.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
+	case *SensitiveWordMutation:
+		return c.SensitiveWord.mutate(ctx, m)
 	case *SystemMutation:
 		return c.System.mutate(ctx, m)
+	case *SystemSettingsMutation:
+		return c.SystemSettings.mutate(ctx, m)
 	case *ThreadMutation:
 		return c.Thread.mutate(ctx, m)
 	case *TraceMutation:
@@ -488,6 +540,22 @@ func (c *APIKeyClient) QueryRequests(_m *APIKey) *RequestQuery {
 			sqlgraph.From(apikey.Table, apikey.FieldID, id),
 			sqlgraph.To(request.Table, request.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, apikey.RequestsTable, apikey.RequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUsageLogs queries the usage_logs edge of a APIKey.
+func (c *APIKeyClient) QueryUsageLogs(_m *APIKey) *UsageLogQuery {
+	query := (&UsageLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(apikey.Table, apikey.FieldID, id),
+			sqlgraph.To(usagelog.Table, usagelog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, apikey.UsageLogsTable, apikey.UsageLogsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1023,6 +1091,171 @@ func (c *ChannelPerformanceClient) mutate(ctx context.Context, m *ChannelPerform
 	}
 }
 
+// ConsumptionRecordClient is a client for the ConsumptionRecord schema.
+type ConsumptionRecordClient struct {
+	config
+}
+
+// NewConsumptionRecordClient returns a client for the ConsumptionRecord from the given config.
+func NewConsumptionRecordClient(c config) *ConsumptionRecordClient {
+	return &ConsumptionRecordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `consumptionrecord.Hooks(f(g(h())))`.
+func (c *ConsumptionRecordClient) Use(hooks ...Hook) {
+	c.hooks.ConsumptionRecord = append(c.hooks.ConsumptionRecord, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `consumptionrecord.Intercept(f(g(h())))`.
+func (c *ConsumptionRecordClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ConsumptionRecord = append(c.inters.ConsumptionRecord, interceptors...)
+}
+
+// Create returns a builder for creating a ConsumptionRecord entity.
+func (c *ConsumptionRecordClient) Create() *ConsumptionRecordCreate {
+	mutation := newConsumptionRecordMutation(c.config, OpCreate)
+	return &ConsumptionRecordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ConsumptionRecord entities.
+func (c *ConsumptionRecordClient) CreateBulk(builders ...*ConsumptionRecordCreate) *ConsumptionRecordCreateBulk {
+	return &ConsumptionRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ConsumptionRecordClient) MapCreateBulk(slice any, setFunc func(*ConsumptionRecordCreate, int)) *ConsumptionRecordCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ConsumptionRecordCreateBulk{err: fmt.Errorf("calling to ConsumptionRecordClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ConsumptionRecordCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ConsumptionRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ConsumptionRecord.
+func (c *ConsumptionRecordClient) Update() *ConsumptionRecordUpdate {
+	mutation := newConsumptionRecordMutation(c.config, OpUpdate)
+	return &ConsumptionRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ConsumptionRecordClient) UpdateOne(_m *ConsumptionRecord) *ConsumptionRecordUpdateOne {
+	mutation := newConsumptionRecordMutation(c.config, OpUpdateOne, withConsumptionRecord(_m))
+	return &ConsumptionRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ConsumptionRecordClient) UpdateOneID(id int) *ConsumptionRecordUpdateOne {
+	mutation := newConsumptionRecordMutation(c.config, OpUpdateOne, withConsumptionRecordID(id))
+	return &ConsumptionRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ConsumptionRecord.
+func (c *ConsumptionRecordClient) Delete() *ConsumptionRecordDelete {
+	mutation := newConsumptionRecordMutation(c.config, OpDelete)
+	return &ConsumptionRecordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ConsumptionRecordClient) DeleteOne(_m *ConsumptionRecord) *ConsumptionRecordDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ConsumptionRecordClient) DeleteOneID(id int) *ConsumptionRecordDeleteOne {
+	builder := c.Delete().Where(consumptionrecord.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ConsumptionRecordDeleteOne{builder}
+}
+
+// Query returns a query builder for ConsumptionRecord.
+func (c *ConsumptionRecordClient) Query() *ConsumptionRecordQuery {
+	return &ConsumptionRecordQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeConsumptionRecord},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ConsumptionRecord entity by its id.
+func (c *ConsumptionRecordClient) Get(ctx context.Context, id int) (*ConsumptionRecord, error) {
+	return c.Query().Where(consumptionrecord.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ConsumptionRecordClient) GetX(ctx context.Context, id int) *ConsumptionRecord {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a ConsumptionRecord.
+func (c *ConsumptionRecordClient) QueryUser(_m *ConsumptionRecord) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(consumptionrecord.Table, consumptionrecord.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, consumptionrecord.UserTable, consumptionrecord.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProject queries the project edge of a ConsumptionRecord.
+func (c *ConsumptionRecordClient) QueryProject(_m *ConsumptionRecord) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(consumptionrecord.Table, consumptionrecord.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, consumptionrecord.ProjectTable, consumptionrecord.ProjectColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ConsumptionRecordClient) Hooks() []Hook {
+	return c.hooks.ConsumptionRecord
+}
+
+// Interceptors returns the client interceptors.
+func (c *ConsumptionRecordClient) Interceptors() []Interceptor {
+	return c.inters.ConsumptionRecord
+}
+
+func (c *ConsumptionRecordClient) mutate(ctx context.Context, m *ConsumptionRecordMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ConsumptionRecordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ConsumptionRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ConsumptionRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ConsumptionRecordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ConsumptionRecord mutation op: %q", m.Op())
+	}
+}
+
 // DataStorageClient is a client for the DataStorage schema.
 type DataStorageClient struct {
 	config
@@ -1325,6 +1558,141 @@ func (c *ModelClient) mutate(ctx context.Context, m *ModelMutation) (Value, erro
 	}
 }
 
+// ModelPricingClient is a client for the ModelPricing schema.
+type ModelPricingClient struct {
+	config
+}
+
+// NewModelPricingClient returns a client for the ModelPricing from the given config.
+func NewModelPricingClient(c config) *ModelPricingClient {
+	return &ModelPricingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `modelpricing.Hooks(f(g(h())))`.
+func (c *ModelPricingClient) Use(hooks ...Hook) {
+	c.hooks.ModelPricing = append(c.hooks.ModelPricing, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `modelpricing.Intercept(f(g(h())))`.
+func (c *ModelPricingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ModelPricing = append(c.inters.ModelPricing, interceptors...)
+}
+
+// Create returns a builder for creating a ModelPricing entity.
+func (c *ModelPricingClient) Create() *ModelPricingCreate {
+	mutation := newModelPricingMutation(c.config, OpCreate)
+	return &ModelPricingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ModelPricing entities.
+func (c *ModelPricingClient) CreateBulk(builders ...*ModelPricingCreate) *ModelPricingCreateBulk {
+	return &ModelPricingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ModelPricingClient) MapCreateBulk(slice any, setFunc func(*ModelPricingCreate, int)) *ModelPricingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ModelPricingCreateBulk{err: fmt.Errorf("calling to ModelPricingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ModelPricingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ModelPricingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ModelPricing.
+func (c *ModelPricingClient) Update() *ModelPricingUpdate {
+	mutation := newModelPricingMutation(c.config, OpUpdate)
+	return &ModelPricingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ModelPricingClient) UpdateOne(_m *ModelPricing) *ModelPricingUpdateOne {
+	mutation := newModelPricingMutation(c.config, OpUpdateOne, withModelPricing(_m))
+	return &ModelPricingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ModelPricingClient) UpdateOneID(id int) *ModelPricingUpdateOne {
+	mutation := newModelPricingMutation(c.config, OpUpdateOne, withModelPricingID(id))
+	return &ModelPricingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ModelPricing.
+func (c *ModelPricingClient) Delete() *ModelPricingDelete {
+	mutation := newModelPricingMutation(c.config, OpDelete)
+	return &ModelPricingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ModelPricingClient) DeleteOne(_m *ModelPricing) *ModelPricingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ModelPricingClient) DeleteOneID(id int) *ModelPricingDeleteOne {
+	builder := c.Delete().Where(modelpricing.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ModelPricingDeleteOne{builder}
+}
+
+// Query returns a query builder for ModelPricing.
+func (c *ModelPricingClient) Query() *ModelPricingQuery {
+	return &ModelPricingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeModelPricing},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ModelPricing entity by its id.
+func (c *ModelPricingClient) Get(ctx context.Context, id int) (*ModelPricing, error) {
+	return c.Query().Where(modelpricing.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ModelPricingClient) GetX(ctx context.Context, id int) *ModelPricing {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ModelPricingClient) Hooks() []Hook {
+	hooks := c.hooks.ModelPricing
+	return append(hooks[:len(hooks):len(hooks)], modelpricing.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *ModelPricingClient) Interceptors() []Interceptor {
+	inters := c.inters.ModelPricing
+	return append(inters[:len(inters):len(inters)], modelpricing.Interceptors[:]...)
+}
+
+func (c *ModelPricingClient) mutate(ctx context.Context, m *ModelPricingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ModelPricingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ModelPricingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ModelPricingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ModelPricingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ModelPricing mutation op: %q", m.Op())
+	}
+}
+
 // ProjectClient is a client for the Project schema.
 type ProjectClient struct {
 	config
@@ -1545,6 +1913,38 @@ func (c *ProjectClient) QueryTraces(_m *Project) *TraceQuery {
 	return query
 }
 
+// QueryConsumptionRecords queries the consumption_records edge of a Project.
+func (c *ProjectClient) QueryConsumptionRecords(_m *Project) *ConsumptionRecordQuery {
+	query := (&ConsumptionRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(consumptionrecord.Table, consumptionrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ConsumptionRecordsTable, project.ConsumptionRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRechargeRecords queries the recharge_records edge of a Project.
+func (c *ProjectClient) QueryRechargeRecords(_m *Project) *RechargeRecordQuery {
+	query := (&RechargeRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(rechargerecord.Table, rechargerecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.RechargeRecordsTable, project.RechargeRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryProjectUsers queries the project_users edge of a Project.
 func (c *ProjectClient) QueryProjectUsers(_m *Project) *UserProjectQuery {
 	query := (&UserProjectClient{config: c.config}).Query()
@@ -1585,6 +1985,354 @@ func (c *ProjectClient) mutate(ctx context.Context, m *ProjectMutation) (Value, 
 		return (&ProjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Project mutation op: %q", m.Op())
+	}
+}
+
+// RechargeRecordClient is a client for the RechargeRecord schema.
+type RechargeRecordClient struct {
+	config
+}
+
+// NewRechargeRecordClient returns a client for the RechargeRecord from the given config.
+func NewRechargeRecordClient(c config) *RechargeRecordClient {
+	return &RechargeRecordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `rechargerecord.Hooks(f(g(h())))`.
+func (c *RechargeRecordClient) Use(hooks ...Hook) {
+	c.hooks.RechargeRecord = append(c.hooks.RechargeRecord, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `rechargerecord.Intercept(f(g(h())))`.
+func (c *RechargeRecordClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RechargeRecord = append(c.inters.RechargeRecord, interceptors...)
+}
+
+// Create returns a builder for creating a RechargeRecord entity.
+func (c *RechargeRecordClient) Create() *RechargeRecordCreate {
+	mutation := newRechargeRecordMutation(c.config, OpCreate)
+	return &RechargeRecordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RechargeRecord entities.
+func (c *RechargeRecordClient) CreateBulk(builders ...*RechargeRecordCreate) *RechargeRecordCreateBulk {
+	return &RechargeRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RechargeRecordClient) MapCreateBulk(slice any, setFunc func(*RechargeRecordCreate, int)) *RechargeRecordCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RechargeRecordCreateBulk{err: fmt.Errorf("calling to RechargeRecordClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RechargeRecordCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RechargeRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RechargeRecord.
+func (c *RechargeRecordClient) Update() *RechargeRecordUpdate {
+	mutation := newRechargeRecordMutation(c.config, OpUpdate)
+	return &RechargeRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RechargeRecordClient) UpdateOne(_m *RechargeRecord) *RechargeRecordUpdateOne {
+	mutation := newRechargeRecordMutation(c.config, OpUpdateOne, withRechargeRecord(_m))
+	return &RechargeRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RechargeRecordClient) UpdateOneID(id int) *RechargeRecordUpdateOne {
+	mutation := newRechargeRecordMutation(c.config, OpUpdateOne, withRechargeRecordID(id))
+	return &RechargeRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RechargeRecord.
+func (c *RechargeRecordClient) Delete() *RechargeRecordDelete {
+	mutation := newRechargeRecordMutation(c.config, OpDelete)
+	return &RechargeRecordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RechargeRecordClient) DeleteOne(_m *RechargeRecord) *RechargeRecordDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RechargeRecordClient) DeleteOneID(id int) *RechargeRecordDeleteOne {
+	builder := c.Delete().Where(rechargerecord.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RechargeRecordDeleteOne{builder}
+}
+
+// Query returns a query builder for RechargeRecord.
+func (c *RechargeRecordClient) Query() *RechargeRecordQuery {
+	return &RechargeRecordQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRechargeRecord},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RechargeRecord entity by its id.
+func (c *RechargeRecordClient) Get(ctx context.Context, id int) (*RechargeRecord, error) {
+	return c.Query().Where(rechargerecord.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RechargeRecordClient) GetX(ctx context.Context, id int) *RechargeRecord {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a RechargeRecord.
+func (c *RechargeRecordClient) QueryUser(_m *RechargeRecord) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rechargerecord.Table, rechargerecord.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rechargerecord.UserTable, rechargerecord.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProject queries the project edge of a RechargeRecord.
+func (c *RechargeRecordClient) QueryProject(_m *RechargeRecord) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rechargerecord.Table, rechargerecord.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rechargerecord.ProjectTable, rechargerecord.ProjectColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRedemptionCode queries the redemption_code edge of a RechargeRecord.
+func (c *RechargeRecordClient) QueryRedemptionCode(_m *RechargeRecord) *RedemptionCodeQuery {
+	query := (&RedemptionCodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rechargerecord.Table, rechargerecord.FieldID, id),
+			sqlgraph.To(redemptioncode.Table, redemptioncode.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rechargerecord.RedemptionCodeTable, rechargerecord.RedemptionCodeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RechargeRecordClient) Hooks() []Hook {
+	return c.hooks.RechargeRecord
+}
+
+// Interceptors returns the client interceptors.
+func (c *RechargeRecordClient) Interceptors() []Interceptor {
+	return c.inters.RechargeRecord
+}
+
+func (c *RechargeRecordClient) mutate(ctx context.Context, m *RechargeRecordMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RechargeRecordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RechargeRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RechargeRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RechargeRecordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RechargeRecord mutation op: %q", m.Op())
+	}
+}
+
+// RedemptionCodeClient is a client for the RedemptionCode schema.
+type RedemptionCodeClient struct {
+	config
+}
+
+// NewRedemptionCodeClient returns a client for the RedemptionCode from the given config.
+func NewRedemptionCodeClient(c config) *RedemptionCodeClient {
+	return &RedemptionCodeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `redemptioncode.Hooks(f(g(h())))`.
+func (c *RedemptionCodeClient) Use(hooks ...Hook) {
+	c.hooks.RedemptionCode = append(c.hooks.RedemptionCode, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `redemptioncode.Intercept(f(g(h())))`.
+func (c *RedemptionCodeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RedemptionCode = append(c.inters.RedemptionCode, interceptors...)
+}
+
+// Create returns a builder for creating a RedemptionCode entity.
+func (c *RedemptionCodeClient) Create() *RedemptionCodeCreate {
+	mutation := newRedemptionCodeMutation(c.config, OpCreate)
+	return &RedemptionCodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RedemptionCode entities.
+func (c *RedemptionCodeClient) CreateBulk(builders ...*RedemptionCodeCreate) *RedemptionCodeCreateBulk {
+	return &RedemptionCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RedemptionCodeClient) MapCreateBulk(slice any, setFunc func(*RedemptionCodeCreate, int)) *RedemptionCodeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RedemptionCodeCreateBulk{err: fmt.Errorf("calling to RedemptionCodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RedemptionCodeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RedemptionCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RedemptionCode.
+func (c *RedemptionCodeClient) Update() *RedemptionCodeUpdate {
+	mutation := newRedemptionCodeMutation(c.config, OpUpdate)
+	return &RedemptionCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RedemptionCodeClient) UpdateOne(_m *RedemptionCode) *RedemptionCodeUpdateOne {
+	mutation := newRedemptionCodeMutation(c.config, OpUpdateOne, withRedemptionCode(_m))
+	return &RedemptionCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RedemptionCodeClient) UpdateOneID(id int) *RedemptionCodeUpdateOne {
+	mutation := newRedemptionCodeMutation(c.config, OpUpdateOne, withRedemptionCodeID(id))
+	return &RedemptionCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RedemptionCode.
+func (c *RedemptionCodeClient) Delete() *RedemptionCodeDelete {
+	mutation := newRedemptionCodeMutation(c.config, OpDelete)
+	return &RedemptionCodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RedemptionCodeClient) DeleteOne(_m *RedemptionCode) *RedemptionCodeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RedemptionCodeClient) DeleteOneID(id int) *RedemptionCodeDeleteOne {
+	builder := c.Delete().Where(redemptioncode.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RedemptionCodeDeleteOne{builder}
+}
+
+// Query returns a query builder for RedemptionCode.
+func (c *RedemptionCodeClient) Query() *RedemptionCodeQuery {
+	return &RedemptionCodeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRedemptionCode},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RedemptionCode entity by its id.
+func (c *RedemptionCodeClient) Get(ctx context.Context, id int) (*RedemptionCode, error) {
+	return c.Query().Where(redemptioncode.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RedemptionCodeClient) GetX(ctx context.Context, id int) *RedemptionCode {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a RedemptionCode.
+func (c *RedemptionCodeClient) QueryUser(_m *RedemptionCode) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(redemptioncode.Table, redemptioncode.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, redemptioncode.UserTable, redemptioncode.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRechargeRecords queries the recharge_records edge of a RedemptionCode.
+func (c *RedemptionCodeClient) QueryRechargeRecords(_m *RedemptionCode) *RechargeRecordQuery {
+	query := (&RechargeRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(redemptioncode.Table, redemptioncode.FieldID, id),
+			sqlgraph.To(rechargerecord.Table, rechargerecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, redemptioncode.RechargeRecordsTable, redemptioncode.RechargeRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RedemptionCodeClient) Hooks() []Hook {
+	hooks := c.hooks.RedemptionCode
+	return append(hooks[:len(hooks):len(hooks)], redemptioncode.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *RedemptionCodeClient) Interceptors() []Interceptor {
+	inters := c.inters.RedemptionCode
+	return append(inters[:len(inters):len(inters)], redemptioncode.Interceptors[:]...)
+}
+
+func (c *RedemptionCodeClient) mutate(ctx context.Context, m *RedemptionCodeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RedemptionCodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RedemptionCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RedemptionCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RedemptionCodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RedemptionCode mutation op: %q", m.Op())
 	}
 }
 
@@ -2198,6 +2946,141 @@ func (c *RoleClient) mutate(ctx context.Context, m *RoleMutation) (Value, error)
 	}
 }
 
+// SensitiveWordClient is a client for the SensitiveWord schema.
+type SensitiveWordClient struct {
+	config
+}
+
+// NewSensitiveWordClient returns a client for the SensitiveWord from the given config.
+func NewSensitiveWordClient(c config) *SensitiveWordClient {
+	return &SensitiveWordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sensitiveword.Hooks(f(g(h())))`.
+func (c *SensitiveWordClient) Use(hooks ...Hook) {
+	c.hooks.SensitiveWord = append(c.hooks.SensitiveWord, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sensitiveword.Intercept(f(g(h())))`.
+func (c *SensitiveWordClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SensitiveWord = append(c.inters.SensitiveWord, interceptors...)
+}
+
+// Create returns a builder for creating a SensitiveWord entity.
+func (c *SensitiveWordClient) Create() *SensitiveWordCreate {
+	mutation := newSensitiveWordMutation(c.config, OpCreate)
+	return &SensitiveWordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SensitiveWord entities.
+func (c *SensitiveWordClient) CreateBulk(builders ...*SensitiveWordCreate) *SensitiveWordCreateBulk {
+	return &SensitiveWordCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SensitiveWordClient) MapCreateBulk(slice any, setFunc func(*SensitiveWordCreate, int)) *SensitiveWordCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SensitiveWordCreateBulk{err: fmt.Errorf("calling to SensitiveWordClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SensitiveWordCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SensitiveWordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SensitiveWord.
+func (c *SensitiveWordClient) Update() *SensitiveWordUpdate {
+	mutation := newSensitiveWordMutation(c.config, OpUpdate)
+	return &SensitiveWordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SensitiveWordClient) UpdateOne(_m *SensitiveWord) *SensitiveWordUpdateOne {
+	mutation := newSensitiveWordMutation(c.config, OpUpdateOne, withSensitiveWord(_m))
+	return &SensitiveWordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SensitiveWordClient) UpdateOneID(id int) *SensitiveWordUpdateOne {
+	mutation := newSensitiveWordMutation(c.config, OpUpdateOne, withSensitiveWordID(id))
+	return &SensitiveWordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SensitiveWord.
+func (c *SensitiveWordClient) Delete() *SensitiveWordDelete {
+	mutation := newSensitiveWordMutation(c.config, OpDelete)
+	return &SensitiveWordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SensitiveWordClient) DeleteOne(_m *SensitiveWord) *SensitiveWordDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SensitiveWordClient) DeleteOneID(id int) *SensitiveWordDeleteOne {
+	builder := c.Delete().Where(sensitiveword.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SensitiveWordDeleteOne{builder}
+}
+
+// Query returns a query builder for SensitiveWord.
+func (c *SensitiveWordClient) Query() *SensitiveWordQuery {
+	return &SensitiveWordQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSensitiveWord},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SensitiveWord entity by its id.
+func (c *SensitiveWordClient) Get(ctx context.Context, id int) (*SensitiveWord, error) {
+	return c.Query().Where(sensitiveword.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SensitiveWordClient) GetX(ctx context.Context, id int) *SensitiveWord {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SensitiveWordClient) Hooks() []Hook {
+	hooks := c.hooks.SensitiveWord
+	return append(hooks[:len(hooks):len(hooks)], sensitiveword.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *SensitiveWordClient) Interceptors() []Interceptor {
+	inters := c.inters.SensitiveWord
+	return append(inters[:len(inters):len(inters)], sensitiveword.Interceptors[:]...)
+}
+
+func (c *SensitiveWordClient) mutate(ctx context.Context, m *SensitiveWordMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SensitiveWordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SensitiveWordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SensitiveWordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SensitiveWordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SensitiveWord mutation op: %q", m.Op())
+	}
+}
+
 // SystemClient is a client for the System schema.
 type SystemClient struct {
 	config
@@ -2330,6 +3213,141 @@ func (c *SystemClient) mutate(ctx context.Context, m *SystemMutation) (Value, er
 		return (&SystemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown System mutation op: %q", m.Op())
+	}
+}
+
+// SystemSettingsClient is a client for the SystemSettings schema.
+type SystemSettingsClient struct {
+	config
+}
+
+// NewSystemSettingsClient returns a client for the SystemSettings from the given config.
+func NewSystemSettingsClient(c config) *SystemSettingsClient {
+	return &SystemSettingsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `systemsettings.Hooks(f(g(h())))`.
+func (c *SystemSettingsClient) Use(hooks ...Hook) {
+	c.hooks.SystemSettings = append(c.hooks.SystemSettings, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `systemsettings.Intercept(f(g(h())))`.
+func (c *SystemSettingsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SystemSettings = append(c.inters.SystemSettings, interceptors...)
+}
+
+// Create returns a builder for creating a SystemSettings entity.
+func (c *SystemSettingsClient) Create() *SystemSettingsCreate {
+	mutation := newSystemSettingsMutation(c.config, OpCreate)
+	return &SystemSettingsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SystemSettings entities.
+func (c *SystemSettingsClient) CreateBulk(builders ...*SystemSettingsCreate) *SystemSettingsCreateBulk {
+	return &SystemSettingsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SystemSettingsClient) MapCreateBulk(slice any, setFunc func(*SystemSettingsCreate, int)) *SystemSettingsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SystemSettingsCreateBulk{err: fmt.Errorf("calling to SystemSettingsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SystemSettingsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SystemSettingsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SystemSettings.
+func (c *SystemSettingsClient) Update() *SystemSettingsUpdate {
+	mutation := newSystemSettingsMutation(c.config, OpUpdate)
+	return &SystemSettingsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SystemSettingsClient) UpdateOne(_m *SystemSettings) *SystemSettingsUpdateOne {
+	mutation := newSystemSettingsMutation(c.config, OpUpdateOne, withSystemSettings(_m))
+	return &SystemSettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SystemSettingsClient) UpdateOneID(id int) *SystemSettingsUpdateOne {
+	mutation := newSystemSettingsMutation(c.config, OpUpdateOne, withSystemSettingsID(id))
+	return &SystemSettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SystemSettings.
+func (c *SystemSettingsClient) Delete() *SystemSettingsDelete {
+	mutation := newSystemSettingsMutation(c.config, OpDelete)
+	return &SystemSettingsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SystemSettingsClient) DeleteOne(_m *SystemSettings) *SystemSettingsDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SystemSettingsClient) DeleteOneID(id int) *SystemSettingsDeleteOne {
+	builder := c.Delete().Where(systemsettings.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SystemSettingsDeleteOne{builder}
+}
+
+// Query returns a query builder for SystemSettings.
+func (c *SystemSettingsClient) Query() *SystemSettingsQuery {
+	return &SystemSettingsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSystemSettings},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SystemSettings entity by its id.
+func (c *SystemSettingsClient) Get(ctx context.Context, id int) (*SystemSettings, error) {
+	return c.Query().Where(systemsettings.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SystemSettingsClient) GetX(ctx context.Context, id int) *SystemSettings {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SystemSettingsClient) Hooks() []Hook {
+	hooks := c.hooks.SystemSettings
+	return append(hooks[:len(hooks):len(hooks)], systemsettings.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *SystemSettingsClient) Interceptors() []Interceptor {
+	inters := c.inters.SystemSettings
+	return append(inters[:len(inters):len(inters)], systemsettings.Interceptors[:]...)
+}
+
+func (c *SystemSettingsClient) mutate(ctx context.Context, m *SystemSettingsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SystemSettingsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SystemSettingsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SystemSettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SystemSettingsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SystemSettings mutation op: %q", m.Op())
 	}
 }
 
@@ -2805,6 +3823,22 @@ func (c *UsageLogClient) QueryRequest(_m *UsageLog) *RequestQuery {
 	return query
 }
 
+// QueryAPIKey queries the api_key edge of a UsageLog.
+func (c *UsageLogClient) QueryAPIKey(_m *UsageLog) *APIKeyQuery {
+	query := (&APIKeyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usagelog.Table, usagelog.FieldID, id),
+			sqlgraph.To(apikey.Table, apikey.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, usagelog.APIKeyTable, usagelog.APIKeyColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryProject queries the project edge of a UsageLog.
 func (c *UsageLogClient) QueryProject(_m *UsageLog) *ProjectQuery {
 	query := (&ProjectClient{config: c.config}).Query()
@@ -3028,6 +4062,54 @@ func (c *UserClient) QueryChannelOverrideTemplates(_m *User) *ChannelOverrideTem
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(channeloverridetemplate.Table, channeloverridetemplate.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ChannelOverrideTemplatesTable, user.ChannelOverrideTemplatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConsumptionRecords queries the consumption_records edge of a User.
+func (c *UserClient) QueryConsumptionRecords(_m *User) *ConsumptionRecordQuery {
+	query := (&ConsumptionRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(consumptionrecord.Table, consumptionrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConsumptionRecordsTable, user.ConsumptionRecordsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRedemptionCodes queries the redemption_codes edge of a User.
+func (c *UserClient) QueryRedemptionCodes(_m *User) *RedemptionCodeQuery {
+	query := (&RedemptionCodeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(redemptioncode.Table, redemptioncode.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RedemptionCodesTable, user.RedemptionCodesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRechargeRecords queries the recharge_records edge of a User.
+func (c *UserClient) QueryRechargeRecords(_m *User) *RechargeRecordQuery {
+	query := (&RechargeRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(rechargerecord.Table, rechargerecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RechargeRecordsTable, user.RechargeRecordsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -3431,13 +4513,15 @@ func (c *UserRoleClient) mutate(ctx context.Context, m *UserRoleMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		APIKey, Channel, ChannelOverrideTemplate, ChannelPerformance, DataStorage,
-		Model, Project, Request, RequestExecution, Role, System, Thread, Trace,
-		UsageLog, User, UserProject, UserRole []ent.Hook
+		APIKey, Channel, ChannelOverrideTemplate, ChannelPerformance, ConsumptionRecord,
+		DataStorage, Model, ModelPricing, Project, RechargeRecord, RedemptionCode,
+		Request, RequestExecution, Role, SensitiveWord, System, SystemSettings, Thread,
+		Trace, UsageLog, User, UserProject, UserRole []ent.Hook
 	}
 	inters struct {
-		APIKey, Channel, ChannelOverrideTemplate, ChannelPerformance, DataStorage,
-		Model, Project, Request, RequestExecution, Role, System, Thread, Trace,
-		UsageLog, User, UserProject, UserRole []ent.Interceptor
+		APIKey, Channel, ChannelOverrideTemplate, ChannelPerformance, ConsumptionRecord,
+		DataStorage, Model, ModelPricing, Project, RechargeRecord, RedemptionCode,
+		Request, RequestExecution, Role, SensitiveWord, System, SystemSettings, Thread,
+		Trace, UsageLog, User, UserProject, UserRole []ent.Interceptor
 	}
 )

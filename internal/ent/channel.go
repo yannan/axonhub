@@ -52,6 +52,8 @@ type Channel struct {
 	ErrorMessage *string `json:"error_message,omitempty"`
 	// User-defined remark or note for the channel
 	Remark *string `json:"remark,omitempty"`
+	// Billing group: default/vip/svip
+	Group string `json:"group,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ChannelQuery when eager-loading is set.
 	Edges        ChannelEdges `json:"edges"`
@@ -128,7 +130,7 @@ func (*Channel) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case channel.FieldID, channel.FieldDeletedAt, channel.FieldOrderingWeight:
 			values[i] = new(sql.NullInt64)
-		case channel.FieldType, channel.FieldBaseURL, channel.FieldName, channel.FieldStatus, channel.FieldDefaultTestModel, channel.FieldErrorMessage, channel.FieldRemark:
+		case channel.FieldType, channel.FieldBaseURL, channel.FieldName, channel.FieldStatus, channel.FieldDefaultTestModel, channel.FieldErrorMessage, channel.FieldRemark, channel.FieldGroup:
 			values[i] = new(sql.NullString)
 		case channel.FieldCreatedAt, channel.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -259,6 +261,12 @@ func (_m *Channel) assignValues(columns []string, values []any) error {
 				_m.Remark = new(string)
 				*_m.Remark = value.String
 			}
+		case channel.FieldGroup:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field group", values[i])
+			} else if value.Valid {
+				_m.Group = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -365,6 +373,9 @@ func (_m *Channel) String() string {
 		builder.WriteString("remark=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("group=")
+	builder.WriteString(_m.Group)
 	builder.WriteByte(')')
 	return builder.String()
 }

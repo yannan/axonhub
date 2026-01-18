@@ -51,6 +51,8 @@ const (
 	FieldErrorMessage = "error_message"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
+	// FieldGroup holds the string denoting the group field in the database.
+	FieldGroup = "group"
 	// EdgeRequests holds the string denoting the requests edge name in mutations.
 	EdgeRequests = "requests"
 	// EdgeExecutions holds the string denoting the executions edge name in mutations.
@@ -110,6 +112,7 @@ var Columns = []string{
 	FieldOrderingWeight,
 	FieldErrorMessage,
 	FieldRemark,
+	FieldGroup,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -149,6 +152,8 @@ var (
 	DefaultSettings *objects.ChannelSettings
 	// DefaultOrderingWeight holds the default value on creation for the "ordering_weight" field.
 	DefaultOrderingWeight int
+	// DefaultGroup holds the default value on creation for the "group" field.
+	DefaultGroup string
 )
 
 // Type defines the type for the "type" enum field.
@@ -301,6 +306,11 @@ func ByErrorMessage(opts ...sql.OrderTermOption) OrderOption {
 // ByRemark orders the results by the remark field.
 func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByGroup orders the results by the group field.
+func ByGroup(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGroup, opts...).ToFunc()
 }
 
 // ByRequestsCount orders the results by requests count.

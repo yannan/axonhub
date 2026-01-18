@@ -220,6 +220,7 @@ print(response.text)`
   };
 
   const maskedKey = selectedApiKey?.key ? selectedApiKey.key.replace(/./g, '*').slice(0, -4) + selectedApiKey.key.slice(-4) : '';
+  const ipWhitelist = selectedApiKey?.ipWhitelist?.trim() || '';
 
   return (
     <Dialog open={isDialogOpen.view} onOpenChange={() => closeDialog()}>
@@ -252,6 +253,12 @@ print(response.text)`
               <Button variant='outline' size='sm' onClick={copyToClipboard} className='flex-shrink-0'>
                 <Copy className='h-4 w-4' />
               </Button>
+            </div>
+          </div>
+          <div>
+            <label className='text-sm font-medium'>{t('apikeys.dialogs.fields.ipWhitelist.label')}</label>
+            <div className='bg-muted mt-1 rounded-md p-3 text-sm whitespace-pre-wrap'>
+              {ipWhitelist || t('apikeys.dialogs.fields.ipWhitelist.allowAll')}
             </div>
           </div>
         </div>

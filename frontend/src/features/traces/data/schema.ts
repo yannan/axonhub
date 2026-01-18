@@ -21,8 +21,10 @@ export const traceSchema = z.object({
   traceID: z.string(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
+  cost: z.number().nullable().optional(),
   thread: threadSchema,
   requests: traceRequestsSummarySchema,
+  blockedRequests: traceRequestsSummarySchema,
   firstUserQuery: z.string().nullable().optional(),
   firstText: z.string().nullable().optional(),
 });
@@ -161,8 +163,10 @@ export const traceDetailSchema = z.object({
   traceID: z.string(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
+  cost: z.number().nullable().optional(),
   thread: threadSchema,
   requests: traceRequestsSummarySchema,
+  blockedRequests: traceRequestsSummarySchema,
   rawRootSegment: z.any().nullable().optional(),
 });
 

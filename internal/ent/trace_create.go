@@ -79,6 +79,20 @@ func (_c *TraceCreate) SetNillableThreadID(v *int) *TraceCreate {
 	return _c
 }
 
+// SetCost sets the "cost" field.
+func (_c *TraceCreate) SetCost(v int64) *TraceCreate {
+	_c.mutation.SetCost(v)
+	return _c
+}
+
+// SetNillableCost sets the "cost" field if the given value is not nil.
+func (_c *TraceCreate) SetNillableCost(v *int64) *TraceCreate {
+	if v != nil {
+		_c.SetCost(*v)
+	}
+	return _c
+}
+
 // SetProject sets the "project" edge to the Project entity.
 func (_c *TraceCreate) SetProject(v *Project) *TraceCreate {
 	return _c.SetProjectID(v.ID)
@@ -155,6 +169,10 @@ func (_c *TraceCreate) defaults() error {
 		v := trace.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Cost(); !ok {
+		v := trace.DefaultCost
+		_c.mutation.SetCost(v)
+	}
 	return nil
 }
 
@@ -171,6 +189,9 @@ func (_c *TraceCreate) check() error {
 	}
 	if _, ok := _c.mutation.TraceID(); !ok {
 		return &ValidationError{Name: "trace_id", err: errors.New(`ent: missing required field "Trace.trace_id"`)}
+	}
+	if _, ok := _c.mutation.Cost(); !ok {
+		return &ValidationError{Name: "cost", err: errors.New(`ent: missing required field "Trace.cost"`)}
 	}
 	if len(_c.mutation.ProjectIDs()) == 0 {
 		return &ValidationError{Name: "project", err: errors.New(`ent: missing required edge "Trace.project"`)}
@@ -213,6 +234,10 @@ func (_c *TraceCreate) createSpec() (*Trace, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.TraceID(); ok {
 		_spec.SetField(trace.FieldTraceID, field.TypeString, value)
 		_node.TraceID = value
+	}
+	if value, ok := _c.mutation.Cost(); ok {
+		_spec.SetField(trace.FieldCost, field.TypeInt64, value)
+		_node.Cost = value
 	}
 	if nodes := _c.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -340,6 +365,24 @@ func (u *TraceUpsert) UpdateTraceID() *TraceUpsert {
 	return u
 }
 
+// SetCost sets the "cost" field.
+func (u *TraceUpsert) SetCost(v int64) *TraceUpsert {
+	u.Set(trace.FieldCost, v)
+	return u
+}
+
+// UpdateCost sets the "cost" field to the value that was provided on create.
+func (u *TraceUpsert) UpdateCost() *TraceUpsert {
+	u.SetExcluded(trace.FieldCost)
+	return u
+}
+
+// AddCost adds v to the "cost" field.
+func (u *TraceUpsert) AddCost(v int64) *TraceUpsert {
+	u.Add(trace.FieldCost, v)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -416,6 +459,27 @@ func (u *TraceUpsertOne) SetTraceID(v string) *TraceUpsertOne {
 func (u *TraceUpsertOne) UpdateTraceID() *TraceUpsertOne {
 	return u.Update(func(s *TraceUpsert) {
 		s.UpdateTraceID()
+	})
+}
+
+// SetCost sets the "cost" field.
+func (u *TraceUpsertOne) SetCost(v int64) *TraceUpsertOne {
+	return u.Update(func(s *TraceUpsert) {
+		s.SetCost(v)
+	})
+}
+
+// AddCost adds v to the "cost" field.
+func (u *TraceUpsertOne) AddCost(v int64) *TraceUpsertOne {
+	return u.Update(func(s *TraceUpsert) {
+		s.AddCost(v)
+	})
+}
+
+// UpdateCost sets the "cost" field to the value that was provided on create.
+func (u *TraceUpsertOne) UpdateCost() *TraceUpsertOne {
+	return u.Update(func(s *TraceUpsert) {
+		s.UpdateCost()
 	})
 }
 
@@ -661,6 +725,27 @@ func (u *TraceUpsertBulk) SetTraceID(v string) *TraceUpsertBulk {
 func (u *TraceUpsertBulk) UpdateTraceID() *TraceUpsertBulk {
 	return u.Update(func(s *TraceUpsert) {
 		s.UpdateTraceID()
+	})
+}
+
+// SetCost sets the "cost" field.
+func (u *TraceUpsertBulk) SetCost(v int64) *TraceUpsertBulk {
+	return u.Update(func(s *TraceUpsert) {
+		s.SetCost(v)
+	})
+}
+
+// AddCost adds v to the "cost" field.
+func (u *TraceUpsertBulk) AddCost(v int64) *TraceUpsertBulk {
+	return u.Update(func(s *TraceUpsert) {
+		s.AddCost(v)
+	})
+}
+
+// UpdateCost sets the "cost" field to the value that was provided on create.
+func (u *TraceUpsertBulk) UpdateCost() *TraceUpsertBulk {
+	return u.Update(func(s *TraceUpsert) {
+		s.UpdateCost()
 	})
 }
 

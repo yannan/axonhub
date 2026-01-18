@@ -41,12 +41,16 @@ const (
 	FieldScopes = "scopes"
 	// FieldProfiles holds the string denoting the profiles field in the database.
 	FieldProfiles = "profiles"
+	// FieldIPWhitelist holds the string denoting the ip_whitelist field in the database.
+	FieldIPWhitelist = "ip_whitelist"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeRequests holds the string denoting the requests edge name in mutations.
 	EdgeRequests = "requests"
+	// EdgeUsageLogs holds the string denoting the usage_logs edge name in mutations.
+	EdgeUsageLogs = "usage_logs"
 	// Table holds the table name of the apikey in the database.
 	Table = "api_keys"
 	// UserTable is the table that holds the user relation/edge.
@@ -70,6 +74,13 @@ const (
 	RequestsInverseTable = "requests"
 	// RequestsColumn is the table column denoting the requests relation/edge.
 	RequestsColumn = "api_key_id"
+	// UsageLogsTable is the table that holds the usage_logs relation/edge.
+	UsageLogsTable = "usage_logs"
+	// UsageLogsInverseTable is the table name for the UsageLog entity.
+	// It exists in this package in order to avoid circular dependency with the "usagelog" package.
+	UsageLogsInverseTable = "usage_logs"
+	// UsageLogsColumn is the table column denoting the usage_logs relation/edge.
+	UsageLogsColumn = "api_key_id"
 )
 
 // Columns holds all SQL columns for apikey fields.
@@ -86,6 +97,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldScopes,
 	FieldProfiles,
+	FieldIPWhitelist,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -121,6 +133,8 @@ var (
 	DefaultScopes []string
 	// DefaultProfiles holds the default value on creation for the "profiles" field.
 	DefaultProfiles *objects.APIKeyProfiles
+	// DefaultIPWhitelist holds the default value on creation for the "ip_whitelist" field.
+	DefaultIPWhitelist string
 )
 
 // Type defines the type for the "type" enum field.
@@ -229,6 +243,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
+// ByIPWhitelist orders the results by the ip_whitelist field.
+func ByIPWhitelist(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIPWhitelist, opts...).ToFunc()
+}
+
 // ByUserField orders the results by user field.
 func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -256,6 +275,20 @@ func ByRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByUsageLogsCount orders the results by usage_logs count.
+func ByUsageLogsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUsageLogsStep(), opts...)
+	}
+}
+
+// ByUsageLogs orders the results by usage_logs terms.
+func ByUsageLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUsageLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -275,6 +308,13 @@ func newRequestsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RequestsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RequestsTable, RequestsColumn),
+	)
+}
+func newUsageLogsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UsageLogsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UsageLogsTable, UsageLogsColumn),
 	)
 }
 

@@ -1,0 +1,2368 @@
+openapi: 3.0.3
+info:
+  title: AxonHub API（中文）
+  version: 0.1.0
+  description: |
+    由当前服务路由自动生成。本规范更强调路径覆盖的完整性，而非严格的请求/响应结构校验。
+servers:
+  - url: http://localhost:8090
+    description: 本地开发
+tags:
+  - name: 系统
+  - name: 认证
+  - name: 管理
+  - name: 用户
+  - name: 项目
+paths:
+  /admin/redemption/generate:
+    post:
+      tags: [管理]
+      summary: 生成兑换码
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedemptionGenerateRequest"
+      responses:
+        "200":
+          description: 已生成的兑换码
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedemptionGenerateResponse"
+            application/vnd.ms-excel:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/redemption:
+    get:
+      tags: [管理]
+      summary: 列出兑换码
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RedemptionCodeQuery"
+        - $ref: "#/components/parameters/RedemptionStatusQuery"
+        - $ref: "#/components/parameters/RedemptionVoidedQuery"
+        - $ref: "#/components/parameters/RedemptionUsedByQuery"
+        - $ref: "#/components/parameters/RedemptionExpiredQuery"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: 兑换码
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedemptionListResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/redemption/delete:
+    post:
+      tags: [管理]
+      summary: 删除兑换码
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteCodesRequest"
+      responses:
+        "200":
+          description: 删除结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/redemption/{id}/void:
+    post:
+      tags: [管理]
+      summary: 作废兑换码
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdPath"
+      responses:
+        "200":
+          description: 作废结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: 无效 ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: 未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/recharges:
+    get:
+      tags: [管理]
+      summary: 充值记录（管理员）
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RechargeUserIDQuery"
+        - $ref: "#/components/parameters/RechargeProjectIDQuery"
+        - $ref: "#/components/parameters/RechargeCodeIDQuery"
+        - $ref: "#/components/parameters/RechargeStatusQuery"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: 充值记录
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RechargeListResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/filter/words:
+    post:
+      tags: [管理]
+      summary: 添加敏感词
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddWordRequest"
+      responses:
+        "200":
+          description: 已添加词条
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SensitiveWordResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing:
+    get:
+      tags: [管理]
+      summary: 获取计费配置
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ModelQuery"
+      responses:
+        "200":
+          description: 计费配置列表
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingListResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+    post:
+      tags: [管理]
+      summary: 创建计费配置
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingUpsertRequest"
+      responses:
+        "200":
+          description: 已创建计费配置
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingUpsertResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+    put:
+      tags: [管理]
+      summary: 更新计费配置
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingUpsertRequest"
+      responses:
+        "200":
+          description: 已更新计费配置
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingUpsertResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: 未找到计费配置
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing/batch:
+    post:
+      tags: [管理]
+      summary: 批量创建计费配置
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingUpsertBatchRequest"
+      responses:
+        "200":
+          description: 已创建计费配置
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingUpsertBatchResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing/{model}:
+    delete:
+      tags: [管理]
+      summary: 按模型删除计费配置
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ModelPath"
+      responses:
+        "200":
+          description: 删除结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: 未找到计费配置
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing/{model}/disable:
+    put:
+      tags: [管理]
+      summary: 按模型禁用计费配置（软删除）
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ModelPath"
+      responses:
+        "200":
+          description: 禁用结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingToggleResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: 未找到计费配置
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/pricing/{model}/enable:
+    put:
+      tags: [管理]
+      summary: 按模型启用计费配置（恢复）
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ModelPath"
+      responses:
+        "200":
+          description: 启用结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingToggleResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: 未找到计费配置
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/billing/stats:
+    get:
+      tags: [管理]
+      summary: 获取聚合消耗统计
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_id
+          in: query
+          required: false
+          description: 按项目 ID 过滤
+          schema:
+            type: integer
+        - name: model
+          in: query
+          required: false
+          description: 按模型名称过滤
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: false
+          description: 开始日期（RFC3339 或 YYYY-MM-DD）
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: false
+          description: 结束日期（RFC3339 或 YYYY-MM-DD）
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 聚合消耗统计
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumptionStatsResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/billing/export:
+    get:
+      tags: [管理]
+      summary: 导出聚合消耗统计
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: project_id
+          in: query
+          required: false
+          description: 按项目 ID 过滤
+          schema:
+            type: integer
+        - name: model
+          in: query
+          required: false
+          description: 按模型名称过滤
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: false
+          description: 开始日期（RFC3339 或 YYYY-MM-DD）
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: false
+          description: 结束日期（RFC3339 或 YYYY-MM-DD）
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CSV 导出
+          content:
+            application/vnd.ms-excel:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: 禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /admin/system/settings:
+    get:
+      tags: [管理]
+      summary: 获取系统设置
+      description: |
+        当前前端使用的设置项：
+        - `user_selectable_groups`: 用户新建项目时可选分组，`value` 为 JSON 对象，键为分组代码，值为显示名称。
+          例：`{"default":"默认分组","vip":"VIP用户","svip":"SVIP用户"}`
+        - `group_ratio`: 分组倍率配置，`value` 为 JSON 对象，键为分组代码，值为倍率（数字）。
+          例：`{"default":1,"vip":0.8,"svip":0.5}`
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: query
+          required: false
+          description: 可选的 setting key，用于获取单个设置（如 `user_selectable_groups` 或 `group_ratio`）
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 系统设置
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSystemSettingsResponse"
+        "404":
+          description: 未找到设置
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [管理]
+      summary: 更新系统设置
+      description: |
+        用于更新分组相关配置时：
+        - `key=user_selectable_groups`，`value` 为分组代码到显示名称的映射。
+          例：`{"key":"user_selectable_groups","value":{"default":"默认分组","vip":"VIP用户"}}`
+        - `key=group_ratio`，`value` 为分组代码到倍率（数字）的映射。
+          例：`{"key":"group_ratio","value":{"default":1,"vip":0.8}}`
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSystemSettingsRequest"
+      responses:
+        "200":
+          description: 更新结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateSystemSettingsResponse"
+        "400":
+          description: 请求无效或更新失败
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateSystemSettingsResponse"
+  /user/redemption/redeem:
+    post:
+      tags: [用户]
+      summary: 用户兑换码
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedeemRequest"
+      responses:
+        "200":
+          description: 兑换结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedeemResponse"
+        "400":
+          description: 请求无效或兑换码无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /user/recharges:
+    get:
+      tags: [用户]
+      summary: 充值记录（用户）
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: 充值记录
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RechargeListResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /user/billing/subscription:
+    get:
+      tags: [用户]
+      summary: 获取用户订阅信息
+      deprecated: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 订阅信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /user/billing/usage:
+    get:
+      tags: [用户]
+      summary: 获取用户计费用量
+      deprecated: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 用量信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/redemption/redeem:
+    post:
+      tags: [项目]
+      summary: 项目兑换码
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedeemRequest"
+      responses:
+        "200":
+          description: 兑换结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RedeemResponse"
+        "400":
+          description: 请求无效或兑换码无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/recharges:
+    get:
+      tags: [项目]
+      summary: 充值记录（项目）
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: 充值记录
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RechargeListResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/billing/subscription:
+    get:
+      tags: [项目]
+      summary: 获取项目订阅信息
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 订阅信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/billing/usage:
+    get:
+      tags: [项目]
+      summary: 获取项目计费用量
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 用量信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+  /project/dashboard/stats:
+    get:
+      tags: [项目]
+      summary: 获取项目仪表盘统计
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          required: false
+          description: 开始日期（RFC3339 或 YYYY-MM-DD）
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: false
+          description: 结束日期（RFC3339 或 YYYY-MM-DD）
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 仪表盘统计
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStatsResponse"
+        "400":
+          description: 请求无效
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "401":
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "500":
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        API key sent in one of the supported headers (Authorization, X-API-Key, API-Key, etc).
+        Authorization supports optional prefixes: Bearer, Token, Api-Key.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: 资源 ID
+      schema:
+        type: integer
+    ModelPath:
+      name: model
+      in: path
+      required: true
+      description: 模型名称
+      schema:
+        type: string
+    ModelQuery:
+      name: model
+      in: query
+      required: false
+      description: 按模型名称模糊搜索
+      schema:
+        type: string
+    Offset:
+      name: offset
+      in: query
+      required: false
+      description: 分页偏移量，从 0 开始
+      schema:
+        type: integer
+        minimum: 0
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: 分页数量
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+    RedemptionCodeQuery:
+      name: code
+      in: query
+      required: false
+      description: 按兑换码内容过滤
+      schema:
+        type: string
+    RedemptionStatusQuery:
+      name: status
+      in: query
+      required: false
+      description: 按兑换码状态过滤
+      schema:
+        type: string
+        enum: [active, used, disabled]
+    RedemptionVoidedQuery:
+      name: voided
+      in: query
+      required: false
+      description: 是否已作废
+      schema:
+        type: boolean
+    RedemptionUsedByQuery:
+      name: used_by
+      in: query
+      required: false
+      description: 使用者用户 ID
+      schema:
+        type: integer
+    RedemptionExpiredQuery:
+      name: expired
+      in: query
+      required: false
+      description: 是否已过期
+      schema:
+        type: boolean
+    RechargeUserIDQuery:
+      name: user_id
+      in: query
+      required: false
+      description: 按用户 ID 过滤
+      schema:
+        type: integer
+    RechargeProjectIDQuery:
+      name: project_id
+      in: query
+      required: false
+      description: 按项目 ID 过滤
+      schema:
+        type: integer
+    RechargeCodeIDQuery:
+      name: code_id
+      in: query
+      required: false
+      description: 按兑换码 ID 过滤
+      schema:
+        type: integer
+    RechargeStatusQuery:
+      name: status
+      in: query
+      required: false
+      description: 按充值状态过滤
+      schema:
+        type: string
+        enum: [success, failed]
+  schemas:
+    GenericObject:
+      type: object
+      additionalProperties: true
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        build:
+          $ref: "#/components/schemas/BuildInfo"
+        uptime:
+          type: string
+      required: [status]
+    BuildInfo:
+      type: object
+      properties:
+        version:
+          type: string
+        commit:
+          type: string
+        build_time:
+          type: string
+        go_version:
+          type: string
+        platform:
+          type: string
+        uptime:
+          type: string
+      required: [version, go_version, platform, uptime]
+    SystemStatusResponse:
+      type: object
+      properties:
+        isInitialized:
+          type: boolean
+          description: 是否已完成系统初始化
+      required: [isInitialized]
+    InitializeSystemRequest:
+      type: object
+      properties:
+        ownerEmail:
+          type: string
+          format: email
+          description: 系统管理员邮箱
+        ownerPassword:
+          type: string
+          minLength: 6
+          description: 系统管理员密码
+        ownerFirstName:
+          type: string
+          description: 管理员名
+        ownerLastName:
+          type: string
+          description: 管理员姓
+        brandName:
+          type: string
+          description: 平台展示名称
+      required: [ownerEmail, ownerPassword, ownerFirstName, ownerLastName, brandName]
+      additionalProperties: false
+    InitializeSystemResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 初始化是否成功
+        message:
+          type: string
+          description: 初始化结果提示
+      required: [success, message]
+    GetSystemSettingsResponse:
+      type: object
+      properties:
+        settings:
+          type: array
+          description: 系统设置列表
+          items:
+            $ref: "#/components/schemas/SettingItem"
+      required: [settings]
+    SettingItem:
+      type: object
+      properties:
+        key:
+          type: string
+          description: 设置项键名
+        value:
+          type: object
+          additionalProperties: true
+          description: 设置项内容（JSON）
+        description:
+          type: string
+          description: 设置项说明
+        updated_at:
+          type: string
+          description: 最后更新时间
+      required: [key, value, description, updated_at]
+    UpdateSystemSettingsRequest:
+      type: object
+      properties:
+        key:
+          type: string
+          description: 设置项键名
+        value:
+          type: object
+          additionalProperties: true
+          description: 设置项内容（JSON）
+        description:
+          type: string
+          description: 设置项说明（可选）
+      required: [key, value]
+      additionalProperties: false
+    UpdateSystemSettingsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 更新是否成功
+        message:
+          type: string
+          description: 更新结果提示
+        setting:
+          $ref: "#/components/schemas/SettingItem"
+          description: 更新后的设置项
+      required: [success, message]
+    ErrorResponse:
+      type: object
+      description: 结构化错误对象（主要用于系统设置相关接口）
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorObject"
+      required: [error]
+    ErrorObject:
+      type: object
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+      required: [type, message]
+    ErrorMessageResponse:
+      type: object
+      description: 简单字符串错误对象（多数接口使用）
+      properties:
+        error:
+          type: string
+      required: [error]
+    SignInRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: 登录邮箱
+        password:
+          type: string
+          description: 登录密码
+      required: [email, password]
+      additionalProperties: false
+    SignInResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: 登录后的访问令牌
+        user:
+          $ref: "#/components/schemas/UserInfo"
+          description: 当前登录用户信息
+      required: [token, user]
+    GUID:
+      type: object
+      properties:
+        type:
+          type: string
+          description: 资源类型
+        id:
+          type: integer
+          description: 资源数值 ID
+      required: [type, id]
+    UserInfo:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/GUID"
+          description: 用户 ID
+        email:
+          type: string
+          description: 邮箱
+        firstName:
+          type: string
+          description: 名
+        lastName:
+          type: string
+          description: 姓
+        isOwner:
+          type: boolean
+          description: 是否为系统所有者
+        preferLanguage:
+          type: string
+          description: 语言偏好
+        avatar:
+          type: string
+          nullable: true
+          description: 头像 URL
+        scopes:
+          type: array
+          description: 用户全局权限列表
+          items:
+            type: string
+        roles:
+          type: array
+          description: 用户角色列表
+          items:
+            $ref: "#/components/schemas/RoleInfo"
+        projects:
+          type: array
+          description: 用户所属项目列表
+          items:
+            $ref: "#/components/schemas/UserProjectInfo"
+      required: [id, email, firstName, lastName, isOwner, preferLanguage, scopes, roles, projects]
+    RoleInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 角色名称
+      required: [name]
+    UserProjectInfo:
+      type: object
+      properties:
+        projectID:
+          $ref: "#/components/schemas/GUID"
+          description: 项目 ID
+        isOwner:
+          type: boolean
+          description: 是否为项目所有者
+        scopes:
+          type: array
+          description: 项目内权限列表
+          items:
+            type: string
+        roles:
+          type: array
+          description: 项目内角色列表
+          items:
+            $ref: "#/components/schemas/RoleInfo"
+      required: [projectID, isOwner, scopes, roles]
+    GraphQLRequest:
+      type: object
+      properties:
+        query:
+          type: string
+        variables:
+          type: object
+          additionalProperties: true
+        operationName:
+          type: string
+      required: [query]
+    DeleteCodesRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          description: 要删除的兑换码 ID 列表
+          items:
+            type: integer
+      required: [ids]
+    RedemptionGenerateRequest:
+      type: object
+      properties:
+        count:
+          type: integer
+          minimum: 1
+          description: 生成数量
+        quota:
+          type: integer
+          minimum: 1
+          description: 单个兑换码额度
+        max_uses:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: 单码最大可使用次数
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: 过期时间
+        export:
+          type: boolean
+          description: 是否导出为文件，true 时返回 CSV 文件，false 时返回 JSON
+      required: [count, quota]
+      additionalProperties: false
+    RedemptionGenerateResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          description: 生成的兑换码列表
+          items:
+            type: string
+      required: [data]
+    RedeemRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 兑换码
+      required: [code]
+      additionalProperties: false
+    RedeemResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: 兑换结果状态
+        quota:
+          type: integer
+          description: 成功兑换的额度
+      required: [status, quota]
+    RedemptionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 查询是否成功
+        data:
+          type: array
+          description: 兑换码列表
+          items:
+            $ref: "#/components/schemas/RedemptionCode"
+      required: [success, data]
+    RedemptionCode:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 兑换码 ID
+        code:
+          type: string
+          description: 兑换码字符串
+        quota:
+          type: integer
+          description: 兑换额度
+        status:
+          type: string
+          enum: [active, used, disabled]
+          description: 兑换码状态
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: 过期时间
+        max_uses:
+          type: integer
+          description: 最大可使用次数
+        used_times:
+          type: integer
+          description: 已使用次数
+        voided:
+          type: boolean
+          description: 是否已作废
+        used_by:
+          type: integer
+          nullable: true
+          description: 使用者用户 ID
+        used_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: 使用时间
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+        deleted_at:
+          type: integer
+          description: 软删除时间戳
+      required: [id, code, quota, status, max_uses, used_times, voided, created_at, updated_at, deleted_at]
+    RechargeListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 查询是否成功
+        data:
+          type: array
+          description: 充值记录列表
+          items:
+            $ref: "#/components/schemas/RechargeRecord"
+      required: [success, data]
+    RechargeRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 充值记录 ID
+        user_id:
+          type: integer
+          description: 用户 ID
+        project_id:
+          type: integer
+          description: 项目 ID
+        code_id:
+          type: integer
+          description: 兑换码 ID
+        amount:
+          type: integer
+          format: int64
+          description: 充值额度
+        status:
+          type: string
+          enum: [success, failed]
+          description: 充值状态
+        trace_id:
+          type: string
+          nullable: true
+          description: 请求追踪 ID
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+      required: [id, user_id, project_id, code_id, amount, status, created_at, updated_at]
+    SubscriptionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 查询是否成功
+        data:
+          $ref: "#/components/schemas/SubscriptionData"
+          description: 订阅额度信息
+      required: [success, data]
+    SubscriptionData:
+      type: object
+      properties:
+        quota:
+          type: integer
+          format: int64
+          description: 总额度
+        used_quota:
+          type: integer
+          format: int64
+          description: 已使用额度
+      required: [quota, used_quota]
+    UsageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 查询是否成功
+        data:
+          type: array
+          description: 用量记录列表
+          items:
+            $ref: "#/components/schemas/ConsumptionRecord"
+      required: [success, data]
+    DashboardStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 查询是否成功
+        data:
+          $ref: "#/components/schemas/DashboardStatsData"
+          description: 仪表盘统计数据
+      required: [success, data]
+    DashboardStatsData:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+          description: 请求总数
+        completed_requests:
+          type: integer
+          description: 成功完成的请求数
+        failed_requests:
+          type: integer
+          description: 失败请求数
+        canceled_requests:
+          type: integer
+          description: 被取消的请求数
+        blocked_requests:
+          type: integer
+          description: 被拦截/拒绝的请求数
+        average_latency_ms:
+          type: integer
+          format: int64
+          nullable: true
+          description: 平均响应耗时（毫秒）
+        average_first_token_latency_ms:
+          type: integer
+          format: int64
+          nullable: true
+          description: 平均首 token 耗时（毫秒）
+        prompt_tokens:
+          type: integer
+          format: int64
+          description: Prompt token 总数
+        completion_tokens:
+          type: integer
+          format: int64
+          description: Completion token 总数
+        total_tokens:
+          type: integer
+          format: int64
+          description: Token 总数
+      required:
+        [
+          total_requests,
+          completed_requests,
+          failed_requests,
+          canceled_requests,
+          blocked_requests,
+          prompt_tokens,
+          completion_tokens,
+          total_tokens,
+        ]
+    ConsumptionStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 查询是否成功
+        data:
+          type: array
+          description: 按天聚合的消耗统计
+          items:
+            $ref: "#/components/schemas/ConsumptionStatsRow"
+      required: [success, data]
+    ConsumptionStatsRow:
+      type: object
+      properties:
+        project_id:
+          type: integer
+          description: 项目 ID
+        model:
+          type: string
+          description: 模型名称
+        date:
+          type: string
+          format: date
+          description: 统计日期（YYYY-MM-DD）
+        count:
+          type: integer
+          description: 请求次数
+        quota:
+          type: integer
+          format: int64
+          description: 消耗额度
+        prompt_tokens:
+          type: integer
+          format: int64
+          description: Prompt token 数
+        completion_tokens:
+          type: integer
+          format: int64
+          description: Completion token 数
+        total_tokens:
+          type: integer
+          format: int64
+          description: Token 总数
+      required:
+        [project_id, model, date, count, quota, prompt_tokens, completion_tokens, total_tokens]
+    ConsumptionRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 用量记录 ID
+        user_id:
+          type: integer
+          description: 用户 ID
+        project_id:
+          type: integer
+          description: 项目 ID
+        model:
+          type: string
+          description: 使用的模型名称
+        quota:
+          type: integer
+          description: 消耗额度
+        billing_multiplier:
+          type: number
+          format: float
+          description: 最终计费倍率，通常等于 group_multiplier * model_multiplier（type=quota）或 group_multiplier（type=connection）
+        group_multiplier:
+          type: number
+          format: float
+          description: 分组倍率，来自系统设置的 group_ratio
+        model_multiplier:
+          type: number
+          format: float
+          description: 模型倍率，通常对应计费配置中的 quota（type=connection 时为 1）
+        completion_ratio:
+          type: number
+          format: float
+          description: 补全倍率，通常对应计费配置中的 completion_ratio（未设置时为 1）
+        trace_id:
+          type: string
+          nullable: true
+          description: 请求追踪 ID
+        api_key_id:
+          type: integer
+          nullable: true
+          description: API Key ID
+        api_key_name:
+          type: string
+          nullable: true
+          description: API Key 名称
+        prompt_tokens:
+          type: integer
+          description: Prompt token 数
+        completion_tokens:
+          type: integer
+          description: Completion token 数
+        total_tokens:
+          type: integer
+          description: Token 总数
+        content:
+          type: string
+          nullable: true
+          description: 计费扩展信息（当前实现为倍率 JSON 字符串）
+        type:
+          type: string
+          enum: [chat, image]
+          description: 请求类型
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+      required:
+        [id, user_id, project_id, model, quota, billing_multiplier, group_multiplier, model_multiplier, completion_ratio, prompt_tokens, completion_tokens, total_tokens, type, created_at, updated_at]
+    ChatCompletionRequest:
+      type: object
+      properties:
+        model:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+        stream:
+          type: boolean
+        temperature:
+          type: number
+        top_p:
+          type: number
+        max_tokens:
+          type: integer
+        n:
+          type: integer
+        stop:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        presence_penalty:
+          type: number
+        frequency_penalty:
+          type: number
+        user:
+          type: string
+      required: [model, messages]
+      additionalProperties: true
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant, tool]
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/ChatMessageContentPart"
+        name:
+          type: string
+        tool_call_id:
+          type: string
+        tool_calls:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolCall"
+      required: [role, content]
+      additionalProperties: true
+    ChatMessageContentPart:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [text, image_url]
+        text:
+          type: string
+        image_url:
+          $ref: "#/components/schemas/ImageURL"
+      required: [type]
+      additionalProperties: true
+    ImageURL:
+      type: object
+      properties:
+        url:
+          type: string
+        detail:
+          type: string
+          enum: [low, high, auto]
+      required: [url]
+    ToolCall:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        function:
+          $ref: "#/components/schemas/ToolFunction"
+      required: [id, type]
+      additionalProperties: true
+    ToolFunction:
+      type: object
+      properties:
+        name:
+          type: string
+        arguments:
+          type: string
+      required: [name, arguments]
+    ChatCompletionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatCompletionChoice"
+        usage:
+          $ref: "#/components/schemas/Usage"
+      required: [id, object, created, model, choices]
+    ChatCompletionChoice:
+      type: object
+      properties:
+        index:
+          type: integer
+        message:
+          $ref: "#/components/schemas/ChatMessage"
+        finish_reason:
+          type: string
+        logprobs:
+          type: object
+          nullable: true
+      required: [index, message]
+    Usage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+        completion_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+      required: [prompt_tokens, total_tokens]
+    ResponsesRequest:
+      type: object
+      properties:
+        model:
+          type: string
+        input:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/ResponseInputItem"
+        stream:
+          type: boolean
+        temperature:
+          type: number
+        top_p:
+          type: number
+        max_output_tokens:
+          type: integer
+        user:
+          type: string
+      required: [model, input]
+      additionalProperties: true
+    ResponseInputItem:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant]
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/ResponseContentPart"
+      required: [role, content]
+      additionalProperties: true
+    ResponseContentPart:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [input_text, input_image, text]
+        text:
+          type: string
+        image_url:
+          $ref: "#/components/schemas/ImageURL"
+      required: [type]
+      additionalProperties: true
+    ResponsesResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+        model:
+          type: string
+        output:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseOutputItem"
+        usage:
+          $ref: "#/components/schemas/Usage"
+      required: [id, object, created, model, output]
+    ResponseOutputItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseContentPart"
+      required: [id, type, content]
+      additionalProperties: true
+    EmbeddingRequest:
+      type: object
+      properties:
+        model:
+          type: string
+        input:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+            - type: array
+              items:
+                type: number
+            - type: array
+              items:
+                type: array
+                items:
+                  type: number
+        encoding_format:
+          type: string
+          enum: [float, base64]
+        dimensions:
+          type: integer
+        user:
+          type: string
+      required: [model, input]
+      additionalProperties: true
+    EmbeddingResponse:
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbeddingObject"
+        model:
+          type: string
+        usage:
+          $ref: "#/components/schemas/EmbeddingUsage"
+      required: [object, data, model]
+    EmbeddingObject:
+      type: object
+      properties:
+        object:
+          type: string
+        index:
+          type: integer
+        embedding:
+          type: array
+          items:
+            type: number
+      required: [object, index, embedding]
+    EmbeddingUsage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+      required: [prompt_tokens, total_tokens]
+    OpenAIModelsResponse:
+      type: object
+      properties:
+        object:
+          type: string
+          enum: [list]
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenAIModel"
+      required: [object, data]
+    OpenAIModel:
+      type: object
+      properties:
+        id:
+          type: string
+        created:
+          type: integer
+        owned_by:
+          type: string
+      required: [id, created, owned_by]
+    RerankRequest:
+      type: object
+      properties:
+        model:
+          type: string
+          description: 使用的重排序模型
+        query:
+          type: string
+          description: 查询文本
+        documents:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: array
+              items:
+                type: object
+                additionalProperties: true
+          description: 待重排序的文档列表
+        top_n:
+          type: integer
+          description: 返回前 N 条结果
+        return_documents:
+          type: boolean
+          description: 是否在结果中返回原始文档
+      required: [model, query, documents]
+      additionalProperties: true
+    RerankResponse:
+      type: object
+      properties:
+        object:
+          type: string
+          description: 响应对象类型
+        data:
+          type: array
+          description: 重排序结果列表
+          items:
+            $ref: "#/components/schemas/RerankResult"
+      required: [data]
+    RerankResult:
+      type: object
+      properties:
+        index:
+          type: integer
+          description: 原始文档索引
+        relevance_score:
+          type: number
+          description: 相关性得分
+        document:
+          type: object
+          additionalProperties: true
+          description: 原始文档内容（可选）
+      required: [index, relevance_score]
+    JsonSchema:
+      type: object
+      properties:
+        type:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/JsonSchema"
+        required:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        enum:
+          type: array
+          items:
+            type: string
+        items:
+          $ref: "#/components/schemas/JsonSchema"
+      additionalProperties: true
+    AddWordRequest:
+      type: object
+      properties:
+        word:
+          type: string
+          description: 敏感词内容
+        type:
+          type: string
+          enum: [block, replace]
+          description: 处理方式（屏蔽或替换）
+      required: [word]
+      additionalProperties: false
+    SensitiveWordResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/SensitiveWord"
+          description: 敏感词详情
+      required: [data]
+    SensitiveWordListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          description: 敏感词列表
+          items:
+            $ref: "#/components/schemas/SensitiveWord"
+      required: [data]
+    SensitiveWord:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 敏感词 ID
+        word:
+          type: string
+          description: 敏感词内容
+        type:
+          type: string
+          enum: [block, replace]
+          description: 处理方式
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+        deleted_at:
+          type: integer
+          description: 软删除时间戳
+      required: [id, word, type, created_at, updated_at, deleted_at]
+    PricingUpsertRequest:
+      type: object
+      properties:
+        model:
+          type: string
+          description: 模型名称
+        type:
+          type: string
+          enum: [quota, connection]
+          description: 计费类型：quota 表示按 token 计费，connection 表示固定额度计费（不随 token 变化）
+        quota:
+          type: number
+          description: 模型倍率，仅在 type=quota 时生效；实际消耗约为 ceil((prompt_tokens + completion_tokens * completion_ratio) * quota * group_multiplier)
+        price:
+          type: number
+          description: 固定额度，仅在 type=connection 时生效；实际消耗约为 ceil(price * group_multiplier)
+        completion_ratio:
+          type: number
+          description: 补全倍率，仅在 type=quota 时生效；completion_tokens 会乘以该倍率（未设置时视为 1）
+      required: [model]
+      additionalProperties: false
+    PricingUpsertBatchRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          description: 计费配置列表
+          items:
+            $ref: "#/components/schemas/PricingUpsertRequest"
+      required: [items]
+      additionalProperties: false
+    PricingUpsertResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 操作是否成功
+        data:
+          $ref: "#/components/schemas/ModelPricing"
+          description: 计费配置详情
+      required: [success, data]
+    PricingUpsertBatchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 操作是否成功
+        data:
+          type: array
+          description: 计费配置列表
+          items:
+            $ref: "#/components/schemas/ModelPricing"
+      required: [success, data]
+    PricingListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 查询是否成功
+        data:
+          type: array
+          description: 计费配置列表
+          items:
+            $ref: "#/components/schemas/ModelPricing"
+      required: [success, data]
+    ModelPricing:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 计费配置 ID
+        model:
+          type: string
+          description: 模型名称
+        type:
+          type: string
+          enum: [quota, connection]
+          description: 计费类型：quota 表示按 token 计费，connection 表示固定额度计费（不随 token 变化）
+        quota:
+          type: number
+          description: 模型倍率，仅在 type=quota 时生效；实际消耗约为 ceil((prompt_tokens + completion_tokens * completion_ratio) * quota * group_multiplier)
+        completion_ratio:
+          type: number
+          description: 补全倍率，仅在 type=quota 时生效；completion_tokens 会乘以该倍率（未设置时视为 1）
+        price:
+          type: number
+          description: 固定额度，仅在 type=connection 时生效；实际消耗约为 ceil(price * group_multiplier)
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+        deleted_at:
+          type: integer
+          description: 软删除时间戳
+      required: [id, model, type, quota, completion_ratio, price, created_at, updated_at, deleted_at]
+    PricingToggleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 操作是否成功
+        data:
+          $ref: "#/components/schemas/ModelPricing"
+          description: 计费配置详情
+      required: [success]
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 操作是否成功
+      required: [success]
+    StatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: 操作状态
+      required: [status]

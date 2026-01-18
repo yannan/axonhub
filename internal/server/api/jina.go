@@ -5,6 +5,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/looplj/axonhub/internal/llm/transformer/jina"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/pkg/httpclient"
 	"github.com/looplj/axonhub/internal/server/biz"
 	"github.com/looplj/axonhub/internal/server/orchestrator"
@@ -13,12 +14,13 @@ import (
 type JinaHandlersParams struct {
 	fx.In
 
-	ChannelService  *biz.ChannelService
-	ModelService    *biz.ModelService
-	RequestService  *biz.RequestService
-	SystemService   *biz.SystemService
-	UsageLogService *biz.UsageLogService
-	HttpClient      *httpclient.HttpClient
+	ChannelService   *biz.ChannelService
+	ModelService     *biz.ModelService
+	RequestService   *biz.RequestService
+	SystemService    *biz.SystemService
+	UsageLogService  *biz.UsageLogService
+	HttpClient       *httpclient.HttpClient
+	ValidationEngine *filter.ValidationEngine
 }
 
 func NewJinaHandlers(params JinaHandlersParams) *JinaHandlers {
@@ -32,6 +34,7 @@ func NewJinaHandlers(params JinaHandlersParams) *JinaHandlers {
 				jina.NewRerankInboundTransformer(),
 				params.SystemService,
 				params.UsageLogService,
+				params.ValidationEngine,
 			),
 		},
 		EmbeddingHandlers: &ChatCompletionHandlers{
@@ -43,6 +46,7 @@ func NewJinaHandlers(params JinaHandlersParams) *JinaHandlers {
 				jina.NewEmbeddingInboundTransformer(),
 				params.SystemService,
 				params.UsageLogService,
+				params.ValidationEngine,
 			),
 		},
 	}

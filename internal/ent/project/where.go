@@ -80,6 +80,21 @@ func Description(v string) predicate.Project {
 	return predicate.Project(sql.FieldEQ(FieldDescription, v))
 }
 
+// Quota applies equality check predicate on the "quota" field. It's identical to QuotaEQ.
+func Quota(v int64) predicate.Project {
+	return predicate.Project(sql.FieldEQ(FieldQuota, v))
+}
+
+// UsedQuota applies equality check predicate on the "used_quota" field. It's identical to UsedQuotaEQ.
+func UsedQuota(v int64) predicate.Project {
+	return predicate.Project(sql.FieldEQ(FieldUsedQuota, v))
+}
+
+// Group applies equality check predicate on the "group" field. It's identical to GroupEQ.
+func Group(v string) predicate.Project {
+	return predicate.Project(sql.FieldEQ(FieldGroup, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Project {
 	return predicate.Project(sql.FieldEQ(FieldCreatedAt, v))
@@ -350,6 +365,151 @@ func StatusNotIn(vs ...Status) predicate.Project {
 	return predicate.Project(sql.FieldNotIn(FieldStatus, vs...))
 }
 
+// QuotaEQ applies the EQ predicate on the "quota" field.
+func QuotaEQ(v int64) predicate.Project {
+	return predicate.Project(sql.FieldEQ(FieldQuota, v))
+}
+
+// QuotaNEQ applies the NEQ predicate on the "quota" field.
+func QuotaNEQ(v int64) predicate.Project {
+	return predicate.Project(sql.FieldNEQ(FieldQuota, v))
+}
+
+// QuotaIn applies the In predicate on the "quota" field.
+func QuotaIn(vs ...int64) predicate.Project {
+	return predicate.Project(sql.FieldIn(FieldQuota, vs...))
+}
+
+// QuotaNotIn applies the NotIn predicate on the "quota" field.
+func QuotaNotIn(vs ...int64) predicate.Project {
+	return predicate.Project(sql.FieldNotIn(FieldQuota, vs...))
+}
+
+// QuotaGT applies the GT predicate on the "quota" field.
+func QuotaGT(v int64) predicate.Project {
+	return predicate.Project(sql.FieldGT(FieldQuota, v))
+}
+
+// QuotaGTE applies the GTE predicate on the "quota" field.
+func QuotaGTE(v int64) predicate.Project {
+	return predicate.Project(sql.FieldGTE(FieldQuota, v))
+}
+
+// QuotaLT applies the LT predicate on the "quota" field.
+func QuotaLT(v int64) predicate.Project {
+	return predicate.Project(sql.FieldLT(FieldQuota, v))
+}
+
+// QuotaLTE applies the LTE predicate on the "quota" field.
+func QuotaLTE(v int64) predicate.Project {
+	return predicate.Project(sql.FieldLTE(FieldQuota, v))
+}
+
+// UsedQuotaEQ applies the EQ predicate on the "used_quota" field.
+func UsedQuotaEQ(v int64) predicate.Project {
+	return predicate.Project(sql.FieldEQ(FieldUsedQuota, v))
+}
+
+// UsedQuotaNEQ applies the NEQ predicate on the "used_quota" field.
+func UsedQuotaNEQ(v int64) predicate.Project {
+	return predicate.Project(sql.FieldNEQ(FieldUsedQuota, v))
+}
+
+// UsedQuotaIn applies the In predicate on the "used_quota" field.
+func UsedQuotaIn(vs ...int64) predicate.Project {
+	return predicate.Project(sql.FieldIn(FieldUsedQuota, vs...))
+}
+
+// UsedQuotaNotIn applies the NotIn predicate on the "used_quota" field.
+func UsedQuotaNotIn(vs ...int64) predicate.Project {
+	return predicate.Project(sql.FieldNotIn(FieldUsedQuota, vs...))
+}
+
+// UsedQuotaGT applies the GT predicate on the "used_quota" field.
+func UsedQuotaGT(v int64) predicate.Project {
+	return predicate.Project(sql.FieldGT(FieldUsedQuota, v))
+}
+
+// UsedQuotaGTE applies the GTE predicate on the "used_quota" field.
+func UsedQuotaGTE(v int64) predicate.Project {
+	return predicate.Project(sql.FieldGTE(FieldUsedQuota, v))
+}
+
+// UsedQuotaLT applies the LT predicate on the "used_quota" field.
+func UsedQuotaLT(v int64) predicate.Project {
+	return predicate.Project(sql.FieldLT(FieldUsedQuota, v))
+}
+
+// UsedQuotaLTE applies the LTE predicate on the "used_quota" field.
+func UsedQuotaLTE(v int64) predicate.Project {
+	return predicate.Project(sql.FieldLTE(FieldUsedQuota, v))
+}
+
+// GroupEQ applies the EQ predicate on the "group" field.
+func GroupEQ(v string) predicate.Project {
+	return predicate.Project(sql.FieldEQ(FieldGroup, v))
+}
+
+// GroupNEQ applies the NEQ predicate on the "group" field.
+func GroupNEQ(v string) predicate.Project {
+	return predicate.Project(sql.FieldNEQ(FieldGroup, v))
+}
+
+// GroupIn applies the In predicate on the "group" field.
+func GroupIn(vs ...string) predicate.Project {
+	return predicate.Project(sql.FieldIn(FieldGroup, vs...))
+}
+
+// GroupNotIn applies the NotIn predicate on the "group" field.
+func GroupNotIn(vs ...string) predicate.Project {
+	return predicate.Project(sql.FieldNotIn(FieldGroup, vs...))
+}
+
+// GroupGT applies the GT predicate on the "group" field.
+func GroupGT(v string) predicate.Project {
+	return predicate.Project(sql.FieldGT(FieldGroup, v))
+}
+
+// GroupGTE applies the GTE predicate on the "group" field.
+func GroupGTE(v string) predicate.Project {
+	return predicate.Project(sql.FieldGTE(FieldGroup, v))
+}
+
+// GroupLT applies the LT predicate on the "group" field.
+func GroupLT(v string) predicate.Project {
+	return predicate.Project(sql.FieldLT(FieldGroup, v))
+}
+
+// GroupLTE applies the LTE predicate on the "group" field.
+func GroupLTE(v string) predicate.Project {
+	return predicate.Project(sql.FieldLTE(FieldGroup, v))
+}
+
+// GroupContains applies the Contains predicate on the "group" field.
+func GroupContains(v string) predicate.Project {
+	return predicate.Project(sql.FieldContains(FieldGroup, v))
+}
+
+// GroupHasPrefix applies the HasPrefix predicate on the "group" field.
+func GroupHasPrefix(v string) predicate.Project {
+	return predicate.Project(sql.FieldHasPrefix(FieldGroup, v))
+}
+
+// GroupHasSuffix applies the HasSuffix predicate on the "group" field.
+func GroupHasSuffix(v string) predicate.Project {
+	return predicate.Project(sql.FieldHasSuffix(FieldGroup, v))
+}
+
+// GroupEqualFold applies the EqualFold predicate on the "group" field.
+func GroupEqualFold(v string) predicate.Project {
+	return predicate.Project(sql.FieldEqualFold(FieldGroup, v))
+}
+
+// GroupContainsFold applies the ContainsFold predicate on the "group" field.
+func GroupContainsFold(v string) predicate.Project {
+	return predicate.Project(sql.FieldContainsFold(FieldGroup, v))
+}
+
 // HasUsers applies the HasEdge predicate on the "users" edge.
 func HasUsers() predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
@@ -503,6 +663,52 @@ func HasTraces() predicate.Project {
 func HasTracesWith(preds ...predicate.Trace) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
 		step := newTracesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConsumptionRecords applies the HasEdge predicate on the "consumption_records" edge.
+func HasConsumptionRecords() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConsumptionRecordsTable, ConsumptionRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConsumptionRecordsWith applies the HasEdge predicate on the "consumption_records" edge with a given conditions (other predicates).
+func HasConsumptionRecordsWith(preds ...predicate.ConsumptionRecord) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newConsumptionRecordsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRechargeRecords applies the HasEdge predicate on the "recharge_records" edge.
+func HasRechargeRecords() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RechargeRecordsTable, RechargeRecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRechargeRecordsWith applies the HasEdge predicate on the "recharge_records" edge with a given conditions (other predicates).
+func HasRechargeRecordsWith(preds ...predicate.RechargeRecord) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := newRechargeRecordsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

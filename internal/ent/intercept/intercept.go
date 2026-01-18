@@ -12,14 +12,20 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/channeloverridetemplate"
 	"github.com/looplj/axonhub/internal/ent/channelperformance"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelpricing"
 	"github.com/looplj/axonhub/internal/ent/predicate"
 	"github.com/looplj/axonhub/internal/ent/project"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
+	"github.com/looplj/axonhub/internal/ent/redemptioncode"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
 	"github.com/looplj/axonhub/internal/ent/role"
+	"github.com/looplj/axonhub/internal/ent/sensitiveword"
 	"github.com/looplj/axonhub/internal/ent/system"
+	"github.com/looplj/axonhub/internal/ent/systemsettings"
 	"github.com/looplj/axonhub/internal/ent/thread"
 	"github.com/looplj/axonhub/internal/ent/trace"
 	"github.com/looplj/axonhub/internal/ent/usagelog"
@@ -192,6 +198,33 @@ func (f TraverseChannelPerformance) Traverse(ctx context.Context, q ent.Query) e
 	return fmt.Errorf("unexpected query type %T. expect *ent.ChannelPerformanceQuery", q)
 }
 
+// The ConsumptionRecordFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ConsumptionRecordFunc func(context.Context, *ent.ConsumptionRecordQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f ConsumptionRecordFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.ConsumptionRecordQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ConsumptionRecordQuery", q)
+}
+
+// The TraverseConsumptionRecord type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseConsumptionRecord func(context.Context, *ent.ConsumptionRecordQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseConsumptionRecord) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseConsumptionRecord) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ConsumptionRecordQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.ConsumptionRecordQuery", q)
+}
+
 // The DataStorageFunc type is an adapter to allow the use of ordinary function as a Querier.
 type DataStorageFunc func(context.Context, *ent.DataStorageQuery) (ent.Value, error)
 
@@ -246,6 +279,33 @@ func (f TraverseModel) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.ModelQuery", q)
 }
 
+// The ModelPricingFunc type is an adapter to allow the use of ordinary function as a Querier.
+type ModelPricingFunc func(context.Context, *ent.ModelPricingQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f ModelPricingFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.ModelPricingQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.ModelPricingQuery", q)
+}
+
+// The TraverseModelPricing type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseModelPricing func(context.Context, *ent.ModelPricingQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseModelPricing) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseModelPricing) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ModelPricingQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.ModelPricingQuery", q)
+}
+
 // The ProjectFunc type is an adapter to allow the use of ordinary function as a Querier.
 type ProjectFunc func(context.Context, *ent.ProjectQuery) (ent.Value, error)
 
@@ -271,6 +331,60 @@ func (f TraverseProject) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.ProjectQuery", q)
+}
+
+// The RechargeRecordFunc type is an adapter to allow the use of ordinary function as a Querier.
+type RechargeRecordFunc func(context.Context, *ent.RechargeRecordQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f RechargeRecordFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.RechargeRecordQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.RechargeRecordQuery", q)
+}
+
+// The TraverseRechargeRecord type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseRechargeRecord func(context.Context, *ent.RechargeRecordQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseRechargeRecord) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseRechargeRecord) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.RechargeRecordQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.RechargeRecordQuery", q)
+}
+
+// The RedemptionCodeFunc type is an adapter to allow the use of ordinary function as a Querier.
+type RedemptionCodeFunc func(context.Context, *ent.RedemptionCodeQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f RedemptionCodeFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.RedemptionCodeQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.RedemptionCodeQuery", q)
+}
+
+// The TraverseRedemptionCode type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseRedemptionCode func(context.Context, *ent.RedemptionCodeQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseRedemptionCode) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseRedemptionCode) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.RedemptionCodeQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.RedemptionCodeQuery", q)
 }
 
 // The RequestFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -354,6 +468,33 @@ func (f TraverseRole) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.RoleQuery", q)
 }
 
+// The SensitiveWordFunc type is an adapter to allow the use of ordinary function as a Querier.
+type SensitiveWordFunc func(context.Context, *ent.SensitiveWordQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f SensitiveWordFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.SensitiveWordQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.SensitiveWordQuery", q)
+}
+
+// The TraverseSensitiveWord type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseSensitiveWord func(context.Context, *ent.SensitiveWordQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseSensitiveWord) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseSensitiveWord) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SensitiveWordQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.SensitiveWordQuery", q)
+}
+
 // The SystemFunc type is an adapter to allow the use of ordinary function as a Querier.
 type SystemFunc func(context.Context, *ent.SystemQuery) (ent.Value, error)
 
@@ -379,6 +520,33 @@ func (f TraverseSystem) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.SystemQuery", q)
+}
+
+// The SystemSettingsFunc type is an adapter to allow the use of ordinary function as a Querier.
+type SystemSettingsFunc func(context.Context, *ent.SystemSettingsQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f SystemSettingsFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.SystemSettingsQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.SystemSettingsQuery", q)
+}
+
+// The TraverseSystemSettings type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseSystemSettings func(context.Context, *ent.SystemSettingsQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseSystemSettings) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseSystemSettings) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SystemSettingsQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.SystemSettingsQuery", q)
 }
 
 // The ThreadFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -554,20 +722,32 @@ func NewQuery(q ent.Query) (Query, error) {
 		return &query[*ent.ChannelOverrideTemplateQuery, predicate.ChannelOverrideTemplate, channeloverridetemplate.OrderOption]{typ: ent.TypeChannelOverrideTemplate, tq: q}, nil
 	case *ent.ChannelPerformanceQuery:
 		return &query[*ent.ChannelPerformanceQuery, predicate.ChannelPerformance, channelperformance.OrderOption]{typ: ent.TypeChannelPerformance, tq: q}, nil
+	case *ent.ConsumptionRecordQuery:
+		return &query[*ent.ConsumptionRecordQuery, predicate.ConsumptionRecord, consumptionrecord.OrderOption]{typ: ent.TypeConsumptionRecord, tq: q}, nil
 	case *ent.DataStorageQuery:
 		return &query[*ent.DataStorageQuery, predicate.DataStorage, datastorage.OrderOption]{typ: ent.TypeDataStorage, tq: q}, nil
 	case *ent.ModelQuery:
 		return &query[*ent.ModelQuery, predicate.Model, model.OrderOption]{typ: ent.TypeModel, tq: q}, nil
+	case *ent.ModelPricingQuery:
+		return &query[*ent.ModelPricingQuery, predicate.ModelPricing, modelpricing.OrderOption]{typ: ent.TypeModelPricing, tq: q}, nil
 	case *ent.ProjectQuery:
 		return &query[*ent.ProjectQuery, predicate.Project, project.OrderOption]{typ: ent.TypeProject, tq: q}, nil
+	case *ent.RechargeRecordQuery:
+		return &query[*ent.RechargeRecordQuery, predicate.RechargeRecord, rechargerecord.OrderOption]{typ: ent.TypeRechargeRecord, tq: q}, nil
+	case *ent.RedemptionCodeQuery:
+		return &query[*ent.RedemptionCodeQuery, predicate.RedemptionCode, redemptioncode.OrderOption]{typ: ent.TypeRedemptionCode, tq: q}, nil
 	case *ent.RequestQuery:
 		return &query[*ent.RequestQuery, predicate.Request, request.OrderOption]{typ: ent.TypeRequest, tq: q}, nil
 	case *ent.RequestExecutionQuery:
 		return &query[*ent.RequestExecutionQuery, predicate.RequestExecution, requestexecution.OrderOption]{typ: ent.TypeRequestExecution, tq: q}, nil
 	case *ent.RoleQuery:
 		return &query[*ent.RoleQuery, predicate.Role, role.OrderOption]{typ: ent.TypeRole, tq: q}, nil
+	case *ent.SensitiveWordQuery:
+		return &query[*ent.SensitiveWordQuery, predicate.SensitiveWord, sensitiveword.OrderOption]{typ: ent.TypeSensitiveWord, tq: q}, nil
 	case *ent.SystemQuery:
 		return &query[*ent.SystemQuery, predicate.System, system.OrderOption]{typ: ent.TypeSystem, tq: q}, nil
+	case *ent.SystemSettingsQuery:
+		return &query[*ent.SystemSettingsQuery, predicate.SystemSettings, systemsettings.OrderOption]{typ: ent.TypeSystemSettings, tq: q}, nil
 	case *ent.ThreadQuery:
 		return &query[*ent.ThreadQuery, predicate.Thread, thread.OrderOption]{typ: ent.TypeThread, tq: q}, nil
 	case *ent.TraceQuery:
