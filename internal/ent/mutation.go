@@ -9296,6 +9296,7 @@ type ModelPricingMutation struct {
 	adddeleted_at       *int
 	model               *string
 	_type               *modelpricing.Type
+	status              *modelpricing.Status
 	quota               *float64
 	addquota            *float64
 	completion_ratio    *float64
@@ -9606,6 +9607,42 @@ func (m *ModelPricingMutation) ResetType() {
 	m._type = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *ModelPricingMutation) SetStatus(value modelpricing.Status) {
+	m.status = &value
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ModelPricingMutation) Status() (r modelpricing.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ModelPricing entity.
+// If the ModelPricing object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ModelPricingMutation) OldStatus(ctx context.Context) (v modelpricing.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ModelPricingMutation) ResetStatus() {
+	m.status = nil
+}
+
 // SetQuota sets the "quota" field.
 func (m *ModelPricingMutation) SetQuota(f float64) {
 	m.quota = &f
@@ -9808,7 +9845,7 @@ func (m *ModelPricingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ModelPricingMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, modelpricing.FieldCreatedAt)
 	}
@@ -9823,6 +9860,9 @@ func (m *ModelPricingMutation) Fields() []string {
 	}
 	if m._type != nil {
 		fields = append(fields, modelpricing.FieldType)
+	}
+	if m.status != nil {
+		fields = append(fields, modelpricing.FieldStatus)
 	}
 	if m.quota != nil {
 		fields = append(fields, modelpricing.FieldQuota)
@@ -9851,6 +9891,8 @@ func (m *ModelPricingMutation) Field(name string) (ent.Value, bool) {
 		return m.Model()
 	case modelpricing.FieldType:
 		return m.GetType()
+	case modelpricing.FieldStatus:
+		return m.Status()
 	case modelpricing.FieldQuota:
 		return m.Quota()
 	case modelpricing.FieldCompletionRatio:
@@ -9876,6 +9918,8 @@ func (m *ModelPricingMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldModel(ctx)
 	case modelpricing.FieldType:
 		return m.OldType(ctx)
+	case modelpricing.FieldStatus:
+		return m.OldStatus(ctx)
 	case modelpricing.FieldQuota:
 		return m.OldQuota(ctx)
 	case modelpricing.FieldCompletionRatio:
@@ -9925,6 +9969,13 @@ func (m *ModelPricingMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetType(v)
+		return nil
+	case modelpricing.FieldStatus:
+		v, ok := value.(modelpricing.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	case modelpricing.FieldQuota:
 		v, ok := value.(float64)
@@ -10061,6 +10112,9 @@ func (m *ModelPricingMutation) ResetField(name string) error {
 		return nil
 	case modelpricing.FieldType:
 		m.ResetType()
+		return nil
+	case modelpricing.FieldStatus:
+		m.ResetStatus()
 		return nil
 	case modelpricing.FieldQuota:
 		m.ResetQuota()

@@ -4405,6 +4405,12 @@ type ModelPricingWhereInput struct {
 	TypeIn    []modelpricing.Type `json:"typeIn,omitempty"`
 	TypeNotIn []modelpricing.Type `json:"typeNotIn,omitempty"`
 
+	// "status" field predicates.
+	Status      *modelpricing.Status  `json:"status,omitempty"`
+	StatusNEQ   *modelpricing.Status  `json:"statusNEQ,omitempty"`
+	StatusIn    []modelpricing.Status `json:"statusIn,omitempty"`
+	StatusNotIn []modelpricing.Status `json:"statusNotIn,omitempty"`
+
 	// "quota" field predicates.
 	Quota      *float64  `json:"quota,omitempty"`
 	QuotaNEQ   *float64  `json:"quotaNEQ,omitempty"`
@@ -4653,6 +4659,18 @@ func (i *ModelPricingWhereInput) P() (predicate.ModelPricing, error) {
 	}
 	if len(i.TypeNotIn) > 0 {
 		predicates = append(predicates, modelpricing.TypeNotIn(i.TypeNotIn...))
+	}
+	if i.Status != nil {
+		predicates = append(predicates, modelpricing.StatusEQ(*i.Status))
+	}
+	if i.StatusNEQ != nil {
+		predicates = append(predicates, modelpricing.StatusNEQ(*i.StatusNEQ))
+	}
+	if len(i.StatusIn) > 0 {
+		predicates = append(predicates, modelpricing.StatusIn(i.StatusIn...))
+	}
+	if len(i.StatusNotIn) > 0 {
+		predicates = append(predicates, modelpricing.StatusNotIn(i.StatusNotIn...))
 	}
 	if i.Quota != nil {
 		predicates = append(predicates, modelpricing.QuotaEQ(*i.Quota))

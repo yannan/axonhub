@@ -1029,7 +1029,7 @@ func (_m *ModelPricing) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     _m.ID,
 		Type:   "ModelPricing",
-		Fields: make([]*Field, 8),
+		Fields: make([]*Field, 9),
 		Edges:  make([]*Edge, 0),
 	}
 	var buf []byte
@@ -1073,10 +1073,18 @@ func (_m *ModelPricing) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "type",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(_m.Quota); err != nil {
+	if buf, err = json.Marshal(_m.Status); err != nil {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
+		Type:  "modelpricing.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(_m.Quota); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
 		Type:  "float64",
 		Name:  "quota",
 		Value: string(buf),
@@ -1084,7 +1092,7 @@ func (_m *ModelPricing) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(_m.CompletionRatio); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[7] = &Field{
 		Type:  "float64",
 		Name:  "completion_ratio",
 		Value: string(buf),
@@ -1092,7 +1100,7 @@ func (_m *ModelPricing) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(_m.Price); err != nil {
 		return nil, err
 	}
-	node.Fields[7] = &Field{
+	node.Fields[8] = &Field{
 		Type:  "float64",
 		Name:  "price",
 		Value: string(buf),

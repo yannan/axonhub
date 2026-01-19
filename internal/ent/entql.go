@@ -238,6 +238,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			modelpricing.FieldDeletedAt:       {Type: field.TypeInt, Column: modelpricing.FieldDeletedAt},
 			modelpricing.FieldModel:           {Type: field.TypeString, Column: modelpricing.FieldModel},
 			modelpricing.FieldType:            {Type: field.TypeEnum, Column: modelpricing.FieldType},
+			modelpricing.FieldStatus:          {Type: field.TypeEnum, Column: modelpricing.FieldStatus},
 			modelpricing.FieldQuota:           {Type: field.TypeFloat64, Column: modelpricing.FieldQuota},
 			modelpricing.FieldCompletionRatio: {Type: field.TypeFloat64, Column: modelpricing.FieldCompletionRatio},
 			modelpricing.FieldPrice:           {Type: field.TypeFloat64, Column: modelpricing.FieldPrice},
@@ -2367,6 +2368,11 @@ func (f *ModelPricingFilter) WhereModel(p entql.StringP) {
 // WhereType applies the entql string predicate on the type field.
 func (f *ModelPricingFilter) WhereType(p entql.StringP) {
 	f.Where(p.Field(modelpricing.FieldType))
+}
+
+// WhereStatus applies the entql string predicate on the status field.
+func (f *ModelPricingFilter) WhereStatus(p entql.StringP) {
+	f.Where(p.Field(modelpricing.FieldStatus))
 }
 
 // WhereQuota applies the entql float64 predicate on the quota field.

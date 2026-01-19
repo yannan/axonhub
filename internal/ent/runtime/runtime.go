@@ -413,15 +413,15 @@ func init() {
 	// modelpricing.DefaultDeletedAt holds the default value on creation for the deleted_at field.
 	modelpricing.DefaultDeletedAt = modelpricingDescDeletedAt.Default.(int)
 	// modelpricingDescQuota is the schema descriptor for quota field.
-	modelpricingDescQuota := modelpricingFields[2].Descriptor()
+	modelpricingDescQuota := modelpricingFields[3].Descriptor()
 	// modelpricing.DefaultQuota holds the default value on creation for the quota field.
 	modelpricing.DefaultQuota = modelpricingDescQuota.Default.(float64)
 	// modelpricingDescCompletionRatio is the schema descriptor for completion_ratio field.
-	modelpricingDescCompletionRatio := modelpricingFields[3].Descriptor()
+	modelpricingDescCompletionRatio := modelpricingFields[4].Descriptor()
 	// modelpricing.DefaultCompletionRatio holds the default value on creation for the completion_ratio field.
 	modelpricing.DefaultCompletionRatio = modelpricingDescCompletionRatio.Default.(float64)
 	// modelpricingDescPrice is the schema descriptor for price field.
-	modelpricingDescPrice := modelpricingFields[4].Descriptor()
+	modelpricingDescPrice := modelpricingFields[5].Descriptor()
 	// modelpricing.DefaultPrice holds the default value on creation for the price field.
 	modelpricing.DefaultPrice = modelpricingDescPrice.Default.(float64)
 	projectMixin := schema.Project{}.Mixin()

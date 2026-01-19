@@ -1718,6 +1718,10 @@ input CreateModelPricingInput {
   """
   type: ModelPricingType
   """
+  Pricing status
+  """
+  status: ModelPricingStatus
+  """
   Quota multiplier
   """
   quota: Float
@@ -2387,6 +2391,10 @@ type ModelPricing implements Node {
   """
   type: ModelPricingType!
   """
+  Pricing status
+  """
+  status: ModelPricingStatus!
+  """
   Quota multiplier
   """
   quota: Float!
@@ -2448,6 +2456,13 @@ Properties by which ModelPricing connections can be ordered.
 enum ModelPricingOrderField {
   CREATED_AT
   UPDATED_AT
+}
+"""
+ModelPricingStatus is enum for the field status
+"""
+enum ModelPricingStatus @goModel(model: "github.com/looplj/axonhub/internal/ent/modelpricing.Status") {
+  enabled
+  disabled
 }
 """
 ModelPricingType is enum for the field type
@@ -2531,6 +2546,13 @@ input ModelPricingWhereInput {
   typeNEQ: ModelPricingType
   typeIn: [ModelPricingType!]
   typeNotIn: [ModelPricingType!]
+  """
+  status field predicates
+  """
+  status: ModelPricingStatus
+  statusNEQ: ModelPricingStatus
+  statusIn: [ModelPricingStatus!]
+  statusNotIn: [ModelPricingStatus!]
   """
   quota field predicates
   """
@@ -6250,6 +6272,10 @@ input UpdateModelPricingInput {
   Billing type: quota or connection
   """
   type: ModelPricingType
+  """
+  Pricing status
+  """
+  status: ModelPricingStatus
   """
   Quota multiplier
   """

@@ -307,6 +307,13 @@ extend type Trace {
   firstText: String @goField(forceResolver: true)
 }
 
+extend type Request {
+  """
+  Total cost (quota) consumed by this request
+  """
+  cost: Int @goField(forceResolver: true)
+}
+
 extend type Thread {
   firstUserQuery: String @goField(forceResolver: true)
 }

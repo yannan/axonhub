@@ -115,7 +115,10 @@ func (s *BillingService) GetModelPricing(ctx context.Context, model string) (*en
 	}
 
 	pricing, err := s.client.ModelPricing.Query().
-		Where(modelpricing.ModelEQ(model)).
+		Where(
+			modelpricing.ModelEQ(model),
+			modelpricing.StatusEQ(modelpricing.StatusEnabled),
+		).
 		First(ctx)
 	if err != nil {
 		return nil, err

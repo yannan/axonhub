@@ -540,6 +540,7 @@ type ComplexityRoot struct {
 		Model           func(childComplexity int) int
 		Price           func(childComplexity int) int
 		Quota           func(childComplexity int) int
+		Status          func(childComplexity int) int
 		Type            func(childComplexity int) int
 		UpdatedAt       func(childComplexity int) int
 	}
@@ -789,6 +790,7 @@ type ComplexityRoot struct {
 		APIKeyID                   func(childComplexity int) int
 		Channel                    func(childComplexity int) int
 		ChannelID                  func(childComplexity int) int
+		Cost                       func(childComplexity int) int
 		CreatedAt                  func(childComplexity int) int
 		DataStorage                func(childComplexity int) int
 		DataStorageID              func(childComplexity int) int
@@ -1490,6 +1492,8 @@ type RequestResolver interface {
 	ChannelID(ctx context.Context, obj *ent.Request) (*objects.GUID, error)
 
 	Channel(ctx context.Context, obj *ent.Request) (*ent.Channel, error)
+
+	Cost(ctx context.Context, obj *ent.Request) (*int, error)
 }
 type RequestExecutionResolver interface {
 	ID(ctx context.Context, obj *ent.RequestExecution) (*objects.GUID, error)
@@ -3345,6 +3349,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ModelPricing.Quota(childComplexity), true
+	case "ModelPricing.status":
+		if e.complexity.ModelPricing.Status == nil {
+			break
+		}
+
+		return e.complexity.ModelPricing.Status(childComplexity), true
 	case "ModelPricing.type":
 		if e.complexity.ModelPricing.Type == nil {
 			break
@@ -4976,6 +4986,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Request.ChannelID(childComplexity), true
+	case "Request.cost":
+		if e.complexity.Request.Cost == nil {
+			break
+		}
+
+		return e.complexity.Request.Cost(childComplexity), true
 	case "Request.createdAt":
 		if e.complexity.Request.CreatedAt == nil {
 			break
@@ -19116,6 +19132,35 @@ func (ec *executionContext) fieldContext_ModelPricing_type(_ context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _ModelPricing_status(ctx context.Context, field graphql.CollectedField, obj *ent.ModelPricing) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ModelPricing_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNModelPricingStatus2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ModelPricing_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModelPricing",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ModelPricingStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ModelPricing_quota(ctx context.Context, field graphql.CollectedField, obj *ent.ModelPricing) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -19342,6 +19387,8 @@ func (ec *executionContext) fieldContext_ModelPricingEdge_node(_ context.Context
 				return ec.fieldContext_ModelPricing_model(ctx, field)
 			case "type":
 				return ec.fieldContext_ModelPricing_type(ctx, field)
+			case "status":
+				return ec.fieldContext_ModelPricing_status(ctx, field)
 			case "quota":
 				return ec.fieldContext_ModelPricing_quota(ctx, field)
 			case "completionRatio":
@@ -28732,6 +28779,35 @@ func (ec *executionContext) fieldContext_Request_usageLogs(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Request_cost(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_cost,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Request().Cost(ctx, obj)
+		},
+		nil,
+		ec.marshalOInt2ᚖint,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_cost(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RequestConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.RequestConnection) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -28913,6 +28989,8 @@ func (ec *executionContext) fieldContext_RequestEdge_node(_ context.Context, fie
 				return ec.fieldContext_Request_channel(ctx, field)
 			case "usageLogs":
 				return ec.fieldContext_Request_usageLogs(ctx, field)
+			case "cost":
+				return ec.fieldContext_Request_cost(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Request", field.Name)
 		},
@@ -29549,6 +29627,8 @@ func (ec *executionContext) fieldContext_RequestExecution_request(_ context.Cont
 				return ec.fieldContext_Request_channel(ctx, field)
 			case "usageLogs":
 				return ec.fieldContext_Request_usageLogs(ctx, field)
+			case "cost":
+				return ec.fieldContext_Request_cost(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Request", field.Name)
 		},
@@ -36476,6 +36556,8 @@ func (ec *executionContext) fieldContext_UsageLog_request(_ context.Context, fie
 				return ec.fieldContext_Request_channel(ctx, field)
 			case "usageLogs":
 				return ec.fieldContext_Request_usageLogs(ctx, field)
+			case "cost":
+				return ec.fieldContext_Request_cost(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Request", field.Name)
 		},
@@ -46868,7 +46950,7 @@ func (ec *executionContext) unmarshalInputCreateModelPricingInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"model", "type", "quota", "completionRatio", "price"}
+	fieldsInOrder := [...]string{"model", "type", "status", "quota", "completionRatio", "price"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46889,6 +46971,13 @@ func (ec *executionContext) unmarshalInputCreateModelPricingInput(ctx context.Co
 				return it, err
 			}
 			it.Type = data
+		case "status":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			data, err := ec.unmarshalOModelPricingStatus2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Status = data
 		case "quota":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quota"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
@@ -49206,7 +49295,7 @@ func (ec *executionContext) unmarshalInputModelPricingWhereInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "model", "modelNEQ", "modelIn", "modelNotIn", "modelGT", "modelGTE", "modelLT", "modelLTE", "modelContains", "modelHasPrefix", "modelHasSuffix", "modelEqualFold", "modelContainsFold", "type", "typeNEQ", "typeIn", "typeNotIn", "quota", "quotaNEQ", "quotaIn", "quotaNotIn", "quotaGT", "quotaGTE", "quotaLT", "quotaLTE", "completionRatio", "completionRatioNEQ", "completionRatioIn", "completionRatioNotIn", "completionRatioGT", "completionRatioGTE", "completionRatioLT", "completionRatioLTE", "price", "priceNEQ", "priceIn", "priceNotIn", "priceGT", "priceGTE", "priceLT", "priceLTE"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "model", "modelNEQ", "modelIn", "modelNotIn", "modelGT", "modelGTE", "modelLT", "modelLTE", "modelContains", "modelHasPrefix", "modelHasSuffix", "modelEqualFold", "modelContainsFold", "type", "typeNEQ", "typeIn", "typeNotIn", "status", "statusNEQ", "statusIn", "statusNotIn", "quota", "quotaNEQ", "quotaIn", "quotaNotIn", "quotaGT", "quotaGTE", "quotaLT", "quotaLTE", "completionRatio", "completionRatioNEQ", "completionRatioIn", "completionRatioNotIn", "completionRatioGT", "completionRatioGTE", "completionRatioLT", "completionRatioLTE", "price", "priceNEQ", "priceIn", "priceNotIn", "priceGT", "priceGTE", "priceLT", "priceLTE"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -49609,6 +49698,34 @@ func (ec *executionContext) unmarshalInputModelPricingWhereInput(ctx context.Con
 				return it, err
 			}
 			it.TypeNotIn = data
+		case "status":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			data, err := ec.unmarshalOModelPricingStatus2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Status = data
+		case "statusNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNEQ"))
+			data, err := ec.unmarshalOModelPricingStatus2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StatusNEQ = data
+		case "statusIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusIn"))
+			data, err := ec.unmarshalOModelPricingStatus2ᚕgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatusᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StatusIn = data
+		case "statusNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
+			data, err := ec.unmarshalOModelPricingStatus2ᚕgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatusᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StatusNotIn = data
 		case "quota":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quota"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
@@ -59488,7 +59605,7 @@ func (ec *executionContext) unmarshalInputUpdateModelPricingInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"model", "type", "quota", "completionRatio", "price"}
+	fieldsInOrder := [...]string{"model", "type", "status", "quota", "completionRatio", "price"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -59509,6 +59626,13 @@ func (ec *executionContext) unmarshalInputUpdateModelPricingInput(ctx context.Co
 				return it, err
 			}
 			it.Type = data
+		case "status":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			data, err := ec.unmarshalOModelPricingStatus2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Status = data
 		case "quota":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quota"))
 			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
@@ -68223,6 +68347,11 @@ func (ec *executionContext) _ModelPricing(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "status":
+			out.Values[i] = ec._ModelPricing_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "quota":
 			out.Values[i] = ec._ModelPricing_quota(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -71951,6 +72080,39 @@ func (ec *executionContext) _Request(ctx context.Context, sel ast.SelectionSet, 
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "cost":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Request_cost(ctx, field, obj)
 				return res
 			}
 
@@ -79314,6 +79476,16 @@ func (ec *executionContext) marshalNModelPricingOrderField2ᚖgithubᚗcomᚋloo
 	return v
 }
 
+func (ec *executionContext) unmarshalNModelPricingStatus2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx context.Context, v any) (modelpricing.Status, error) {
+	var res modelpricing.Status
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNModelPricingStatus2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx context.Context, sel ast.SelectionSet, v modelpricing.Status) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNModelPricingType2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐType(ctx context.Context, v any) (modelpricing.Type, error) {
 	var res modelpricing.Type
 	err := res.UnmarshalGQL(v)
@@ -83177,6 +83349,87 @@ func (ec *executionContext) unmarshalOModelPricingOrder2ᚖgithubᚗcomᚋlooplj
 	}
 	res, err := ec.unmarshalInputModelPricingOrder(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOModelPricingStatus2ᚕgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatusᚄ(ctx context.Context, v any) ([]modelpricing.Status, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]modelpricing.Status, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNModelPricingStatus2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOModelPricingStatus2ᚕgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []modelpricing.Status) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNModelPricingStatus2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOModelPricingStatus2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx context.Context, v any) (*modelpricing.Status, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(modelpricing.Status)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOModelPricingStatus2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐStatus(ctx context.Context, sel ast.SelectionSet, v *modelpricing.Status) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOModelPricingType2ᚕgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelpricingᚐTypeᚄ(ctx context.Context, v any) ([]modelpricing.Type, error) {

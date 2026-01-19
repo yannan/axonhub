@@ -230,6 +230,7 @@ paths:
     get:
       tags: [管理]
       summary: 获取计费配置
+      description: 返回所有计费配置，包括已禁用的记录。
       security:
         - bearerAuth: []
       parameters:
@@ -440,7 +441,8 @@ paths:
   /admin/pricing/{model}/disable:
     put:
       tags: [管理]
-      summary: 按模型禁用计费配置（软删除）
+      summary: 按模型禁用计费配置
+      description: 将计费配置标记为禁用（status=disabled）。
       security:
         - bearerAuth: []
       parameters:
@@ -485,7 +487,8 @@ paths:
   /admin/pricing/{model}/enable:
     put:
       tags: [管理]
-      summary: 按模型启用计费配置（恢复）
+      summary: 按模型启用计费配置
+      description: 将计费配置标记为启用（status=enabled）。
       security:
         - bearerAuth: []
       parameters:
@@ -724,130 +727,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UpdateSystemSettingsResponse"
-  /user/redemption/redeem:
-    post:
-      tags: [用户]
-      summary: 用户兑换码
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RedeemRequest"
-      responses:
-        "200":
-          description: 兑换结果
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RedeemResponse"
-        "400":
-          description: 请求无效或兑换码无效
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "401":
-          description: 未授权
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "500":
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-  /user/recharges:
-    get:
-      tags: [用户]
-      summary: 充值记录（用户）
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/Offset"
-        - $ref: "#/components/parameters/Limit"
-      responses:
-        "200":
-          description: 充值记录
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RechargeListResponse"
-        "400":
-          description: 请求无效
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "401":
-          description: 未授权
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "500":
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-  /user/billing/subscription:
-    get:
-      tags: [用户]
-      summary: 获取用户订阅信息
-      deprecated: true
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: 订阅信息
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SubscriptionResponse"
-        "401":
-          description: 未授权
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "500":
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-  /user/billing/usage:
-    get:
-      tags: [用户]
-      summary: 获取用户计费用量
-      deprecated: true
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: 用量信息
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UsageResponse"
-        "401":
-          description: 未授权
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "500":
-          description: 服务器内部错误
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
   /project/redemption/redeem:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     post:
       tags: [项目]
       summary: 项目兑换码
@@ -885,6 +767,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
   /project/recharges:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     get:
       tags: [项目]
       summary: 充值记录（项目）
@@ -913,6 +797,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
   /project/billing/subscription:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     get:
       tags: [项目]
       summary: 获取项目订阅信息
@@ -938,6 +824,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
   /project/billing/usage:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     get:
       tags: [项目]
       summary: 获取项目计费用量
@@ -963,6 +851,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
   /project/dashboard/stats:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     get:
       tags: [项目]
       summary: 获取项目仪表盘统计
@@ -1020,6 +910,16 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    ProjectIDHeader:
+      name: X-Project-ID
+      in: header
+      required: false
+      description: |
+        可选的项目上下文，用于 admin/user/project 接口。
+        传入项目 GUID（例如 gid://axonhub/Project/1）。
+      schema:
+        type: string
+      example: gid://axonhub/Project/1
     IdPath:
       name: id
       in: path
@@ -1732,6 +1632,11 @@ components:
           type: number
           format: float
           description: 补全倍率，通常对应计费配置中的 completion_ratio（未设置时为 1）
+        billing_type:
+          type: string
+          enum: [quota, connection]
+          nullable: true
+          description: 计费类型：quota 表示按 token 计费，connection 表示固定额度计费（不随 token 变化）
         trace_id:
           type: string
           nullable: true
@@ -2210,6 +2115,10 @@ components:
           type: string
           enum: [quota, connection]
           description: 计费类型：quota 表示按 token 计费，connection 表示固定额度计费（不随 token 变化）
+        status:
+          type: string
+          enum: [enabled, disabled]
+          description: 计费配置状态
         quota:
           type: number
           description: 模型倍率，仅在 type=quota 时生效；实际消耗约为 ceil((prompt_tokens + completion_tokens * completion_ratio) * quota * group_multiplier)
@@ -2278,6 +2187,10 @@ components:
           type: string
           enum: [quota, connection]
           description: 计费类型：quota 表示按 token 计费，connection 表示固定额度计费（不随 token 变化）
+        status:
+          type: string
+          enum: [enabled, disabled]
+          description: 计费配置状态
         quota:
           type: number
           description: 模型倍率，仅在 type=quota 时生效；实际消耗约为 ceil((prompt_tokens + completion_tokens * completion_ratio) * quota * group_multiplier)
@@ -2295,10 +2208,7 @@ components:
           type: string
           format: date-time
           description: 更新时间
-        deleted_at:
-          type: integer
-          description: 软删除时间戳
-      required: [id, model, type, quota, completion_ratio, price, created_at, updated_at, deleted_at]
+      required: [id, model, type, status, quota, completion_ratio, price, created_at, updated_at]
     PricingToggleResponse:
       type: object
       properties:

@@ -31,7 +31,7 @@ export function createPricingColumns(
             id: 'status',
             header: ({ column }) => <DataTableColumnHeader column={column} title={t('pricing.columns.status')} />,
             cell: ({ row }) => {
-                const isDisabled = row.original.deleted_at > 0;
+                const isDisabled = row.original.status === 'disabled';
                 return (
                     <Badge variant={isDisabled ? 'secondary' : 'default'} className='capitalize'>
                         {isDisabled ? t('pricing.status.disabled') : t('pricing.status.active')}
@@ -101,7 +101,7 @@ export function createPricingColumns(
             header: ({ column }) => <DataTableColumnHeader column={column} title={t('pricing.columns.actions')} />,
             cell: ({ row }) => {
                 const pricing = row.original;
-                const isDisabled = pricing.deleted_at > 0;
+                const isDisabled = pricing.status === 'disabled';
                 return (
                     <div className='flex items-center gap-1'>
                         <Button

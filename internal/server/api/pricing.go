@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/looplj/axonhub/internal/ent"
@@ -29,10 +28,7 @@ func (h *PricingHandlers) ListPrices(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
-	if c.Query("include_deleted") == "true" {
-		ctx = schematype.SkipSoftDelete(ctx)
-	}
+	ctx := schematype.SkipSoftDelete(c.Request.Context())
 
 	prices, err := h.client.ModelPricing.Query().All(ctx)
 	if err != nil {
@@ -266,7 +262,7 @@ func (h *PricingHandlers) DisablePrice(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
+	ctx := schematype.SkipSoftDelete(c.Request.Context())
 	p, err := h.client.ModelPricing.Query().Where(modelpricing.ModelEQ(model)).Only(ctx)
 	if ent.IsNotFound(err) {
 		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "not found"})
@@ -278,7 +274,8 @@ func (h *PricingHandlers) DisablePrice(c *gin.Context) {
 	}
 
 	updated, err := h.client.ModelPricing.UpdateOneID(p.ID).
-		SetDeletedAt(int(time.Now().Unix())).
+		SetStatus(modelpricing.StatusDisabled).
+		SetDeletedAt(0).
 		Save(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -313,12 +310,8 @@ func (h *PricingHandlers) EnablePrice(c *gin.Context) {
 		return
 	}
 
-	if p.DeletedAt == 0 {
-		c.JSON(http.StatusOK, gin.H{"success": true, "data": p})
-		return
-	}
-
 	updated, err := h.client.ModelPricing.UpdateOneID(p.ID).
+		SetStatus(modelpricing.StatusEnabled).
 		SetDeletedAt(0).
 		Save(ctx)
 	if err != nil {

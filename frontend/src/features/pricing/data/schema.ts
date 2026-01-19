@@ -4,15 +4,18 @@ import { z } from 'zod';
 export const pricingTypeSchema = z.enum(['quota', 'price']);
 export type PricingType = z.infer<typeof pricingTypeSchema>;
 
+export const pricingStatusSchema = z.enum(['enabled', 'disabled']);
+export type PricingStatus = z.infer<typeof pricingStatusSchema>;
+
 // Pricing interface
 export interface Pricing {
     id: number;
     model: string;
     type: PricingType;
+    status: PricingStatus;
     quota: number;
     price: number;
     completion_ratio: number;
-    deleted_at: number;
     created_at: string;
     updated_at: string;
 }
@@ -44,10 +47,10 @@ export const pricingSchema = z.object({
     id: z.number(),
     model: z.string(),
     type: pricingTypeSchema,
+    status: pricingStatusSchema,
     quota: z.number().nullable().default(0).transform(val => val ?? 0),
     price: z.number().nullable().default(0).transform(val => val ?? 0),
     completion_ratio: z.number().nullable().default(1.0).transform(val => val ?? 1.0),
-    deleted_at: z.number().nullable().default(0).transform(val => val ?? 0),
     created_at: z.string(),
     updated_at: z.string(),
 });

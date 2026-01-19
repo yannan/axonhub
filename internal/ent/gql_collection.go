@@ -1858,6 +1858,11 @@ func (_q *ModelPricingQuery) collectField(ctx context.Context, oneNode bool, opC
 				selectedFields = append(selectedFields, modelpricing.FieldType)
 				fieldSeen[modelpricing.FieldType] = struct{}{}
 			}
+		case "status":
+			if _, ok := fieldSeen[modelpricing.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, modelpricing.FieldStatus)
+				fieldSeen[modelpricing.FieldStatus] = struct{}{}
+			}
 		case "quota":
 			if _, ok := fieldSeen[modelpricing.FieldQuota]; !ok {
 				selectedFields = append(selectedFields, modelpricing.FieldQuota)

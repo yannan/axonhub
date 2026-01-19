@@ -84,6 +84,20 @@ func (_u *ModelPricingUpdate) SetNillableType(v *modelpricing.Type) *ModelPricin
 	return _u
 }
 
+// SetStatus sets the "status" field.
+func (_u *ModelPricingUpdate) SetStatus(v modelpricing.Status) *ModelPricingUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *ModelPricingUpdate) SetNillableStatus(v *modelpricing.Status) *ModelPricingUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
 // SetQuota sets the "quota" field.
 func (_u *ModelPricingUpdate) SetQuota(v float64) *ModelPricingUpdate {
 	_u.mutation.ResetQuota()
@@ -201,6 +215,11 @@ func (_u *ModelPricingUpdate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "ModelPricing.type": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := modelpricing.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "ModelPricing.status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -236,6 +255,9 @@ func (_u *ModelPricingUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(modelpricing.FieldType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(modelpricing.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Quota(); ok {
 		_spec.SetField(modelpricing.FieldQuota, field.TypeFloat64, value)
@@ -328,6 +350,20 @@ func (_u *ModelPricingUpdateOne) SetType(v modelpricing.Type) *ModelPricingUpdat
 func (_u *ModelPricingUpdateOne) SetNillableType(v *modelpricing.Type) *ModelPricingUpdateOne {
 	if v != nil {
 		_u.SetType(*v)
+	}
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *ModelPricingUpdateOne) SetStatus(v modelpricing.Status) *ModelPricingUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *ModelPricingUpdateOne) SetNillableStatus(v *modelpricing.Status) *ModelPricingUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
 	}
 	return _u
 }
@@ -462,6 +498,11 @@ func (_u *ModelPricingUpdateOne) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "ModelPricing.type": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := modelpricing.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "ModelPricing.status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -514,6 +555,9 @@ func (_u *ModelPricingUpdateOne) sqlSave(ctx context.Context) (_node *ModelPrici
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(modelpricing.FieldType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(modelpricing.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Quota(); ok {
 		_spec.SetField(modelpricing.FieldQuota, field.TypeFloat64, value)

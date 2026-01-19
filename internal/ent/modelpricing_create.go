@@ -84,6 +84,20 @@ func (_c *ModelPricingCreate) SetNillableType(v *modelpricing.Type) *ModelPricin
 	return _c
 }
 
+// SetStatus sets the "status" field.
+func (_c *ModelPricingCreate) SetStatus(v modelpricing.Status) *ModelPricingCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *ModelPricingCreate) SetNillableStatus(v *modelpricing.Status) *ModelPricingCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
+	return _c
+}
+
 // SetQuota sets the "quota" field.
 func (_c *ModelPricingCreate) SetQuota(v float64) *ModelPricingCreate {
 	_c.mutation.SetQuota(v)
@@ -185,6 +199,10 @@ func (_c *ModelPricingCreate) defaults() error {
 		v := modelpricing.DefaultType
 		_c.mutation.SetType(v)
 	}
+	if _, ok := _c.mutation.Status(); !ok {
+		v := modelpricing.DefaultStatus
+		_c.mutation.SetStatus(v)
+	}
 	if _, ok := _c.mutation.Quota(); !ok {
 		v := modelpricing.DefaultQuota
 		_c.mutation.SetQuota(v)
@@ -220,6 +238,14 @@ func (_c *ModelPricingCreate) check() error {
 	if v, ok := _c.mutation.GetType(); ok {
 		if err := modelpricing.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "ModelPricing.type": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "ModelPricing.status"`)}
+	}
+	if v, ok := _c.mutation.Status(); ok {
+		if err := modelpricing.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "ModelPricing.status": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Quota(); !ok {
@@ -277,6 +303,10 @@ func (_c *ModelPricingCreate) createSpec() (*ModelPricing, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(modelpricing.FieldType, field.TypeEnum, value)
 		_node.Type = value
+	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(modelpricing.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
 	}
 	if value, ok := _c.mutation.Quota(); ok {
 		_spec.SetField(modelpricing.FieldQuota, field.TypeFloat64, value)
@@ -393,6 +423,18 @@ func (u *ModelPricingUpsert) SetType(v modelpricing.Type) *ModelPricingUpsert {
 // UpdateType sets the "type" field to the value that was provided on create.
 func (u *ModelPricingUpsert) UpdateType() *ModelPricingUpsert {
 	u.SetExcluded(modelpricing.FieldType)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *ModelPricingUpsert) SetStatus(v modelpricing.Status) *ModelPricingUpsert {
+	u.Set(modelpricing.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ModelPricingUpsert) UpdateStatus() *ModelPricingUpsert {
+	u.SetExcluded(modelpricing.FieldStatus)
 	return u
 }
 
@@ -555,6 +597,20 @@ func (u *ModelPricingUpsertOne) SetType(v modelpricing.Type) *ModelPricingUpsert
 func (u *ModelPricingUpsertOne) UpdateType() *ModelPricingUpsertOne {
 	return u.Update(func(s *ModelPricingUpsert) {
 		s.UpdateType()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *ModelPricingUpsertOne) SetStatus(v modelpricing.Status) *ModelPricingUpsertOne {
+	return u.Update(func(s *ModelPricingUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ModelPricingUpsertOne) UpdateStatus() *ModelPricingUpsertOne {
+	return u.Update(func(s *ModelPricingUpsert) {
+		s.UpdateStatus()
 	})
 }
 
@@ -892,6 +948,20 @@ func (u *ModelPricingUpsertBulk) SetType(v modelpricing.Type) *ModelPricingUpser
 func (u *ModelPricingUpsertBulk) UpdateType() *ModelPricingUpsertBulk {
 	return u.Update(func(s *ModelPricingUpsert) {
 		s.UpdateType()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *ModelPricingUpsertBulk) SetStatus(v modelpricing.Status) *ModelPricingUpsertBulk {
+	return u.Update(func(s *ModelPricingUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *ModelPricingUpsertBulk) UpdateStatus() *ModelPricingUpsertBulk {
+	return u.Update(func(s *ModelPricingUpsert) {
+		s.UpdateStatus()
 	})
 }
 

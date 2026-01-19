@@ -9,8 +9,6 @@ import (
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	tms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tms/v20200713"
-
-	"github.com/looplj/axonhub/internal/log"
 )
 
 type ValidationEngine struct {
@@ -63,7 +61,6 @@ func (e *ValidationEngine) Validate(content string) (bool, string) {
 
 	response, err := e.client.TextModeration(request)
 	if err != nil {
-		log.Warn(context.Background(), "tencent content moderation failed", log.Cause(err))
 		return true, ""
 	}
 
@@ -72,7 +69,7 @@ func (e *ValidationEngine) Validate(content string) (bool, string) {
 	}
 
 	suggestion := *response.Response.Suggestion
-	if suggestion == "Normal" {
+	if suggestion == "Pass" {
 		return true, ""
 	}
 

@@ -17,6 +17,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
+	"github.com/looplj/axonhub/internal/ent/modelpricing"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/trace"
 	"github.com/looplj/axonhub/internal/ent/usagelog"
@@ -64,6 +65,7 @@ type ConsumptionRecordResponse struct {
 	GroupMultiplier   float64                `json:"group_multiplier"`
 	ModelMultiplier   float64                `json:"model_multiplier"`
 	CompletionRatio   float64                `json:"completion_ratio"`
+	BillingType       *string                `json:"billing_type,omitempty"`
 	TraceID           *string                `json:"trace_id,omitempty"`
 	APIKeyID          *int                   `json:"api_key_id,omitempty"`
 	APIKeyName        *string                `json:"api_key_name,omitempty"`
@@ -83,7 +85,7 @@ type consumptionRecordContent struct {
 	CompletionRatio   float64 `json:"completion_ratio"`
 }
 
-func mapConsumptionRecord(record *ent.ConsumptionRecord, apiKeyID *int, apiKeyName *string) ConsumptionRecordResponse {
+func mapConsumptionRecord(record *ent.ConsumptionRecord, apiKeyID *int, apiKeyName *string, billingType *string) ConsumptionRecordResponse {
 	billingMultiplier := 1.0
 	groupMultiplier := 1.0
 	modelMultiplier := 1.0
@@ -125,6 +127,7 @@ func mapConsumptionRecord(record *ent.ConsumptionRecord, apiKeyID *int, apiKeyNa
 		GroupMultiplier:   groupMultiplier,
 		ModelMultiplier:   modelMultiplier,
 		CompletionRatio:   completionRatio,
+		BillingType:       billingType,
 		TraceID:           traceID,
 		APIKeyID:          apiKeyID,
 		APIKeyName:        apiKeyName,
@@ -189,6 +192,31 @@ func (h *BillingHandlers) GetUsage(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	}
+
+	modelSet := make(map[string]struct{})
+	for _, record := range records {
+		if record.Model != "" {
+			modelSet[record.Model] = struct{}{}
+		}
+	}
+
+	modelPricingMap := make(map[string]string)
+	if len(modelSet) > 0 {
+		models := make([]string, 0, len(modelSet))
+		for model := range modelSet {
+			models = append(models, model)
+		}
+		pricings, err := h.client.ModelPricing.Query().
+			Where(modelpricing.ModelIn(models...)).
+			All(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		for _, pricing := range pricings {
+			modelPricingMap[pricing.Model] = string(pricing.Type)
+		}
 	}
 
 	traceIDSet := make(map[string]struct{})
@@ -265,6 +293,10 @@ func (h *BillingHandlers) GetUsage(c *gin.Context) {
 	for _, record := range records {
 		var apiKeyID *int
 		var apiKeyName *string
+		var billingType *string
+		if pricingType, ok := modelPricingMap[record.Model]; ok {
+			billingType = &pricingType
+		}
 		if record.TraceID != "" {
 			if traceID, ok := traceIDMap[record.TraceID]; ok {
 				if resolvedID, ok := traceToAPIKeyID[traceID]; ok {
@@ -275,7 +307,7 @@ func (h *BillingHandlers) GetUsage(c *gin.Context) {
 				}
 			}
 		}
-		response = append(response, mapConsumptionRecord(record, apiKeyID, apiKeyName))
+		response = append(response, mapConsumptionRecord(record, apiKeyID, apiKeyName, billingType))
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": response})

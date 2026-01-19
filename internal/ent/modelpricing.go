@@ -27,6 +27,8 @@ type ModelPricing struct {
 	Model string `json:"model,omitempty"`
 	// Billing type: quota or connection
 	Type modelpricing.Type `json:"type,omitempty"`
+	// Pricing status
+	Status modelpricing.Status `json:"status,omitempty"`
 	// Quota multiplier
 	Quota float64 `json:"quota,omitempty"`
 	// Completion ratio multiplier
@@ -45,7 +47,7 @@ func (*ModelPricing) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case modelpricing.FieldID, modelpricing.FieldDeletedAt:
 			values[i] = new(sql.NullInt64)
-		case modelpricing.FieldModel, modelpricing.FieldType:
+		case modelpricing.FieldModel, modelpricing.FieldType, modelpricing.FieldStatus:
 			values[i] = new(sql.NullString)
 		case modelpricing.FieldCreatedAt, modelpricing.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -99,6 +101,12 @@ func (_m *ModelPricing) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
 				_m.Type = modelpricing.Type(value.String)
+			}
+		case modelpricing.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				_m.Status = modelpricing.Status(value.String)
 			}
 		case modelpricing.FieldQuota:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -168,6 +176,9 @@ func (_m *ModelPricing) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Type))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteString(", ")
 	builder.WriteString("quota=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Quota))

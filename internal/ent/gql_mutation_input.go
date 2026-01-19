@@ -488,6 +488,7 @@ func (c *ModelUpdateOne) SetInput(i UpdateModelInput) *ModelUpdateOne {
 type CreateModelPricingInput struct {
 	Model           string
 	Type            *modelpricing.Type
+	Status          *modelpricing.Status
 	Quota           *float64
 	CompletionRatio *float64
 	Price           *float64
@@ -498,6 +499,9 @@ func (i *CreateModelPricingInput) Mutate(m *ModelPricingMutation) {
 	m.SetModel(i.Model)
 	if v := i.Type; v != nil {
 		m.SetType(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
 	}
 	if v := i.Quota; v != nil {
 		m.SetQuota(*v)
@@ -520,6 +524,7 @@ func (c *ModelPricingCreate) SetInput(i CreateModelPricingInput) *ModelPricingCr
 type UpdateModelPricingInput struct {
 	Model           *string
 	Type            *modelpricing.Type
+	Status          *modelpricing.Status
 	Quota           *float64
 	CompletionRatio *float64
 	Price           *float64
@@ -532,6 +537,9 @@ func (i *UpdateModelPricingInput) Mutate(m *ModelPricingMutation) {
 	}
 	if v := i.Type; v != nil {
 		m.SetType(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
 	}
 	if v := i.Quota; v != nil {
 		m.SetQuota(*v)

@@ -276,6 +276,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeInt, Default: 0},
 		{Name: "model", Type: field.TypeString, Unique: true},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"quota", "connection"}, Default: "quota"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"enabled", "disabled"}, Default: "enabled"},
 		{Name: "quota", Type: field.TypeFloat64, Default: 1},
 		{Name: "completion_ratio", Type: field.TypeFloat64, Default: 1},
 		{Name: "price", Type: field.TypeFloat64, Default: 0},

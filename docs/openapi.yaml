@@ -459,6 +459,7 @@ paths:
     get:
       tags: [Admin]
       summary: List pricing
+      description: Returns all pricing records, including disabled entries.
       security:
         - bearerAuth: []
       parameters:
@@ -669,7 +670,8 @@ paths:
   /admin/pricing/{model}/disable:
     put:
       tags: [Admin]
-      summary: Disable pricing by model (soft delete)
+      summary: Disable pricing by model
+      description: Marks the pricing as disabled (status=disabled).
       security:
         - bearerAuth: []
       parameters:
@@ -714,7 +716,8 @@ paths:
   /admin/pricing/{model}/enable:
     put:
       tags: [Admin]
-      summary: Enable pricing by model (restore)
+      summary: Enable pricing by model
+      description: Marks the pricing as enabled (status=enabled).
       security:
         - bearerAuth: []
       parameters:
@@ -1065,6 +1068,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
   /project/redemption/redeem:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     post:
       tags: [Project]
       summary: Redeem a code for project
@@ -1102,6 +1107,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
   /project/recharges:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     get:
       tags: [Project]
       summary: List recharge records (project)
@@ -1130,6 +1137,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
   /project/billing/subscription:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     get:
       tags: [Project]
       summary: Get project subscription info
@@ -1155,6 +1164,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
   /project/billing/usage:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     get:
       tags: [Project]
       summary: Get project billing usage
@@ -1180,6 +1191,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
   /project/dashboard/stats:
+    parameters:
+      - $ref: "#/components/parameters/ProjectIDHeader"
     get:
       tags: [Project]
       summary: Get project dashboard stats
@@ -1593,6 +1606,16 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    ProjectIDHeader:
+      name: X-Project-ID
+      in: header
+      required: false
+      description: |
+        Optional project context for admin/user/project APIs.
+        Use the project GUID (e.g. gid://axonhub/Project/1).
+      schema:
+        type: string
+      example: gid://axonhub/Project/1
     IdPath:
       name: id
       in: path
@@ -2969,6 +2992,9 @@ components:
         type:
           type: string
           enum: [quota, connection]
+        status:
+          type: string
+          enum: [enabled, disabled]
         quota:
           type: number
         price:
@@ -3024,6 +3050,9 @@ components:
         type:
           type: string
           enum: [quota, connection]
+        status:
+          type: string
+          enum: [enabled, disabled]
         quota:
           type: number
         completion_ratio:
@@ -3036,9 +3065,7 @@ components:
         updated_at:
           type: string
           format: date-time
-        deleted_at:
-          type: integer
-      required: [id, model, type, quota, completion_ratio, price, created_at, updated_at, deleted_at]
+      required: [id, model, type, status, quota, completion_ratio, price, created_at, updated_at]
     PricingToggleResponse:
       type: object
       properties:

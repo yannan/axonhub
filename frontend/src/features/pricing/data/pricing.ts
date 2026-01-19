@@ -22,7 +22,7 @@ export function useQueryPricing() {
         queryKey: ['pricing'],
         queryFn: async (): Promise<Pricing[]> => {
             try {
-                const data = await apiRequest('/admin/pricing?include_deleted=true', {
+                const data = await apiRequest('/admin/pricing', {
                     requireAuth: true,
                 });
                 const parsed = pricingListResponseSchema.parse(data);
@@ -122,7 +122,7 @@ export function useDeletePricing() {
 }
 
 /**
- * Hook to disable a pricing record (soft delete)
+ * Hook to disable a pricing record
  */
 export function useDisablePricing() {
     const { handleError } = useErrorHandler();
@@ -150,7 +150,7 @@ export function useDisablePricing() {
 }
 
 /**
- * Hook to enable a soft-deleted pricing record
+ * Hook to enable a pricing record
  */
 export function useEnablePricing() {
     const { handleError } = useErrorHandler();

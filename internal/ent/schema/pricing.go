@@ -25,6 +25,7 @@ func (ModelPricing) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("model").Unique().Comment("Model identifier"),
 		field.Enum("type").Values("quota", "connection").Default("quota").Comment("Billing type: quota or connection"),
+		field.Enum("status").Values("enabled", "disabled").Default("enabled").Comment("Pricing status"),
 		field.Float("quota").Default(1.0).Comment("Quota multiplier"),
 		field.Float("completion_ratio").Default(1.0).Comment("Completion ratio multiplier"),
 		field.Float("price").Default(0).Comment("Price per unit"),
