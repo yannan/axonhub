@@ -18,6 +18,7 @@ type JinaHandlersParams struct {
 	ModelService     *biz.ModelService
 	RequestService   *biz.RequestService
 	SystemService    *biz.SystemService
+	SettingsService  *biz.SettingsService
 	UsageLogService  *biz.UsageLogService
 	HttpClient       *httpclient.HttpClient
 	ValidationEngine *filter.ValidationEngine
@@ -33,6 +34,7 @@ func NewJinaHandlers(params JinaHandlersParams) *JinaHandlers {
 				params.HttpClient,
 				jina.NewRerankInboundTransformer(),
 				params.SystemService,
+				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),
@@ -45,6 +47,7 @@ func NewJinaHandlers(params JinaHandlersParams) *JinaHandlers {
 				params.HttpClient,
 				jina.NewEmbeddingInboundTransformer(),
 				params.SystemService,
+				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),

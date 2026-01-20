@@ -892,6 +892,14 @@ paths:
     get:
       tags: [Admin]
       summary: Get system settings
+      description: |
+        Current settings used by the frontend:
+        - `user_selectable_groups`: User-selectable groups when creating projects, `value` is a JSON object with group code to display name.
+          Example: `{"default":"Default","vip":"VIP","svip":"SVIP"}`
+        - `group_ratio`: Group ratio configuration, `value` is a JSON object with group code to ratio number.
+          Example: `{"default":1,"vip":0.8,"svip":0.5}`
+        - `content_safety_intercept_enabled`: Content safety intercept toggle, `value` is a JSON object containing a boolean `enabled`.
+          Example: `{"enabled":true}`
       security:
         - bearerAuth: []
       parameters:
@@ -923,6 +931,14 @@ paths:
     put:
       tags: [Admin]
       summary: Update system setting
+      description: |
+        Used to update group-related configuration:
+        - `key=user_selectable_groups`, `value` is a mapping from group code to display name.
+          Example: `{"key":"user_selectable_groups","value":{"default":"Default","vip":"VIP"}}`
+        - `key=group_ratio`, `value` is a mapping from group code to ratio (number).
+          Example: `{"key":"group_ratio","value":{"default":1,"vip":0.8}}`
+        - `key=content_safety_intercept_enabled`, `value` is the intercept toggle object.
+          Example: `{"key":"content_safety_intercept_enabled","value":{"enabled":false}}`
       security:
         - bearerAuth: []
       requestBody:

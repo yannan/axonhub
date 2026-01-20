@@ -8,21 +8,22 @@ import (
 
 	"github.com/looplj/axonhub/internal/llm/transformer/openai"
 	"github.com/looplj/axonhub/internal/llm/transformer/openai/responses"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/pkg/httpclient"
 	"github.com/looplj/axonhub/internal/server/biz"
 	"github.com/looplj/axonhub/internal/server/orchestrator"
-	"github.com/looplj/axonhub/internal/pkg/filter"
 )
 
 type OpenAIHandlersParams struct {
 	fx.In
 
-	ChannelService  *biz.ChannelService
-	ModelService    *biz.ModelService
-	RequestService  *biz.RequestService
-	SystemService   *biz.SystemService
-	UsageLogService *biz.UsageLogService
-	HttpClient      *httpclient.HttpClient
+	ChannelService   *biz.ChannelService
+	ModelService     *biz.ModelService
+	RequestService   *biz.RequestService
+	SystemService    *biz.SystemService
+	SettingsService  *biz.SettingsService
+	UsageLogService  *biz.UsageLogService
+	HttpClient       *httpclient.HttpClient
 	ValidationEngine *filter.ValidationEngine
 }
 
@@ -45,6 +46,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.HttpClient,
 				openai.NewInboundTransformer(),
 				params.SystemService,
+				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),
@@ -57,6 +59,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.HttpClient,
 				responses.NewInboundTransformer(),
 				params.SystemService,
+				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),
@@ -69,6 +72,7 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.HttpClient,
 				openai.NewEmbeddingInboundTransformer(),
 				params.SystemService,
+				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),

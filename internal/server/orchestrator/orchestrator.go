@@ -27,6 +27,7 @@ func NewChatCompletionOrchestrator(
 	httpClient *httpclient.HttpClient,
 	inbound transformer.Inbound,
 	systemService *biz.SystemService,
+	settingsService *biz.SettingsService,
 	usageLogService *biz.UsageLogService,
 	validationEngine *filter.ValidationEngine,
 ) *ChatCompletionOrchestrator {
@@ -48,6 +49,7 @@ func NewChatCompletionOrchestrator(
 		RequestService:   requestService,
 		ChannelService:   channelService,
 		SystemService:    systemService,
+		SettingsService:  settingsService,
 		UsageLogService:  usageLogService,
 		ValidationEngine: validationEngine,
 		Middlewares: []pipeline.Middleware{
@@ -68,6 +70,7 @@ type ChatCompletionOrchestrator struct {
 	RequestService   *biz.RequestService
 	ChannelService   *biz.ChannelService
 	SystemService    *biz.SystemService
+	SettingsService  *biz.SettingsService
 	UsageLogService  *biz.UsageLogService
 	Middlewares      []pipeline.Middleware
 	PipelineFactory  *pipeline.Factory
@@ -181,7 +184,7 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 		applyApiKeyModelMapping(inbound),
 		selectCandidates(inbound),
 		persistRequest(inbound),
-		validateContent(inbound, processor.ValidationEngine),
+		validateContent(inbound, processor.ValidationEngine, processor.SettingsService),
 	)
 
 	// Add outbound middlewares (executed after outbound.TransformRequest)
@@ -253,8 +256,18 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 	}, nil
 }
 
-func validateContent(inbound transformer.Inbound, engine *filter.ValidationEngine) pipeline.Middleware {
+func validateContent(inbound transformer.Inbound, engine *filter.ValidationEngine, settingsService *biz.SettingsService) pipeline.Middleware {
 	return pipeline.OnRawRequest("validate-content", func(ctx context.Context, request *httpclient.Request) (*httpclient.Request, error) {
+		if settingsService != nil {
+			enabled, err := settingsService.ContentSafetyInterceptEnabled(ctx)
+			if err != nil {
+				log.Warn(ctx, "failed to read content safety intercept setting", log.Cause(err))
+			}
+			if !enabled {
+				return request, nil
+			}
+		}
+
 		// Skip body check for now or ensure stream bodies are handled.
 		// Assuming prompt is in body and body is string-ish.
 		if engine != nil {

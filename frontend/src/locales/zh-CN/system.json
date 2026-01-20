@@ -218,6 +218,20 @@
     "sensitiveWords": {
       "title": "屏蔽词设置",
       "description": "命中这些词的请求将被拦截。",
+      "intercept": {
+        "title": "内容安全拦截",
+        "description": "控制是否启用全局内容安全拦截。",
+        "label": "启用内容安全拦截",
+        "hint": "关闭后将不再对请求内容进行拦截。",
+        "enabled": "已开启",
+        "disabled": "已关闭",
+        "messages": {
+          "updated": "内容安全拦截设置已更新。"
+        },
+        "errors": {
+          "update": "更新内容安全拦截设置失败。"
+        }
+      },
       "form": {
         "wordLabel": "词语或短语",
         "wordPlaceholder": "输入词语或短语",

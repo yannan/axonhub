@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -11,8 +11,10 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { toast } from 'sonner';
 import {
   type SensitiveWord,
   type SensitiveWordType,
@@ -20,6 +22,7 @@ import {
   useDeleteSensitiveWord,
   useSensitiveWords,
 } from '../data/sensitive-words';
+import { useQuerySystemSetting, useUpdateSystemSetting } from '@/features/system-settings/data/settings';
 
 const formatTimestamp = (value?: string | null) => {
   if (!value) {
@@ -38,10 +41,32 @@ export function SensitiveWordsSettings() {
   const [wordType, setWordType] = useState<SensitiveWordType>('block');
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<SensitiveWord | null>(null);
+  const [interceptEnabled, setInterceptEnabled] = useState(true);
+  const [interceptInitialized, setInterceptInitialized] = useState(false);
 
   const { data: words = [], isLoading } = useSensitiveWords();
   const addWord = useAddSensitiveWord();
   const deleteWord = useDeleteSensitiveWord();
+  const updateSetting = useUpdateSystemSetting();
+  const {
+    data: interceptSetting,
+    isLoading: isLoadingIntercept,
+    error: interceptError,
+  } = useQuerySystemSetting('content_safety_intercept_enabled');
+
+  useEffect(() => {
+    if (interceptSetting?.settings?.[0]?.value?.enabled !== undefined) {
+      setInterceptEnabled(Boolean(interceptSetting.settings[0].value.enabled));
+      setInterceptInitialized(true);
+      return;
+    }
+
+    const status = (interceptError as { status?: number } | undefined)?.status;
+    if (status === 404) {
+      setInterceptEnabled(true);
+      setInterceptInitialized(true);
+    }
+  }, [interceptError, interceptSetting]);
 
   const filteredWords = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -76,6 +101,43 @@ export function SensitiveWordsSettings() {
 
   return (
     <div className='space-y-6'>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('system.sensitiveWords.intercept.title')}</CardTitle>
+          <CardDescription>{t('system.sensitiveWords.intercept.description')}</CardDescription>
+        </CardHeader>
+        <CardContent className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+          <div className='space-y-1'>
+            <div className='text-sm font-medium'>{t('system.sensitiveWords.intercept.label')}</div>
+            <div className='text-xs text-muted-foreground'>{t('system.sensitiveWords.intercept.hint')}</div>
+          </div>
+          <div className='flex items-center gap-3'>
+            <span className='text-sm text-muted-foreground'>
+              {interceptEnabled ? t('system.sensitiveWords.intercept.enabled') : t('system.sensitiveWords.intercept.disabled')}
+            </span>
+            <Switch
+              checked={interceptEnabled}
+              disabled={!interceptInitialized || isLoadingIntercept || updateSetting.isPending}
+              onCheckedChange={async (checked) => {
+                const previous = interceptEnabled;
+                setInterceptEnabled(checked);
+                try {
+                  await updateSetting.mutateAsync({
+                    key: 'content_safety_intercept_enabled',
+                    value: { enabled: checked },
+                    description: 'Content safety intercept toggle',
+                  });
+                  toast.success(t('system.sensitiveWords.intercept.messages.updated'));
+                } catch {
+                  setInterceptEnabled(previous);
+                  toast.error(t('system.sensitiveWords.intercept.errors.update'));
+                }
+              }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>{t('system.sensitiveWords.title')}</CardTitle>

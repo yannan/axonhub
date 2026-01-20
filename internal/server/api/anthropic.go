@@ -21,6 +21,7 @@ type AnthropicHandlersParams struct {
 	ModelService     *biz.ModelService
 	RequestService   *biz.RequestService
 	SystemService    *biz.SystemService
+	SettingsService  *biz.SettingsService
 	UsageLogService  *biz.UsageLogService
 	HttpClient       *httpclient.HttpClient
 	ValidationEngine *filter.ValidationEngine
@@ -43,6 +44,7 @@ func NewAnthropicHandlers(params AnthropicHandlersParams) *AnthropicHandlers {
 				params.HttpClient,
 				anthropic.NewInboundTransformer(),
 				params.SystemService,
+				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),

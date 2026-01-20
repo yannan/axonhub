@@ -669,6 +669,8 @@ paths:
           例：`{"default":"默认分组","vip":"VIP用户","svip":"SVIP用户"}`
         - `group_ratio`: 分组倍率配置，`value` 为 JSON 对象，键为分组代码，值为倍率（数字）。
           例：`{"default":1,"vip":0.8,"svip":0.5}`
+        - `content_safety_intercept_enabled`: 内容安全拦截开关，`value` 为 JSON 对象，包含 `enabled` 布尔值。
+          例：`{"enabled":true}`
       security:
         - bearerAuth: []
       parameters:
@@ -706,6 +708,8 @@ paths:
           例：`{"key":"user_selectable_groups","value":{"default":"默认分组","vip":"VIP用户"}}`
         - `key=group_ratio`，`value` 为分组代码到倍率（数字）的映射。
           例：`{"key":"group_ratio","value":{"default":1,"vip":0.8}}`
+        - `key=content_safety_intercept_enabled`，`value` 为拦截开关对象。
+          例：`{"key":"content_safety_intercept_enabled","value":{"enabled":false}}`
       security:
         - bearerAuth: []
       requestBody:

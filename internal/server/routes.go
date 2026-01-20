@@ -38,11 +38,12 @@ type Handlers struct {
 type Services struct {
 	fx.In
 
-	TraceService   *biz.TraceService
-	ThreadService  *biz.ThreadService
-	AuthService    *biz.AuthService
-	BillingService *billing.BillingService
-	FilterEngine   *filter.ValidationEngine
+	TraceService    *biz.TraceService
+	ThreadService   *biz.ThreadService
+	AuthService     *biz.AuthService
+	BillingService  *billing.BillingService
+	FilterEngine    *filter.ValidationEngine
+	SettingsService *biz.SettingsService
 }
 
 func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services Services) {
@@ -166,7 +167,7 @@ func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services
 		middleware.WithSource(request.SourceAPI),
 		middleware.WithThread(server.Config.Trace, services.ThreadService),
 		middleware.WithTrace(server.Config.Trace, services.TraceService),
-		middleware.WithSensitiveWordFilter(services.FilterEngine),
+		middleware.WithSensitiveWordFilter(services.FilterEngine, services.SettingsService),
 		middleware.WithBilling(services.BillingService),
 	)
 

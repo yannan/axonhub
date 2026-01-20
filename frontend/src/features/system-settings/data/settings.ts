@@ -67,9 +67,12 @@ export function useUpdateSystemSetting() {
 
     return useMutation({
         mutationFn: updateSystemSetting,
-        onSuccess: () => {
+        onSuccess: (_data, variables) => {
             // Invalidate all settings queries to refetch
             queryClient.invalidateQueries({ queryKey: systemSettingsKeys.all });
+            if (variables?.key) {
+                queryClient.invalidateQueries({ queryKey: systemSettingsKeys.detail(variables.key) });
+            }
         },
     });
 }
