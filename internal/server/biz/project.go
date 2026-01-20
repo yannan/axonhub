@@ -68,6 +68,9 @@ func (s *ProjectService) CreateProject(ctx context.Context, input ent.CreateProj
 	if input.Description != nil {
 		createProject.SetDescription(*input.Description)
 	}
+	if input.Group != nil {
+		createProject.SetGroup(*input.Group)
+	}
 
 	proj, err := createProject.Save(ctx)
 	if err != nil {
@@ -152,6 +155,7 @@ func (s *ProjectService) UpdateProject(ctx context.Context, id int, input ent.Up
 	mut := client.Project.UpdateOneID(id)
 	mut.SetNillableName(input.Name)
 	mut.SetNillableDescription(input.Description)
+	mut.SetNillableGroup(input.Group)
 
 	if input.ClearUsers {
 		mut.ClearUsers()
