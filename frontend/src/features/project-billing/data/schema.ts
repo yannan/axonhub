@@ -32,9 +32,15 @@ export type RechargeRecord = z.infer<typeof rechargeRecordSchema>;
 export const rechargeListResponseSchema = z.object({
   success: z.boolean(),
   data: z.array(rechargeRecordSchema),
+  pagination: z.object({
+    total: z.coerce.number(),
+    offset: z.coerce.number(),
+    limit: z.coerce.number(),
+  }),
 });
 
 export type RechargeList = z.infer<typeof rechargeListResponseSchema>;
+export type RechargePagination = RechargeList['pagination'];
 
 export const redeemResponseSchema = z.object({
   status: z.string(),
@@ -69,17 +75,13 @@ export const usageRecordSchema = z.object({
   project_id: z.number(),
   model: z.string(),
   quota: z.coerce.number(),
-  billing_multiplier: z.coerce.number(),
-  group_multiplier: z.coerce.number(),
-  model_multiplier: z.coerce.number(),
-  completion_ratio: z.coerce.number(),
+  billing_type: z.enum(['quota', 'connection']).nullable().optional(),
   trace_id: z.string().nullable().optional(),
   api_key_id: z.coerce.number().nullable().optional(),
   api_key_name: z.string().nullable().optional(),
   prompt_tokens: z.coerce.number(),
   completion_tokens: z.coerce.number(),
   total_tokens: z.coerce.number(),
-  content: z.string().nullable().optional(),
   type: z.enum(['chat', 'image']),
   created_at: z.string(),
   updated_at: z.string(),
@@ -87,7 +89,16 @@ export const usageRecordSchema = z.object({
 
 export type UsageRecord = z.infer<typeof usageRecordSchema>;
 
+export const usagePaginationSchema = z.object({
+  total: z.coerce.number(),
+  offset: z.coerce.number(),
+  limit: z.coerce.number(),
+});
+
+export type UsagePagination = z.infer<typeof usagePaginationSchema>;
+
 export const usageResponseSchema = z.object({
   success: z.boolean(),
   data: z.array(usageRecordSchema),
+  pagination: usagePaginationSchema,
 });

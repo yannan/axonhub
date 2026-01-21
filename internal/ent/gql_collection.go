@@ -324,6 +324,11 @@ func (_q *APIKeyQuery) collectField(ctx context.Context, oneNode bool, opCtx *gr
 				selectedFields = append(selectedFields, apikey.FieldIPWhitelist)
 				fieldSeen[apikey.FieldIPWhitelist] = struct{}{}
 			}
+		case "contentSafetyInterceptEnabled":
+			if _, ok := fieldSeen[apikey.FieldContentSafetyInterceptEnabled]; !ok {
+				selectedFields = append(selectedFields, apikey.FieldContentSafetyInterceptEnabled)
+				fieldSeen[apikey.FieldContentSafetyInterceptEnabled] = struct{}{}
+			}
 		case "id":
 		case "__typename":
 		default:

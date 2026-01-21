@@ -146,6 +146,9 @@ func (s *APIKeyService) UpdateAPIKey(ctx context.Context, id int, input ent.Upda
 	if input.IPWhitelist != nil {
 		update.SetIPWhitelist(strings.TrimSpace(*input.IPWhitelist))
 	}
+	if input.ContentSafetyInterceptEnabled != nil {
+		update.SetContentSafetyInterceptEnabled(*input.ContentSafetyInterceptEnabled)
+	}
 
 	apiKey, err = update.Save(ctx)
 	if err != nil {

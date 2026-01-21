@@ -8,6 +8,7 @@ import {
     pricingResponseSchema,
     deleteResponseSchema,
     type Pricing,
+    type PricingPagination,
     type CreatePricingInput,
     type UpdatePricingInput,
 } from './schema';
@@ -15,18 +16,28 @@ import {
 /**
  * Hook to fetch all pricing records
  */
-export function useQueryPricing() {
+export function useQueryPricing(options?: { offset?: number; limit?: number }) {
     const { handleError } = useErrorHandler();
+    const offset = options?.offset ?? 0;
+    const limit = options?.limit ?? 20;
 
     return useQuery({
-        queryKey: ['pricing'],
-        queryFn: async (): Promise<Pricing[]> => {
+        queryKey: ['pricing', offset, limit],
+        queryFn: async (): Promise<{ records: Pricing[]; pagination: PricingPagination }> => {
             try {
-                const data = await apiRequest('/admin/pricing', {
+                const searchParams = new URLSearchParams({
+                    offset: String(offset),
+                    limit: String(limit),
+                });
+                const endpoint = `/admin/pricing?${searchParams.toString()}`;
+                const data = await apiRequest(endpoint, {
                     requireAuth: true,
                 });
                 const parsed = pricingListResponseSchema.parse(data);
-                return parsed.data;
+                return {
+                    records: parsed.data,
+                    pagination: parsed.pagination,
+                };
             } catch (error) {
                 handleError(error, 'Failed to fetch pricing');
                 throw error;

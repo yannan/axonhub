@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -31,6 +31,8 @@ export function BillingStatsSettings() {
   const { handleError } = useErrorHandler();
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(emptyFilters);
+  const [statsOffset, setStatsOffset] = useState(0);
+  const statsLimit = 20;
 
   const queryFilters = useMemo<ConsumptionStatsFilters>(() => {
     const parsedProjectId = Number(appliedFilters.projectId);
@@ -42,7 +44,21 @@ export function BillingStatsSettings() {
     };
   }, [appliedFilters]);
 
-  const { data: stats = [], isLoading } = useAdminConsumptionStats(queryFilters);
+  const { data: statsData, isLoading } = useAdminConsumptionStats(queryFilters, {
+    offset: statsOffset,
+    limit: statsLimit,
+  });
+  const stats = statsData?.records ?? [];
+  const statsPagination = statsData?.pagination;
+  const statsTotal = statsPagination?.total ?? 0;
+  const statsStart = statsTotal === 0 ? 0 : (statsPagination?.offset ?? 0) + 1;
+  const statsEnd =
+    statsTotal === 0 ? 0 : Math.min((statsPagination?.offset ?? 0) + (statsPagination?.limit ?? statsLimit), statsTotal);
+  const statsCanPrevious = (statsPagination?.offset ?? statsOffset) > 0;
+  const statsCanNext =
+    statsPagination != null
+      ? statsPagination.offset + statsPagination.limit < statsPagination.total
+      : statsOffset + statsLimit < statsTotal;
 
   const exportMutation = useMutation({
     mutationFn: async () => {
@@ -67,12 +83,27 @@ export function BillingStatsSettings() {
 
   const handleApply = () => {
     setAppliedFilters({ ...filters });
+    setStatsOffset(0);
   };
 
   const handleReset = () => {
     setFilters(emptyFilters);
     setAppliedFilters(emptyFilters);
+    setStatsOffset(0);
   };
+
+  useEffect(() => {
+    if (!statsPagination) {
+      return;
+    }
+    if (statsPagination.total === 0 && statsOffset !== 0) {
+      setStatsOffset(0);
+      return;
+    }
+    if (statsPagination.total > 0 && statsOffset >= statsPagination.total) {
+      setStatsOffset(Math.max(statsPagination.total - statsPagination.limit, 0));
+    }
+  }, [statsPagination, statsOffset]);
 
   return (
     <Card>
@@ -193,6 +224,35 @@ export function BillingStatsSettings() {
               )}
             </TableBody>
           </Table>
+        </div>
+        <div className='flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground'>
+          <div>
+            {t('system.billingStats.pagination.summary', {
+              start: statsStart,
+              end: statsEnd,
+              total: statsTotal,
+            })}
+          </div>
+          <div className='flex items-center gap-2'>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={() => setStatsOffset(Math.max(statsOffset - statsLimit, 0))}
+              disabled={!statsCanPrevious || isLoading}
+            >
+              {t('system.billingStats.pagination.previous')}
+            </Button>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={() => setStatsOffset(statsOffset + statsLimit)}
+              disabled={!statsCanNext || isLoading}
+            >
+              {t('system.billingStats.pagination.next')}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

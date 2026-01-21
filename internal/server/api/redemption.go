@@ -144,6 +144,12 @@ func (h *RedemptionHandlers) ListCodes(c *gin.Context) {
 	limit := parseLimit(c.Query("limit"), 100)
 	offset := parseOffset(c.Query("offset"))
 
+	total, err := query.Clone().Count(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	codes, err := query.
 		Order(ent.Desc(redemptioncode.FieldCreatedAt)).
 		Limit(limit).
@@ -154,7 +160,15 @@ func (h *RedemptionHandlers) ListCodes(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": codes})
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    codes,
+		"pagination": PaginationResponse{
+			Total:  total,
+			Offset: offset,
+			Limit:  limit,
+		},
+	})
 }
 
 type VoidCodeRequest struct {
@@ -242,6 +256,12 @@ func (h *RedemptionHandlers) ListRechargesAdmin(c *gin.Context) {
 	limit := parseLimit(c.Query("limit"), 100)
 	offset := parseOffset(c.Query("offset"))
 
+	total, err := query.Clone().Count(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	records, err := query.
 		Order(ent.Desc(rechargerecord.FieldCreatedAt)).
 		Limit(limit).
@@ -252,7 +272,15 @@ func (h *RedemptionHandlers) ListRechargesAdmin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": records})
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    records,
+		"pagination": PaginationResponse{
+			Total:  total,
+			Offset: offset,
+			Limit:  limit,
+		},
+	})
 }
 
 func (h *RedemptionHandlers) ListUserRecharges(c *gin.Context) {
@@ -269,8 +297,15 @@ func (h *RedemptionHandlers) ListUserRecharges(c *gin.Context) {
 	limit := parseLimit(c.Query("limit"), 100)
 	offset := parseOffset(c.Query("offset"))
 
-	records, err := h.client.RechargeRecord.Query().
-		Where(rechargerecord.ProjectID(projectID)).
+	query := h.client.RechargeRecord.Query().
+		Where(rechargerecord.ProjectID(projectID))
+	total, err := query.Clone().Count(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	records, err := query.
 		Order(ent.Desc(rechargerecord.FieldCreatedAt)).
 		Limit(limit).
 		Offset(offset).
@@ -280,7 +315,15 @@ func (h *RedemptionHandlers) ListUserRecharges(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": records})
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    records,
+		"pagination": PaginationResponse{
+			Total:  total,
+			Offset: offset,
+			Limit:  limit,
+		},
+	})
 }
 
 func exportCodesCSV(codes []string, quota int, expiresAt *time.Time, maxUses *int) ([]byte, error) {

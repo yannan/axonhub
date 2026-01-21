@@ -151,6 +151,10 @@ type APIKeyWhereInput struct {
 	IPWhitelistEqualFold    *string  `json:"ipWhitelistEqualFold,omitempty"`
 	IPWhitelistContainsFold *string  `json:"ipWhitelistContainsFold,omitempty"`
 
+	// "content_safety_intercept_enabled" field predicates.
+	ContentSafetyInterceptEnabled    *bool `json:"contentSafetyInterceptEnabled,omitempty"`
+	ContentSafetyInterceptEnabledNEQ *bool `json:"contentSafetyInterceptEnabledNEQ,omitempty"`
+
 	// "user" edge predicates.
 	HasUser     *bool             `json:"hasUser,omitempty"`
 	HasUserWith []*UserWhereInput `json:"hasUserWith,omitempty"`
@@ -505,6 +509,12 @@ func (i *APIKeyWhereInput) P() (predicate.APIKey, error) {
 	}
 	if i.IPWhitelistContainsFold != nil {
 		predicates = append(predicates, apikey.IPWhitelistContainsFold(*i.IPWhitelistContainsFold))
+	}
+	if i.ContentSafetyInterceptEnabled != nil {
+		predicates = append(predicates, apikey.ContentSafetyInterceptEnabledEQ(*i.ContentSafetyInterceptEnabled))
+	}
+	if i.ContentSafetyInterceptEnabledNEQ != nil {
+		predicates = append(predicates, apikey.ContentSafetyInterceptEnabledNEQ(*i.ContentSafetyInterceptEnabledNEQ))
 	}
 
 	if i.HasUser != nil {

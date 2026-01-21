@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/looplj/axonhub/internal/contexts"
+	entrequest "github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/llm"
 	"github.com/looplj/axonhub/internal/llm/pipeline"
 	"github.com/looplj/axonhub/internal/llm/pipeline/stream"
@@ -27,7 +28,6 @@ func NewChatCompletionOrchestrator(
 	httpClient *httpclient.HttpClient,
 	inbound transformer.Inbound,
 	systemService *biz.SystemService,
-	settingsService *biz.SettingsService,
 	usageLogService *biz.UsageLogService,
 	validationEngine *filter.ValidationEngine,
 ) *ChatCompletionOrchestrator {
@@ -49,7 +49,6 @@ func NewChatCompletionOrchestrator(
 		RequestService:   requestService,
 		ChannelService:   channelService,
 		SystemService:    systemService,
-		SettingsService:  settingsService,
 		UsageLogService:  usageLogService,
 		ValidationEngine: validationEngine,
 		Middlewares: []pipeline.Middleware{
@@ -70,7 +69,6 @@ type ChatCompletionOrchestrator struct {
 	RequestService   *biz.RequestService
 	ChannelService   *biz.ChannelService
 	SystemService    *biz.SystemService
-	SettingsService  *biz.SettingsService
 	UsageLogService  *biz.UsageLogService
 	Middlewares      []pipeline.Middleware
 	PipelineFactory  *pipeline.Factory
@@ -184,7 +182,7 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 		applyApiKeyModelMapping(inbound),
 		selectCandidates(inbound),
 		persistRequest(inbound),
-		validateContent(inbound, processor.ValidationEngine, processor.SettingsService),
+		validateContent(inbound, processor.ValidationEngine),
 	)
 
 	// Add outbound middlewares (executed after outbound.TransformRequest)
@@ -256,16 +254,14 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 	}, nil
 }
 
-func validateContent(inbound transformer.Inbound, engine *filter.ValidationEngine, settingsService *biz.SettingsService) pipeline.Middleware {
+func validateContent(inbound transformer.Inbound, engine *filter.ValidationEngine) pipeline.Middleware {
 	return pipeline.OnRawRequest("validate-content", func(ctx context.Context, request *httpclient.Request) (*httpclient.Request, error) {
-		if settingsService != nil {
-			enabled, err := settingsService.ContentSafetyInterceptEnabled(ctx)
-			if err != nil {
-				log.Warn(ctx, "failed to read content safety intercept setting", log.Cause(err))
-			}
-			if !enabled {
-				return request, nil
-			}
+		if source := contexts.GetSourceOrDefault(ctx, entrequest.SourceAPI); source == entrequest.SourcePlayground {
+			return request, nil
+		}
+
+		if apiKey, ok := contexts.GetAPIKey(ctx); ok && apiKey != nil && !apiKey.ContentSafetyInterceptEnabled {
+			return request, nil
 		}
 
 		// Skip body check for now or ensure stream bodies are handled.

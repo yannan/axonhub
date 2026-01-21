@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     flexRender,
@@ -25,7 +25,9 @@ import { PricingEnableDialog } from './components/pricing-enable-dialog';
 
 export default function PricingManagement() {
     const { t } = useTranslation();
-    const { data: pricingList = [], isLoading } = useQueryPricing();
+    const [pricingOffset, setPricingOffset] = useState(0);
+    const pricingLimit = 20;
+    const { data: pricingData, isLoading } = useQueryPricing({ offset: pricingOffset, limit: pricingLimit });
     const [sorting, setSorting] = useState<SortingState>([{ id: 'created_at', desc: true }]);
     const [currentRow, setCurrentRow] = useState<Pricing | undefined>(undefined);
     const [deleteRow, setDeleteRow] = useState<Pricing | null>(null);
@@ -71,6 +73,33 @@ export default function PricingManagement() {
             }),
         [t, handleEdit, handleDelete, handleEnable, handleDisable]
     );
+
+    const pricingList = pricingData?.records ?? [];
+    const pricingPagination = pricingData?.pagination;
+    const pricingTotal = pricingPagination?.total ?? 0;
+    const pricingStart = pricingTotal === 0 ? 0 : (pricingPagination?.offset ?? 0) + 1;
+    const pricingEnd =
+        pricingTotal === 0
+            ? 0
+            : Math.min((pricingPagination?.offset ?? 0) + (pricingPagination?.limit ?? pricingLimit), pricingTotal);
+    const pricingCanPrevious = (pricingPagination?.offset ?? pricingOffset) > 0;
+    const pricingCanNext =
+        pricingPagination != null
+            ? pricingPagination.offset + pricingPagination.limit < pricingPagination.total
+            : pricingOffset + pricingLimit < pricingTotal;
+
+    useEffect(() => {
+        if (!pricingPagination) {
+            return;
+        }
+        if (pricingPagination.total === 0 && pricingOffset !== 0) {
+            setPricingOffset(0);
+            return;
+        }
+        if (pricingPagination.total > 0 && pricingOffset >= pricingPagination.total) {
+            setPricingOffset(Math.max(pricingPagination.total - pricingPagination.limit, 0));
+        }
+    }, [pricingPagination, pricingOffset]);
 
     const table = useReactTable({
         data: pricingList,
@@ -141,6 +170,33 @@ export default function PricingManagement() {
                             )}
                         </TableBody>
                     </Table>
+                </div>
+                <div className='mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground'>
+                    <div>
+                        {t('pricing.pagination.summary', {
+                            start: pricingStart,
+                            end: pricingEnd,
+                            total: pricingTotal,
+                        })}
+                    </div>
+                    <div className='flex items-center gap-2'>
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => setPricingOffset(Math.max(pricingOffset - pricingLimit, 0))}
+                            disabled={!pricingCanPrevious || isLoading}
+                        >
+                            {t('pricing.pagination.previous')}
+                        </Button>
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => setPricingOffset(pricingOffset + pricingLimit)}
+                            disabled={!pricingCanNext || isLoading}
+                        >
+                            {t('pricing.pagination.next')}
+                        </Button>
+                    </div>
                 </div>
             </Main>
 

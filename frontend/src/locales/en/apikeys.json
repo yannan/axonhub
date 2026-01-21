@@ -122,6 +122,10 @@
           "placeholder": "Enter IPs or CIDR blocks, one per line",
           "description": "Requests from other IPs will be rejected. Leave empty to allow all.",
           "allowAll": "Allow all IPs"
+        },
+        "contentSafetyIntercept": {
+          "label": "Content safety intercept",
+          "description": "Control whether content safety interception is enabled for this API key."
         }
       },
       "buttons": {}

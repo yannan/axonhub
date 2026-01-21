@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sync"
-	"time"
 
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/systemsettings"
@@ -14,16 +12,7 @@ import (
 // SettingsService provides business logic for system settings management.
 type SettingsService struct {
 	client *ent.Client
-
-	mu                         sync.RWMutex
-	contentSafetyIntercept     bool
-	contentSafetyInterceptTTL  time.Time
-	contentSafetyInterceptInit bool
 }
-
-const (
-	SystemSettingContentSafetyInterceptEnabled = "content_safety_intercept_enabled"
-)
 
 // NewSettingsService creates a new SettingsService.
 func NewSettingsService(client *ent.Client) *SettingsService {
@@ -61,9 +50,6 @@ func (s *SettingsService) UpdateSetting(ctx context.Context, key string, value m
 			SetValue(value).
 			SetDescription(description).
 			Save(ctx)
-		if err == nil {
-			s.updateContentSafetyInterceptCache(key, value)
-		}
 		return updated, err
 	}
 
@@ -72,9 +58,6 @@ func (s *SettingsService) UpdateSetting(ctx context.Context, key string, value m
 		SetValue(value).
 		SetDescription(description).
 		Save(ctx)
-	if err == nil {
-		s.updateContentSafetyInterceptCache(key, value)
-	}
 	return created, err
 }
 
@@ -85,8 +68,6 @@ func (s *SettingsService) validateSettingValue(key string, value map[string]inte
 		return s.validateGroupRatio(value)
 	case "user_selectable_groups":
 		return s.validateUserSelectableGroups(value)
-	case SystemSettingContentSafetyInterceptEnabled:
-		return s.validateContentSafetyInterceptEnabled(value)
 	default:
 		// Allow other settings without specific validation
 		return nil
@@ -150,93 +131,6 @@ func (s *SettingsService) validateUserSelectableGroups(value map[string]interfac
 	}
 
 	return nil
-}
-
-// validateContentSafetyInterceptEnabled validates the content safety intercept setting.
-// Expected format: {"enabled": true}
-func (s *SettingsService) validateContentSafetyInterceptEnabled(value map[string]interface{}) error {
-	if len(value) == 0 {
-		return fmt.Errorf("content safety intercept setting cannot be empty")
-	}
-
-	raw, ok := value["enabled"]
-	if !ok {
-		return fmt.Errorf("content safety intercept setting requires 'enabled'")
-	}
-
-	if _, ok := raw.(bool); !ok {
-		return fmt.Errorf("content safety intercept 'enabled' must be a boolean")
-	}
-
-	return nil
-}
-
-// ContentSafetyInterceptEnabled retrieves the content safety intercept setting.
-// Defaults to true when not set.
-func (s *SettingsService) ContentSafetyInterceptEnabled(ctx context.Context) (bool, error) {
-	if cached, ok := s.getContentSafetyInterceptCache(); ok {
-		return cached, nil
-	}
-
-	setting, err := s.GetSetting(ctx, SystemSettingContentSafetyInterceptEnabled)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			s.setContentSafetyInterceptCache(true)
-			return true, nil
-		}
-		return true, err
-	}
-
-	raw, ok := setting.Value["enabled"]
-	if !ok {
-		return true, fmt.Errorf("content safety intercept setting missing 'enabled'")
-	}
-
-	enabled, ok := raw.(bool)
-	if !ok {
-		return true, fmt.Errorf("content safety intercept 'enabled' must be a boolean")
-	}
-
-	s.setContentSafetyInterceptCache(enabled)
-	return enabled, nil
-}
-
-func (s *SettingsService) getContentSafetyInterceptCache() (bool, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if !s.contentSafetyInterceptInit || time.Now().After(s.contentSafetyInterceptTTL) {
-		return false, false
-	}
-
-	return s.contentSafetyIntercept, true
-}
-
-func (s *SettingsService) setContentSafetyInterceptCache(value bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.contentSafetyIntercept = value
-	s.contentSafetyInterceptTTL = time.Now().Add(30 * time.Second)
-	s.contentSafetyInterceptInit = true
-}
-
-func (s *SettingsService) updateContentSafetyInterceptCache(key string, value map[string]interface{}) {
-	if key != SystemSettingContentSafetyInterceptEnabled {
-		return
-	}
-
-	raw, ok := value["enabled"]
-	if !ok {
-		return
-	}
-
-	enabled, ok := raw.(bool)
-	if !ok {
-		return
-	}
-
-	s.setContentSafetyInterceptCache(enabled)
 }
 
 // GetGroupRatio retrieves the group_ratio setting with default values.

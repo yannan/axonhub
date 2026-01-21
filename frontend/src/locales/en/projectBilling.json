@@ -56,14 +56,15 @@
         "model": "Model",
         "type": "Type",
         "quota": "Quota",
-        "multiplier": "Multiplier",
-        "groupMultiplier": "Group Multiplier",
-        "modelMultiplier": "Model Multiplier",
-        "completionRatio": "Completion Ratio",
         "tokens": "Tokens",
         "apiKey": "API Key",
         "trace": "Trace",
         "createdAt": "Created At"
+      },
+      "pagination": {
+        "summary": "Showing {{start}}-{{end}} of {{total}}",
+        "previous": "Previous",
+        "next": "Next"
       },
       "tokens": {
         "prompt": "Prompt",
@@ -84,6 +85,11 @@
         "status": "Status",
         "trace": "Trace",
         "createdAt": "Created At"
+      },
+      "pagination": {
+        "summary": "Showing {{start}}-{{end}} of {{total}}",
+        "previous": "Previous",
+        "next": "Next"
       },
       "status": {
         "success": "Success",

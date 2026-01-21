@@ -21,6 +21,11 @@
       "createdAt": "创建时间",
       "actions": "操作"
     },
+    "pagination": {
+      "summary": "显示 {{start}}-{{end}} / {{total}}",
+      "previous": "上一页",
+      "next": "下一页"
+    },
     "status": {
       "active": "生效",
       "disabled": "失效"

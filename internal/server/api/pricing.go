@@ -30,12 +30,34 @@ func (h *PricingHandlers) ListPrices(c *gin.Context) {
 
 	ctx := schematype.SkipSoftDelete(c.Request.Context())
 
-	prices, err := h.client.ModelPricing.Query().All(ctx)
+	query := h.client.ModelPricing.Query()
+	limit := parseLimit(c.Query("limit"), 100)
+	offset := parseOffset(c.Query("offset"))
+
+	total, err := query.Clone().Count(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": prices})
+
+	prices, err := query.
+		Order(ent.Desc(modelpricing.FieldCreatedAt)).
+		Limit(limit).
+		Offset(offset).
+		All(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    prices,
+		"pagination": PaginationResponse{
+			Total:  total,
+			Offset: offset,
+			Limit:  limit,
+		},
+	})
 }
 
 // CreatePrice - Create a new model price

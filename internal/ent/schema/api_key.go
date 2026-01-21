@@ -77,6 +77,9 @@ func (APIKey) Fields() []ent.Field {
 			Default("").
 			Optional().
 			Comment("Allowed IPs, one per line; empty means allow all"),
+		field.Bool("content_safety_intercept_enabled").
+			Default(true).
+			Comment("Whether content safety interception is enabled for this API key"),
 	}
 }
 

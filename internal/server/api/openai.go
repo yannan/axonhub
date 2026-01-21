@@ -21,7 +21,6 @@ type OpenAIHandlersParams struct {
 	ModelService     *biz.ModelService
 	RequestService   *biz.RequestService
 	SystemService    *biz.SystemService
-	SettingsService  *biz.SettingsService
 	UsageLogService  *biz.UsageLogService
 	HttpClient       *httpclient.HttpClient
 	ValidationEngine *filter.ValidationEngine
@@ -46,7 +45,6 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.HttpClient,
 				openai.NewInboundTransformer(),
 				params.SystemService,
-				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),
@@ -59,7 +57,6 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.HttpClient,
 				responses.NewInboundTransformer(),
 				params.SystemService,
-				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),
@@ -72,7 +69,6 @@ func NewOpenAIHandlers(params OpenAIHandlersParams) *OpenAIHandlers {
 				params.HttpClient,
 				openai.NewEmbeddingInboundTransformer(),
 				params.SystemService,
-				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),

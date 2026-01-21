@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
@@ -56,88 +55,51 @@ type DashboardStatsResponse struct {
 }
 
 type ConsumptionRecordResponse struct {
-	ID                int                    `json:"id"`
-	UserID            int                    `json:"user_id"`
-	ProjectID         int                    `json:"project_id"`
-	Model             string                 `json:"model"`
-	Quota             int                    `json:"quota"`
-	BillingMultiplier float64                `json:"billing_multiplier"`
-	GroupMultiplier   float64                `json:"group_multiplier"`
-	ModelMultiplier   float64                `json:"model_multiplier"`
-	CompletionRatio   float64                `json:"completion_ratio"`
-	BillingType       *string                `json:"billing_type,omitempty"`
-	TraceID           *string                `json:"trace_id,omitempty"`
-	APIKeyID          *int                   `json:"api_key_id,omitempty"`
-	APIKeyName        *string                `json:"api_key_name,omitempty"`
-	PromptTokens      int                    `json:"prompt_tokens"`
-	CompletionTokens  int                    `json:"completion_tokens"`
-	TotalTokens       int                    `json:"total_tokens"`
-	Content           *string                `json:"content,omitempty"`
-	Type              consumptionrecord.Type `json:"type"`
-	CreatedAt         time.Time              `json:"created_at"`
-	UpdatedAt         time.Time              `json:"updated_at"`
+	ID               int                    `json:"id"`
+	UserID           int                    `json:"user_id"`
+	ProjectID        int                    `json:"project_id"`
+	Model            string                 `json:"model"`
+	Quota            int                    `json:"quota"`
+	BillingType      *string                `json:"billing_type,omitempty"`
+	TraceID          *string                `json:"trace_id,omitempty"`
+	APIKeyID         *int                   `json:"api_key_id,omitempty"`
+	APIKeyName       *string                `json:"api_key_name,omitempty"`
+	PromptTokens     int                    `json:"prompt_tokens"`
+	CompletionTokens int                    `json:"completion_tokens"`
+	TotalTokens      int                    `json:"total_tokens"`
+	Type             consumptionrecord.Type `json:"type"`
+	CreatedAt        time.Time              `json:"created_at"`
+	UpdatedAt        time.Time              `json:"updated_at"`
 }
 
-type consumptionRecordContent struct {
-	BillingMultiplier float64 `json:"billing_multiplier"`
-	GroupMultiplier   float64 `json:"group_multiplier"`
-	ModelMultiplier   float64 `json:"model_multiplier"`
-	CompletionRatio   float64 `json:"completion_ratio"`
+type PaginationResponse struct {
+	Total  int `json:"total"`
+	Offset int `json:"offset"`
+	Limit  int `json:"limit"`
 }
 
 func mapConsumptionRecord(record *ent.ConsumptionRecord, apiKeyID *int, apiKeyName *string, billingType *string) ConsumptionRecordResponse {
-	billingMultiplier := 1.0
-	groupMultiplier := 1.0
-	modelMultiplier := 1.0
-	completionRatio := 1.0
-	if record.Content != "" {
-		var parsed consumptionRecordContent
-		if err := json.Unmarshal([]byte(record.Content), &parsed); err == nil {
-			if parsed.BillingMultiplier > 0 {
-				billingMultiplier = parsed.BillingMultiplier
-			}
-			if parsed.GroupMultiplier > 0 {
-				groupMultiplier = parsed.GroupMultiplier
-			}
-			if parsed.ModelMultiplier > 0 {
-				modelMultiplier = parsed.ModelMultiplier
-			}
-			if parsed.CompletionRatio > 0 {
-				completionRatio = parsed.CompletionRatio
-			}
-		}
-	}
-
 	var traceID *string
 	if record.TraceID != "" {
 		traceID = &record.TraceID
 	}
-	var content *string
-	if record.Content != "" {
-		content = &record.Content
-	}
 
 	return ConsumptionRecordResponse{
-		ID:                record.ID,
-		UserID:            record.UserID,
-		ProjectID:         record.ProjectID,
-		Model:             record.Model,
-		Quota:             record.Quota,
-		BillingMultiplier: billingMultiplier,
-		GroupMultiplier:   groupMultiplier,
-		ModelMultiplier:   modelMultiplier,
-		CompletionRatio:   completionRatio,
-		BillingType:       billingType,
-		TraceID:           traceID,
-		APIKeyID:          apiKeyID,
-		APIKeyName:        apiKeyName,
-		PromptTokens:      record.PromptTokens,
-		CompletionTokens:  record.CompletionTokens,
-		TotalTokens:       record.TotalTokens,
-		Content:           content,
-		Type:              record.Type,
-		CreatedAt:         record.CreatedAt,
-		UpdatedAt:         record.UpdatedAt,
+		ID:               record.ID,
+		UserID:           record.UserID,
+		ProjectID:        record.ProjectID,
+		Model:            record.Model,
+		Quota:            record.Quota,
+		BillingType:      billingType,
+		TraceID:          traceID,
+		APIKeyID:         apiKeyID,
+		APIKeyName:       apiKeyName,
+		PromptTokens:     record.PromptTokens,
+		CompletionTokens: record.CompletionTokens,
+		TotalTokens:      record.TotalTokens,
+		Type:             record.Type,
+		CreatedAt:        record.CreatedAt,
+		UpdatedAt:        record.UpdatedAt,
 	}
 }
 
@@ -179,14 +141,40 @@ func (h *BillingHandlers) GetUsage(c *gin.Context) {
 		return
 	}
 
-	// Optional pagination handling could go here
-	// offset := ...
-	// limit := ...
+	offset := 0
+	limit := 100
+	if value := strings.TrimSpace(c.Query("offset")); value != "" {
+		parsed, err := strconv.Atoi(value)
+		if err != nil || parsed < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid offset"})
+			return
+		}
+		offset = parsed
+	}
+	if value := strings.TrimSpace(c.Query("limit")); value != "" {
+		parsed, err := strconv.Atoi(value)
+		if err != nil || parsed <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid limit"})
+			return
+		}
+		if parsed > 200 {
+			parsed = 200
+		}
+		limit = parsed
+	}
 
-	records, err := h.client.ConsumptionRecord.Query().
-		Where(consumptionrecord.ProjectID(projectID)).
+	baseQuery := h.client.ConsumptionRecord.Query().
+		Where(consumptionrecord.ProjectID(projectID))
+	total, err := baseQuery.Clone().Count(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	records, err := baseQuery.
 		Order(ent.Desc(consumptionrecord.FieldCreatedAt)).
-		Limit(100). // Default limit
+		Offset(offset).
+		Limit(limit).
 		All(c.Request.Context())
 
 	if err != nil {
@@ -310,7 +298,15 @@ func (h *BillingHandlers) GetUsage(c *gin.Context) {
 		response = append(response, mapConsumptionRecord(record, apiKeyID, apiKeyName, billingType))
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": response})
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    response,
+		"pagination": PaginationResponse{
+			Total:  total,
+			Offset: offset,
+			Limit:  limit,
+		},
+	})
 }
 
 // GetDashboardStats returns a lightweight stats overview for the project dashboard.
@@ -388,7 +384,29 @@ func (h *BillingHandlers) GetConsumptionStats(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": rows})
+	limit := parseLimit(c.Query("limit"), 100)
+	offset := parseOffset(c.Query("offset"))
+	total := len(rows)
+
+	if offset >= total {
+		rows = []ConsumptionStatsRow{}
+	} else {
+		end := offset + limit
+		if end > total {
+			end = total
+		}
+		rows = rows[offset:end]
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    rows,
+		"pagination": PaginationResponse{
+			Total:  total,
+			Offset: offset,
+			Limit:  limit,
+		},
+	})
 }
 
 // ExportConsumptionStats exports aggregated consumption to CSV.

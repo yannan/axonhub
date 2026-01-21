@@ -22,11 +22,12 @@ import (
 
 // CreateAPIKeyInput represents a mutation input for creating apikeys.
 type CreateAPIKeyInput struct {
-	Name        string
-	Type        *apikey.Type
-	Scopes      []string
-	IPWhitelist *string
-	ProjectID   int
+	Name                          string
+	Type                          *apikey.Type
+	Scopes                        []string
+	IPWhitelist                   *string
+	ContentSafetyInterceptEnabled *bool
+	ProjectID                     int
 }
 
 // Mutate applies the CreateAPIKeyInput on the APIKeyMutation builder.
@@ -41,6 +42,9 @@ func (i *CreateAPIKeyInput) Mutate(m *APIKeyMutation) {
 	if v := i.IPWhitelist; v != nil {
 		m.SetIPWhitelist(*v)
 	}
+	if v := i.ContentSafetyInterceptEnabled; v != nil {
+		m.SetContentSafetyInterceptEnabled(*v)
+	}
 	m.SetProjectID(i.ProjectID)
 }
 
@@ -52,12 +56,13 @@ func (c *APIKeyCreate) SetInput(i CreateAPIKeyInput) *APIKeyCreate {
 
 // UpdateAPIKeyInput represents a mutation input for updating apikeys.
 type UpdateAPIKeyInput struct {
-	Name             *string
-	ClearScopes      bool
-	Scopes           []string
-	AppendScopes     []string
-	ClearIPWhitelist bool
-	IPWhitelist      *string
+	Name                          *string
+	ClearScopes                   bool
+	Scopes                        []string
+	AppendScopes                  []string
+	ClearIPWhitelist              bool
+	IPWhitelist                   *string
+	ContentSafetyInterceptEnabled *bool
 }
 
 // Mutate applies the UpdateAPIKeyInput on the APIKeyMutation builder.
@@ -79,6 +84,9 @@ func (i *UpdateAPIKeyInput) Mutate(m *APIKeyMutation) {
 	}
 	if v := i.IPWhitelist; v != nil {
 		m.SetIPWhitelist(*v)
+	}
+	if v := i.ContentSafetyInterceptEnabled; v != nil {
+		m.SetContentSafetyInterceptEnabled(*v)
 	}
 }
 

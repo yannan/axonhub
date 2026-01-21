@@ -12,8 +12,10 @@ import {
   usageResponseSchema,
   type DashboardStatsData,
   type RechargeRecord,
+  type RechargePagination,
   type RedeemResponse,
   type SubscriptionData,
+  type UsagePagination,
   type UsageRecord,
 } from './schema';
 
@@ -71,20 +73,31 @@ export function useProjectSubscription() {
   });
 }
 
-export function useProjectRecharges() {
+export function useProjectRecharges(options?: { offset?: number; limit?: number }) {
   const { handleError } = useErrorHandler();
   const projectId = useSelectedProjectId();
+  const offset = options?.offset ?? 0;
+  const limit = options?.limit ?? 20;
 
   return useQuery({
-    queryKey: ['project-recharges', projectId],
+    queryKey: ['project-recharges', projectId, offset, limit],
     enabled: !!projectId,
-    queryFn: async (): Promise<RechargeRecord[]> => {
+    queryFn: async (): Promise<{ records: RechargeRecord[]; pagination: RechargePagination }> => {
       try {
-        const data = await apiRequest('/project/recharges', {
+        const searchParams = new URLSearchParams({
+          offset: String(offset),
+          limit: String(limit),
+        });
+        const endpoint = `/project/recharges?${searchParams.toString()}`;
+        const data = await apiRequest(endpoint, {
           requireAuth: true,
           headers: buildProjectHeaders(projectId),
         });
-        return rechargeListResponseSchema.parse(data).data;
+        const parsed = rechargeListResponseSchema.parse(data);
+        return {
+          records: parsed.data,
+          pagination: parsed.pagination,
+        };
       } catch (error) {
         handleError(error, '获取充值记录');
         throw error;
@@ -150,20 +163,31 @@ export function useProjectDashboardStats() {
   });
 }
 
-export function useProjectUsage() {
+export function useProjectUsage(options?: { offset?: number; limit?: number }) {
   const { handleError } = useErrorHandler();
   const projectId = useSelectedProjectId();
+  const offset = options?.offset ?? 0;
+  const limit = options?.limit ?? 20;
 
   return useQuery({
-    queryKey: ['project-usage', projectId],
+    queryKey: ['project-usage', projectId, offset, limit],
     enabled: !!projectId,
-    queryFn: async (): Promise<UsageRecord[]> => {
+    queryFn: async (): Promise<{ records: UsageRecord[]; pagination: UsagePagination }> => {
       try {
-        const data = await apiRequest('/project/billing/usage', {
+        const searchParams = new URLSearchParams({
+          offset: String(offset),
+          limit: String(limit),
+        });
+        const endpoint = `/project/billing/usage?${searchParams.toString()}`;
+        const data = await apiRequest(endpoint, {
           requireAuth: true,
           headers: buildProjectHeaders(projectId),
         });
-        return usageResponseSchema.parse(data).data;
+        const parsed = usageResponseSchema.parse(data);
+        return {
+          records: parsed.data,
+          pagination: parsed.pagination,
+        };
       } catch (error) {
         handleError(error, '获取项目用量记录');
         throw error;

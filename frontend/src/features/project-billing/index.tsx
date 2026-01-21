@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
@@ -23,11 +23,50 @@ import {
 export default function ProjectBillingPage() {
   const { t } = useTranslation();
   const { data: subscription, isLoading: subscriptionLoading } = useProjectSubscription();
-  const { data: recharges = [], isLoading: rechargesLoading } = useProjectRecharges();
+  const [rechargeOffset, setRechargeOffset] = useState(0);
+  const rechargeLimit = 10;
+  const { data: rechargeData, isLoading: rechargesLoading } = useProjectRecharges({
+    offset: rechargeOffset,
+    limit: rechargeLimit,
+  });
   const { data: dashboardStats, isLoading: dashboardLoading } = useProjectDashboardStats();
-  const { data: usageRecords = [], isLoading: usageLoading } = useProjectUsage();
+  const [usageOffset, setUsageOffset] = useState(0);
+  const usageLimit = 20;
+  const { data: usageData, isLoading: usageLoading } = useProjectUsage({ offset: usageOffset, limit: usageLimit });
   const redeemCode = useRedeemCode();
   const [code, setCode] = useState('');
+
+  const recharges = rechargeData?.records ?? [];
+  const rechargePagination = rechargeData?.pagination;
+
+  const usageRecords = usageData?.records ?? [];
+  const usagePagination = usageData?.pagination;
+
+  useEffect(() => {
+    if (!usagePagination) {
+      return;
+    }
+    if (usagePagination.total === 0 && usageOffset !== 0) {
+      setUsageOffset(0);
+      return;
+    }
+    if (usagePagination.total > 0 && usageOffset >= usagePagination.total) {
+      setUsageOffset(Math.max(usagePagination.total - usagePagination.limit, 0));
+    }
+  }, [usagePagination, usageOffset]);
+
+  useEffect(() => {
+    if (!rechargePagination) {
+      return;
+    }
+    if (rechargePagination.total === 0 && rechargeOffset !== 0) {
+      setRechargeOffset(0);
+      return;
+    }
+    if (rechargePagination.total > 0 && rechargeOffset >= rechargePagination.total) {
+      setRechargeOffset(Math.max(rechargePagination.total - rechargePagination.limit, 0));
+    }
+  }, [rechargePagination, rechargeOffset]);
 
   const remainingQuota = useMemo(() => {
     if (!subscription) {
@@ -45,6 +84,25 @@ export default function ProjectBillingPage() {
 
   const avgLatency = dashboardStats?.average_latency_ms ?? null;
   const avgFirstToken = dashboardStats?.average_first_token_latency_ms ?? null;
+  const usageTotal = usagePagination?.total ?? 0;
+  const usageStart = usageTotal === 0 ? 0 : (usagePagination?.offset ?? 0) + 1;
+  const usageEnd = usageTotal === 0 ? 0 : Math.min((usagePagination?.offset ?? 0) + (usagePagination?.limit ?? usageLimit), usageTotal);
+  const canPrevious = (usagePagination?.offset ?? usageOffset) > 0;
+  const canNext =
+    usagePagination != null
+      ? usagePagination.offset + usagePagination.limit < usagePagination.total
+      : usageOffset + usageLimit < usageTotal;
+  const rechargeTotal = rechargePagination?.total ?? 0;
+  const rechargeStart = rechargeTotal === 0 ? 0 : (rechargePagination?.offset ?? 0) + 1;
+  const rechargeEnd =
+    rechargeTotal === 0
+      ? 0
+      : Math.min((rechargePagination?.offset ?? 0) + (rechargePagination?.limit ?? rechargeLimit), rechargeTotal);
+  const rechargeCanPrevious = (rechargePagination?.offset ?? rechargeOffset) > 0;
+  const rechargeCanNext =
+    rechargePagination != null
+      ? rechargePagination.offset + rechargePagination.limit < rechargePagination.total
+      : rechargeOffset + rechargeLimit < rechargeTotal;
 
   const handleRedeem = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -195,20 +253,8 @@ export default function ProjectBillingPage() {
                           {t('projectBilling.usage.columns.type')}
                         </TableHead>
                         <TableHead className='text-muted-foreground border-0 text-xs font-semibold uppercase'>
-                        {t('projectBilling.usage.columns.quota')}
-                      </TableHead>
-                      <TableHead className='text-muted-foreground border-0 text-xs font-semibold uppercase'>
-                        {t('projectBilling.usage.columns.multiplier')}
-                      </TableHead>
-                      <TableHead className='text-muted-foreground border-0 text-xs font-semibold uppercase'>
-                        {t('projectBilling.usage.columns.groupMultiplier')}
-                      </TableHead>
-                      <TableHead className='text-muted-foreground border-0 text-xs font-semibold uppercase'>
-                        {t('projectBilling.usage.columns.modelMultiplier')}
-                      </TableHead>
-                      <TableHead className='text-muted-foreground border-0 text-xs font-semibold uppercase'>
-                        {t('projectBilling.usage.columns.completionRatio')}
-                      </TableHead>
+                          {t('projectBilling.usage.columns.quota')}
+                        </TableHead>
                         <TableHead className='text-muted-foreground border-0 text-xs font-semibold uppercase'>
                           {t('projectBilling.usage.columns.tokens')}
                         </TableHead>
@@ -225,7 +271,7 @@ export default function ProjectBillingPage() {
                     </TableHeader>
                     <TableBody className='space-y-1 !bg-[var(--table-background)] p-2'>
                     {usageLoading ? (
-                      <TableSkeleton rows={6} columns={11} />
+                      <TableSkeleton rows={6} columns={7} />
                     ) : usageRecords.length > 0 ? (
                       usageRecords.map((record) => (
                         <TableRow key={record.id} className='group/row border-0 !bg-[var(--table-background)]'>
@@ -234,18 +280,6 @@ export default function ProjectBillingPage() {
                             <Badge variant='secondary'>{t(`projectBilling.usage.types.${record.type}`)}</Badge>
                           </TableCell>
                           <TableCell className='border-0 px-4 py-3'>{formatNumber(record.quota)}</TableCell>
-                          <TableCell className='border-0 px-4 py-3 font-mono text-xs'>
-                            {Number.isFinite(record.billing_multiplier) ? record.billing_multiplier.toFixed(4) : '-'}
-                          </TableCell>
-                          <TableCell className='border-0 px-4 py-3 font-mono text-xs'>
-                            {Number.isFinite(record.group_multiplier) ? record.group_multiplier.toFixed(4) : '-'}
-                          </TableCell>
-                          <TableCell className='border-0 px-4 py-3 font-mono text-xs'>
-                            {Number.isFinite(record.model_multiplier) ? record.model_multiplier.toFixed(4) : '-'}
-                          </TableCell>
-                          <TableCell className='border-0 px-4 py-3 font-mono text-xs'>
-                            {Number.isFinite(record.completion_ratio) ? record.completion_ratio.toFixed(4) : '-'}
-                          </TableCell>
                           <TableCell className='border-0 px-4 py-3'>
                             <div className='text-sm font-medium'>{formatNumber(record.total_tokens)}</div>
                             <div className='text-muted-foreground text-xs'>
@@ -270,13 +304,34 @@ export default function ProjectBillingPage() {
                         ))
                     ) : (
                       <TableRow className='!bg-[var(--table-background)]'>
-                        <TableCell colSpan={11} className='h-24 text-center text-muted-foreground'>
+                        <TableCell colSpan={7} className='h-24 text-center text-muted-foreground'>
                           {t('projectBilling.usage.empty')}
                         </TableCell>
                       </TableRow>
                       )}
                     </TableBody>
                   </Table>
+                </div>
+                <div className='mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground'>
+                  <div>{t('projectBilling.usage.pagination.summary', { start: usageStart, end: usageEnd, total: usageTotal })}</div>
+                  <div className='flex items-center gap-2'>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setUsageOffset(Math.max(usageOffset - usageLimit, 0))}
+                      disabled={!canPrevious || usageLoading}
+                    >
+                      {t('projectBilling.usage.pagination.previous')}
+                    </Button>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setUsageOffset(usageOffset + usageLimit)}
+                      disabled={!canNext || usageLoading}
+                    >
+                      {t('projectBilling.usage.pagination.next')}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -359,6 +414,33 @@ export default function ProjectBillingPage() {
                       )}
                     </TableBody>
                   </Table>
+                </div>
+                <div className='mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground'>
+                  <div>
+                    {t('projectBilling.recharges.pagination.summary', {
+                      start: rechargeStart,
+                      end: rechargeEnd,
+                      total: rechargeTotal,
+                    })}
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setRechargeOffset(Math.max(rechargeOffset - rechargeLimit, 0))}
+                      disabled={!rechargeCanPrevious || rechargesLoading}
+                    >
+                      {t('projectBilling.recharges.pagination.previous')}
+                    </Button>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setRechargeOffset(rechargeOffset + rechargeLimit)}
+                      disabled={!rechargeCanNext || rechargesLoading}
+                    >
+                      {t('projectBilling.recharges.pagination.next')}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Key 管理 - GraphQL 操作文档</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Space+Grotesk:wght@400;600&display=swap");
+
+      :root {
+        --ink: #0d1a2b;
+        --muted: #51607a;
+        --paper: #f6f0e8;
+        --paper-2: #efe5d9;
+        --accent: #b85c3b;
+        --accent-2: #1e6f5c;
+        --shadow: rgba(13, 26, 43, 0.16);
+        --border: rgba(13, 26, 43, 0.12);
+        --code-bg: #0d1a2b;
+        --code-ink: #f9f1e7;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 600px at 5% -10%, rgba(184, 92, 59, 0.25), transparent 60%),
+          radial-gradient(900px 500px at 110% 10%, rgba(30, 111, 92, 0.2), transparent 55%),
+          linear-gradient(150deg, var(--paper), var(--paper-2));
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 56px 6vw 24px;
+      }
+
+      .title {
+        font-family: "Newsreader", "Georgia", serif;
+        font-size: clamp(32px, 4vw, 52px);
+        letter-spacing: 0.4px;
+        margin: 0 0 12px;
+      }
+
+      .subtitle {
+        max-width: 880px;
+        font-size: 16px;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.6;
+      }
+
+      .badge-row {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .badge {
+        border: 1px solid var(--border);
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
+      }
+
+      main {
+        padding: 0 6vw 80px;
+        display: grid;
+        gap: 28px;
+      }
+
+      .panel {
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 20px 60px var(--shadow);
+        backdrop-filter: blur(6px);
+        animation: floatIn 0.6s ease both;
+      }
+
+      .panel h2 {
+        margin: 0 0 10px;
+        font-size: 22px;
+      }
+
+      .panel p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .grid {
+        display: grid;
+        gap: 20px;
+      }
+
+      .two-col {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+
+      .code {
+        background: var(--code-bg);
+        color: var(--code-ink);
+        border-radius: 14px;
+        padding: 16px;
+        font-family: "SFMono-Regular", "Consolas", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-x: auto;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        background: rgba(184, 92, 59, 0.12);
+        color: var(--accent);
+        border: 1px solid rgba(184, 92, 59, 0.25);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        text-align: left;
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .note {
+        background: rgba(30, 111, 92, 0.08);
+        border-left: 3px solid var(--accent-2);
+        padding: 12px 14px;
+        border-radius: 10px;
+        color: #1a4a3d;
+        font-size: 13px;
+      }
+
+      @keyframes floatIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 class="title">API Key 管理</h1>
+      <p class="subtitle">
+        基于当前 GraphQL Schema，整理 API Key 的创建（createAPIKey）、列表查询（apiKeys）与更新（updateAPIKey）操作。
+        适用于后台 GraphQL 接口：<strong>POST /admin/graphql</strong>。
+      </p>
+      <div class="badge-row">
+        <span class="badge">Content-Type: application/json</span>
+        <span class="badge">Authorization: Bearer &lt;JWT&gt;</span>
+        <span class="badge">Schema: axonhub/internal/server/gql</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>通用请求格式</h2>
+        <div class="grid two-col">
+          <div class="code">
+{<br />
+  "query": "query GetApiKeys($first: Int) { apiKeys(first: $first) { totalCount } }",<br />
+  "variables": { "first": 20 },<br />
+  "operationName": "GetApiKeys"<br />
+}
+          </div>
+          <div>
+            <p>GraphQL Endpoint 为 <strong>/admin/graphql</strong>，请求体采用 JSON，鉴权头需携带 JWT。</p>
+            <div class="note">
+              API Key 类型枚举：<span class="tag">user</span> / <span class="tag">service_account</span>。
+              状态枚举：<span class="tag">enabled</span> / <span class="tag">disabled</span> / <span class="tag">archived</span>。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>获取 API Keys - GetApiKeys</h2>
+        <p>Query 签名：<code>apiKeys(first, after, last, before, orderBy, where): APIKeyConnection!</code></p>
+        <div class="grid two-col">
+          <div class="code">
+query GetApiKeys(<br />
+  $first: Int<br />
+  $after: Cursor<br />
+  $last: Int<br />
+  $before: Cursor<br />
+  $orderBy: APIKeyOrder<br />
+  $where: APIKeyWhereInput<br />
+) {<br />
+  apiKeys(first: $first, after: $after, last: $last, before: $before, orderBy: $orderBy, where: $where) {<br />
+    edges {<br />
+      node {<br />
+        id<br />
+        name<br />
+        type<br />
+        status<br />
+        scopes<br />
+        ipWhitelist<br />
+        contentSafetyInterceptEnabled<br />
+        createdAt<br />
+        updatedAt<br />
+        user { id email }<br />
+        project { id name }<br />
+        profiles {<br />
+          activeProfile<br />
+          profiles {<br />
+            name<br />
+            channelIDs<br />
+            channelTags<br />
+            modelIDs<br />
+            modelMappings { from to }<br />
+          }<br />
+        }<br />
+      }<br />
+      cursor<br />
+    }<br />
+    pageInfo { hasNextPage hasPreviousPage startCursor endCursor }<br />
+    totalCount<br />
+  }<br />
+}
+          </div>
+          <div class="code">
+{<br />
+  "first": 20,<br />
+  "orderBy": { "field": "CREATED_AT", "direction": "DESC" },<br />
+  "where": { "status": "enabled", "projectID": "Project:1" }<br />
+}
+          </div>
+        </div>
+        <div class="note">
+          提示：APIKey 列表一般无需返回 key 字段，创建时建议单独查询或依赖 createAPIKey 的返回值。
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>创建 API Key - createAPIKey</h2>
+        <p>Mutation 签名：<code>createAPIKey(input: CreateAPIKeyInput!): APIKey!</code></p>
+        <div class="grid two-col">
+          <div class="code">
+mutation CreateAPIKey($input: CreateAPIKeyInput!) {<br />
+  createAPIKey(input: $input) {<br />
+    id<br />
+    key<br />
+    name<br />
+    type<br />
+    status<br />
+    scopes<br />
+    ipWhitelist<br />
+    contentSafetyInterceptEnabled<br />
+    project { id name }<br />
+    createdAt<br />
+    updatedAt<br />
+  }<br />
+}
+          </div>
+          <div class="code">
+{<br />
+  "input": {<br />
+    "name": "Ops Key",<br />
+    "type": "service_account",<br />
+    "scopes": ["read_channels", "write_requests"],<br />
+    "ipWhitelist": "10.0.0.1\\n10.0.0.2",<br />
+    "contentSafetyInterceptEnabled": true,<br />
+    "projectID": "Project:1"<br />
+  }<br />
+}
+          </div>
+        </div>
+        <h3>输入字段（CreateAPIKeyInput）</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>字段</th>
+              <th>类型</th>
+              <th>必填</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>name</td>
+              <td>String</td>
+              <td>是</td>
+              <td>API Key 名称</td>
+            </tr>
+            <tr>
+              <td>type</td>
+              <td>APIKeyType</td>
+              <td>否</td>
+              <td>类型：user / service_account</td>
+            </tr>
+            <tr>
+              <td>scopes</td>
+              <td>[String!]</td>
+              <td>否</td>
+              <td>API Key 权限范围；user 类型固定为 read_channels、write_requests</td>
+            </tr>
+            <tr>
+              <td>ipWhitelist</td>
+              <td>String</td>
+              <td>否</td>
+              <td>允许访问的 IP 白名单，按行分隔；为空表示允许全部</td>
+            </tr>
+            <tr>
+              <td>contentSafetyInterceptEnabled</td>
+              <td>Boolean</td>
+              <td>否</td>
+              <td>是否启用该 API Key 的内容安全拦截（默认 true）</td>
+            </tr>
+            <tr>
+              <td>projectID</td>
+              <td>ID</td>
+              <td>是</td>
+              <td>归属项目 ID</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>更新 API Key - updateAPIKey</h2>
+        <p>Mutation 签名：<code>updateAPIKey(id: ID!, input: UpdateAPIKeyInput!): APIKey!</code></p>
+        <div class="grid two-col">
+          <div class="code">
+mutation UpdateAPIKey($id: ID!, $input: UpdateAPIKeyInput!) {<br />
+  updateAPIKey(id: $id, input: $input) {<br />
+    id<br />
+    name<br />
+    type<br />
+    status<br />
+    scopes<br />
+    ipWhitelist<br />
+    contentSafetyInterceptEnabled<br />
+    updatedAt<br />
+  }<br />
+}
+          </div>
+          <div class="code">
+{<br />
+  "id": "APIKey:32",<br />
+  "input": {<br />
+    "name": "Ops Key v2",<br />
+    "appendScopes": ["read_models"],<br />
+    "clearIPWhitelist": true<br />
+  }<br />
+}
+          </div>
+        </div>
+        <h3>输入字段（UpdateAPIKeyInput）</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>字段</th>
+              <th>类型</th>
+              <th>必填</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>name</td>
+              <td>String</td>
+              <td>否</td>
+              <td>API Key 名称</td>
+            </tr>
+            <tr>
+              <td>scopes</td>
+              <td>[String!]</td>
+              <td>否</td>
+              <td>替换全部权限范围</td>
+            </tr>
+            <tr>
+              <td>appendScopes</td>
+              <td>[String!]</td>
+              <td>否</td>
+              <td>追加权限范围</td>
+            </tr>
+            <tr>
+              <td>clearScopes</td>
+              <td>Boolean</td>
+              <td>否</td>
+              <td>清空权限范围</td>
+            </tr>
+            <tr>
+              <td>ipWhitelist</td>
+              <td>String</td>
+              <td>否</td>
+              <td>设置新的 IP 白名单</td>
+            </tr>
+            <tr>
+              <td>clearIPWhitelist</td>
+              <td>Boolean</td>
+              <td>否</td>
+              <td>清空 IP 白名单</td>
+            </tr>
+            <tr>
+              <td>contentSafetyInterceptEnabled</td>
+              <td>Boolean</td>
+              <td>否</td>
+              <td>是否启用该 API Key 的内容安全拦截</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note">
+          UpdateAPIKey 只更新可变字段；如需修改状态或 Profile，请使用对应的 mutation。
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -92,23 +92,24 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	APIKey struct {
-		CreatedAt   func(childComplexity int) int
-		DeletedAt   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		IPWhitelist func(childComplexity int) int
-		Key         func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Profiles    func(childComplexity int) int
-		Project     func(childComplexity int) int
-		ProjectID   func(childComplexity int) int
-		Requests    func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.RequestOrder, where *ent.RequestWhereInput) int
-		Scopes      func(childComplexity int) int
-		Status      func(childComplexity int) int
-		Type        func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
-		UsageLogs   func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UsageLogOrder, where *ent.UsageLogWhereInput) int
-		User        func(childComplexity int) int
-		UserID      func(childComplexity int) int
+		ContentSafetyInterceptEnabled func(childComplexity int) int
+		CreatedAt                     func(childComplexity int) int
+		DeletedAt                     func(childComplexity int) int
+		ID                            func(childComplexity int) int
+		IPWhitelist                   func(childComplexity int) int
+		Key                           func(childComplexity int) int
+		Name                          func(childComplexity int) int
+		Profiles                      func(childComplexity int) int
+		Project                       func(childComplexity int) int
+		ProjectID                     func(childComplexity int) int
+		Requests                      func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.RequestOrder, where *ent.RequestWhereInput) int
+		Scopes                        func(childComplexity int) int
+		Status                        func(childComplexity int) int
+		Type                          func(childComplexity int) int
+		UpdatedAt                     func(childComplexity int) int
+		UsageLogs                     func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.UsageLogOrder, where *ent.UsageLogWhereInput) int
+		User                          func(childComplexity int) int
+		UserID                        func(childComplexity int) int
 	}
 
 	APIKeyConnection struct {
@@ -1595,6 +1596,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	_ = ec
 	switch typeName + "." + field {
 
+	case "APIKey.contentSafetyInterceptEnabled":
+		if e.complexity.APIKey.ContentSafetyInterceptEnabled == nil {
+			break
+		}
+
+		return e.complexity.APIKey.ContentSafetyInterceptEnabled(childComplexity), true
 	case "APIKey.createdAt":
 		if e.complexity.APIKey.CreatedAt == nil {
 			break
@@ -10261,6 +10268,35 @@ func (ec *executionContext) fieldContext_APIKey_ipWhitelist(_ context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _APIKey_contentSafetyInterceptEnabled(ctx context.Context, field graphql.CollectedField, obj *ent.APIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_APIKey_contentSafetyInterceptEnabled,
+		func(ctx context.Context) (any, error) {
+			return obj.ContentSafetyInterceptEnabled, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_APIKey_contentSafetyInterceptEnabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "APIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _APIKey_user(ctx context.Context, field graphql.CollectedField, obj *ent.APIKey) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -10660,6 +10696,8 @@ func (ec *executionContext) fieldContext_APIKeyEdge_node(_ context.Context, fiel
 				return ec.fieldContext_APIKey_profiles(ctx, field)
 			case "ipWhitelist":
 				return ec.fieldContext_APIKey_ipWhitelist(ctx, field)
+			case "contentSafetyInterceptEnabled":
+				return ec.fieldContext_APIKey_contentSafetyInterceptEnabled(ctx, field)
 			case "user":
 				return ec.fieldContext_APIKey_user(ctx, field)
 			case "project":
@@ -20243,6 +20281,8 @@ func (ec *executionContext) fieldContext_Mutation_createAPIKey(ctx context.Conte
 				return ec.fieldContext_APIKey_profiles(ctx, field)
 			case "ipWhitelist":
 				return ec.fieldContext_APIKey_ipWhitelist(ctx, field)
+			case "contentSafetyInterceptEnabled":
+				return ec.fieldContext_APIKey_contentSafetyInterceptEnabled(ctx, field)
 			case "user":
 				return ec.fieldContext_APIKey_user(ctx, field)
 			case "project":
@@ -20320,6 +20360,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAPIKey(ctx context.Conte
 				return ec.fieldContext_APIKey_profiles(ctx, field)
 			case "ipWhitelist":
 				return ec.fieldContext_APIKey_ipWhitelist(ctx, field)
+			case "contentSafetyInterceptEnabled":
+				return ec.fieldContext_APIKey_contentSafetyInterceptEnabled(ctx, field)
 			case "user":
 				return ec.fieldContext_APIKey_user(ctx, field)
 			case "project":
@@ -20397,6 +20439,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAPIKeyStatus(ctx context
 				return ec.fieldContext_APIKey_profiles(ctx, field)
 			case "ipWhitelist":
 				return ec.fieldContext_APIKey_ipWhitelist(ctx, field)
+			case "contentSafetyInterceptEnabled":
+				return ec.fieldContext_APIKey_contentSafetyInterceptEnabled(ctx, field)
 			case "user":
 				return ec.fieldContext_APIKey_user(ctx, field)
 			case "project":
@@ -20474,6 +20518,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAPIKeyProfiles(ctx conte
 				return ec.fieldContext_APIKey_profiles(ctx, field)
 			case "ipWhitelist":
 				return ec.fieldContext_APIKey_ipWhitelist(ctx, field)
+			case "contentSafetyInterceptEnabled":
+				return ec.fieldContext_APIKey_contentSafetyInterceptEnabled(ctx, field)
 			case "user":
 				return ec.fieldContext_APIKey_user(ctx, field)
 			case "project":
@@ -28404,6 +28450,8 @@ func (ec *executionContext) fieldContext_Request_apiKey(_ context.Context, field
 				return ec.fieldContext_APIKey_profiles(ctx, field)
 			case "ipWhitelist":
 				return ec.fieldContext_APIKey_ipWhitelist(ctx, field)
+			case "contentSafetyInterceptEnabled":
+				return ec.fieldContext_APIKey_contentSafetyInterceptEnabled(ctx, field)
 			case "user":
 				return ec.fieldContext_APIKey_user(ctx, field)
 			case "project":
@@ -36615,6 +36663,8 @@ func (ec *executionContext) fieldContext_UsageLog_apiKey(_ context.Context, fiel
 				return ec.fieldContext_APIKey_profiles(ctx, field)
 			case "ipWhitelist":
 				return ec.fieldContext_APIKey_ipWhitelist(ctx, field)
+			case "contentSafetyInterceptEnabled":
+				return ec.fieldContext_APIKey_contentSafetyInterceptEnabled(ctx, field)
 			case "user":
 				return ec.fieldContext_APIKey_user(ctx, field)
 			case "project":
@@ -40815,7 +40865,7 @@ func (ec *executionContext) unmarshalInputAPIKeyWhereInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "projectID", "projectIDNEQ", "projectIDIn", "projectIDNotIn", "key", "keyNEQ", "keyIn", "keyNotIn", "keyGT", "keyGTE", "keyLT", "keyLTE", "keyContains", "keyHasPrefix", "keyHasSuffix", "keyEqualFold", "keyContainsFold", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "type", "typeNEQ", "typeIn", "typeNotIn", "status", "statusNEQ", "statusIn", "statusNotIn", "ipWhitelist", "ipWhitelistNEQ", "ipWhitelistIn", "ipWhitelistNotIn", "ipWhitelistGT", "ipWhitelistGTE", "ipWhitelistLT", "ipWhitelistLTE", "ipWhitelistContains", "ipWhitelistHasPrefix", "ipWhitelistHasSuffix", "ipWhitelistIsNil", "ipWhitelistNotNil", "ipWhitelistEqualFold", "ipWhitelistContainsFold", "hasUser", "hasUserWith", "hasProject", "hasProjectWith", "hasRequests", "hasRequestsWith", "hasUsageLogs", "hasUsageLogsWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "projectID", "projectIDNEQ", "projectIDIn", "projectIDNotIn", "key", "keyNEQ", "keyIn", "keyNotIn", "keyGT", "keyGTE", "keyLT", "keyLTE", "keyContains", "keyHasPrefix", "keyHasSuffix", "keyEqualFold", "keyContainsFold", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "type", "typeNEQ", "typeIn", "typeNotIn", "status", "statusNEQ", "statusIn", "statusNotIn", "ipWhitelist", "ipWhitelistNEQ", "ipWhitelistIn", "ipWhitelistNotIn", "ipWhitelistGT", "ipWhitelistGTE", "ipWhitelistLT", "ipWhitelistLTE", "ipWhitelistContains", "ipWhitelistHasPrefix", "ipWhitelistHasSuffix", "ipWhitelistIsNil", "ipWhitelistNotNil", "ipWhitelistEqualFold", "ipWhitelistContainsFold", "contentSafetyInterceptEnabled", "contentSafetyInterceptEnabledNEQ", "hasUser", "hasUserWith", "hasProject", "hasProjectWith", "hasRequests", "hasRequestsWith", "hasUsageLogs", "hasUsageLogsWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -41530,6 +41580,20 @@ func (ec *executionContext) unmarshalInputAPIKeyWhereInput(ctx context.Context, 
 				return it, err
 			}
 			it.IPWhitelistContainsFold = data
+		case "contentSafetyInterceptEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentSafetyInterceptEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContentSafetyInterceptEnabled = data
+		case "contentSafetyInterceptEnabledNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentSafetyInterceptEnabledNEQ"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContentSafetyInterceptEnabledNEQ = data
 		case "hasUser":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasUser"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -46594,7 +46658,7 @@ func (ec *executionContext) unmarshalInputCreateAPIKeyInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "type", "scopes", "ipWhitelist", "projectID"}
+	fieldsInOrder := [...]string{"name", "type", "scopes", "ipWhitelist", "contentSafetyInterceptEnabled", "projectID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -46629,6 +46693,13 @@ func (ec *executionContext) unmarshalInputCreateAPIKeyInput(ctx context.Context,
 				return it, err
 			}
 			it.IPWhitelist = data
+		case "contentSafetyInterceptEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentSafetyInterceptEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContentSafetyInterceptEnabled = data
 		case "projectID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
 			data, err := ec.unmarshalNID2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐGUID(ctx, v)
@@ -59013,7 +59084,7 @@ func (ec *executionContext) unmarshalInputUpdateAPIKeyInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "scopes", "appendScopes", "clearScopes", "ipWhitelist", "clearIPWhitelist"}
+	fieldsInOrder := [...]string{"name", "scopes", "appendScopes", "clearScopes", "ipWhitelist", "clearIPWhitelist", "contentSafetyInterceptEnabled"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -59062,6 +59133,13 @@ func (ec *executionContext) unmarshalInputUpdateAPIKeyInput(ctx context.Context,
 				return it, err
 			}
 			it.ClearIPWhitelist = data
+		case "contentSafetyInterceptEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contentSafetyInterceptEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ContentSafetyInterceptEnabled = data
 		}
 	}
 
@@ -64424,6 +64502,11 @@ func (ec *executionContext) _APIKey(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec._APIKey_profiles(ctx, field, obj)
 		case "ipWhitelist":
 			out.Values[i] = ec._APIKey_ipWhitelist(ctx, field, obj)
+		case "contentSafetyInterceptEnabled":
+			out.Values[i] = ec._APIKey_contentSafetyInterceptEnabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "user":
 			field := field
 

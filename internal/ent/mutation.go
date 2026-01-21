@@ -75,35 +75,36 @@ const (
 // APIKeyMutation represents an operation that mutates the APIKey nodes in the graph.
 type APIKeyMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	created_at        *time.Time
-	updated_at        *time.Time
-	deleted_at        *int
-	adddeleted_at     *int
-	key               *string
-	name              *string
-	_type             *apikey.Type
-	status            *apikey.Status
-	scopes            *[]string
-	appendscopes      []string
-	profiles          **objects.APIKeyProfiles
-	ip_whitelist      *string
-	clearedFields     map[string]struct{}
-	user              *int
-	cleareduser       bool
-	project           *int
-	clearedproject    bool
-	requests          map[int]struct{}
-	removedrequests   map[int]struct{}
-	clearedrequests   bool
-	usage_logs        map[int]struct{}
-	removedusage_logs map[int]struct{}
-	clearedusage_logs bool
-	done              bool
-	oldValue          func(context.Context) (*APIKey, error)
-	predicates        []predicate.APIKey
+	op                               Op
+	typ                              string
+	id                               *int
+	created_at                       *time.Time
+	updated_at                       *time.Time
+	deleted_at                       *int
+	adddeleted_at                    *int
+	key                              *string
+	name                             *string
+	_type                            *apikey.Type
+	status                           *apikey.Status
+	scopes                           *[]string
+	appendscopes                     []string
+	profiles                         **objects.APIKeyProfiles
+	ip_whitelist                     *string
+	content_safety_intercept_enabled *bool
+	clearedFields                    map[string]struct{}
+	user                             *int
+	cleareduser                      bool
+	project                          *int
+	clearedproject                   bool
+	requests                         map[int]struct{}
+	removedrequests                  map[int]struct{}
+	clearedrequests                  bool
+	usage_logs                       map[int]struct{}
+	removedusage_logs                map[int]struct{}
+	clearedusage_logs                bool
+	done                             bool
+	oldValue                         func(context.Context) (*APIKey, error)
+	predicates                       []predicate.APIKey
 }
 
 var _ ent.Mutation = (*APIKeyMutation)(nil)
@@ -711,6 +712,42 @@ func (m *APIKeyMutation) ResetIPWhitelist() {
 	delete(m.clearedFields, apikey.FieldIPWhitelist)
 }
 
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (m *APIKeyMutation) SetContentSafetyInterceptEnabled(b bool) {
+	m.content_safety_intercept_enabled = &b
+}
+
+// ContentSafetyInterceptEnabled returns the value of the "content_safety_intercept_enabled" field in the mutation.
+func (m *APIKeyMutation) ContentSafetyInterceptEnabled() (r bool, exists bool) {
+	v := m.content_safety_intercept_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentSafetyInterceptEnabled returns the old "content_safety_intercept_enabled" field's value of the APIKey entity.
+// If the APIKey object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *APIKeyMutation) OldContentSafetyInterceptEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentSafetyInterceptEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentSafetyInterceptEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentSafetyInterceptEnabled: %w", err)
+	}
+	return oldValue.ContentSafetyInterceptEnabled, nil
+}
+
+// ResetContentSafetyInterceptEnabled resets all changes to the "content_safety_intercept_enabled" field.
+func (m *APIKeyMutation) ResetContentSafetyInterceptEnabled() {
+	m.content_safety_intercept_enabled = nil
+}
+
 // ClearUser clears the "user" edge to the User entity.
 func (m *APIKeyMutation) ClearUser() {
 	m.cleareduser = true
@@ -907,7 +944,7 @@ func (m *APIKeyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *APIKeyMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, apikey.FieldCreatedAt)
 	}
@@ -944,6 +981,9 @@ func (m *APIKeyMutation) Fields() []string {
 	if m.ip_whitelist != nil {
 		fields = append(fields, apikey.FieldIPWhitelist)
 	}
+	if m.content_safety_intercept_enabled != nil {
+		fields = append(fields, apikey.FieldContentSafetyInterceptEnabled)
+	}
 	return fields
 }
 
@@ -976,6 +1016,8 @@ func (m *APIKeyMutation) Field(name string) (ent.Value, bool) {
 		return m.Profiles()
 	case apikey.FieldIPWhitelist:
 		return m.IPWhitelist()
+	case apikey.FieldContentSafetyInterceptEnabled:
+		return m.ContentSafetyInterceptEnabled()
 	}
 	return nil, false
 }
@@ -1009,6 +1051,8 @@ func (m *APIKeyMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldProfiles(ctx)
 	case apikey.FieldIPWhitelist:
 		return m.OldIPWhitelist(ctx)
+	case apikey.FieldContentSafetyInterceptEnabled:
+		return m.OldContentSafetyInterceptEnabled(ctx)
 	}
 	return nil, fmt.Errorf("unknown APIKey field %s", name)
 }
@@ -1101,6 +1145,13 @@ func (m *APIKeyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIPWhitelist(v)
+		return nil
+	case apikey.FieldContentSafetyInterceptEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentSafetyInterceptEnabled(v)
 		return nil
 	}
 	return fmt.Errorf("unknown APIKey field %s", name)
@@ -1222,6 +1273,9 @@ func (m *APIKeyMutation) ResetField(name string) error {
 		return nil
 	case apikey.FieldIPWhitelist:
 		m.ResetIPWhitelist()
+		return nil
+	case apikey.FieldContentSafetyInterceptEnabled:
+		m.ResetContentSafetyInterceptEnabled()
 		return nil
 	}
 	return fmt.Errorf("unknown APIKey field %s", name)

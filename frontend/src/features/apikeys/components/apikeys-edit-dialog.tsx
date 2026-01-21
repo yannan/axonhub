@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useApiKeysContext } from '../context/apikeys-context';
 import { useUpdateApiKey } from '../data/apikeys';
 import { UpdateApiKeyInput, updateApiKeyInputSchemaFactory } from '../data/schema';
@@ -27,6 +28,7 @@ export function ApiKeysEditDialog() {
       name: '',
       scopes: [],
       ipWhitelist: '',
+      contentSafetyInterceptEnabled: true,
     },
   });
 
@@ -36,6 +38,7 @@ export function ApiKeysEditDialog() {
         name: selectedApiKey.name,
         scopes: selectedApiKey.scopes || [],
         ipWhitelist: selectedApiKey.ipWhitelist ?? '',
+        contentSafetyInterceptEnabled: selectedApiKey.contentSafetyInterceptEnabled ?? true,
       });
     }
   }, [selectedApiKey, isDialogOpen.edit, form]);
@@ -48,6 +51,7 @@ export function ApiKeysEditDialog() {
       const input: UpdateApiKeyInput = {
         name: data.name,
         ipWhitelist: data.ipWhitelist?.trim(),
+        contentSafetyInterceptEnabled: data.contentSafetyInterceptEnabled,
       };
 
       if (selectedApiKey.type === 'service_account') {
@@ -121,6 +125,21 @@ export function ApiKeysEditDialog() {
                   </FormControl>
                   <FormDescription>{t('apikeys.dialogs.fields.ipWhitelist.description')}</FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='contentSafetyInterceptEnabled'
+              render={({ field }) => (
+                <FormItem className='flex items-center justify-between rounded-lg border p-3'>
+                  <div className='space-y-1'>
+                    <FormLabel>{t('apikeys.dialogs.fields.contentSafetyIntercept.label')}</FormLabel>
+                    <FormDescription>{t('apikeys.dialogs.fields.contentSafetyIntercept.description')}</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
                 </FormItem>
               )}
             />

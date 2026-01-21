@@ -91,6 +91,10 @@ func init() {
 	apikeyDescIPWhitelist := apikeyFields[8].Descriptor()
 	// apikey.DefaultIPWhitelist holds the default value on creation for the ip_whitelist field.
 	apikey.DefaultIPWhitelist = apikeyDescIPWhitelist.Default.(string)
+	// apikeyDescContentSafetyInterceptEnabled is the schema descriptor for content_safety_intercept_enabled field.
+	apikeyDescContentSafetyInterceptEnabled := apikeyFields[9].Descriptor()
+	// apikey.DefaultContentSafetyInterceptEnabled holds the default value on creation for the content_safety_intercept_enabled field.
+	apikey.DefaultContentSafetyInterceptEnabled = apikeyDescContentSafetyInterceptEnabled.Default.(bool)
 	channelMixin := schema.Channel{}.Mixin()
 	channel.Policy = privacy.NewPolicies(schema.Channel{})
 	channel.Hooks[0] = func(next ent.Mutator) ent.Mutator {

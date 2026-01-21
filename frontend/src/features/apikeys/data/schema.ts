@@ -22,6 +22,7 @@ export const apiKeySchema = z.object({
   status: apiKeyStatusSchema,
   scopes: z.array(z.string()).optional().nullable(),
   ipWhitelist: z.string().optional().nullable(),
+  contentSafetyInterceptEnabled: z.boolean(),
   // Optional profiles for detailed view (may be omitted in list queries)
   profiles: z
     .object({
@@ -87,6 +88,7 @@ export const updateApiKeyInputSchemaFactory = (t: (key: string) => string) =>
     name: z.string().min(1, t('apikeys.validation.nameRequired')).optional(),
     scopes: z.array(z.string()).optional(),
     ipWhitelist: z.string().optional(),
+    contentSafetyInterceptEnabled: z.boolean().optional(),
   });
 
 // Default schema for backward compatibility
@@ -94,6 +96,7 @@ export const updateApiKeyInputSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   scopes: z.array(z.string()).optional(),
   ipWhitelist: z.string().optional(),
+  contentSafetyInterceptEnabled: z.boolean().optional(),
 });
 export type UpdateApiKeyInput = z.infer<typeof updateApiKeyInputSchema>;
 

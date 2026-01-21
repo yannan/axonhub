@@ -14,22 +14,15 @@ import (
 	"github.com/looplj/axonhub/internal/log"
 	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/pkg/httpclient"
-	"github.com/looplj/axonhub/internal/server/biz"
 	"github.com/looplj/axonhub/internal/tracing"
 )
 
 // WithSensitiveWordFilter creates a middleware that checks request body for sensitive words
-func WithSensitiveWordFilter(engine *filter.ValidationEngine, settingsService *biz.SettingsService) gin.HandlerFunc {
+func WithSensitiveWordFilter(engine *filter.ValidationEngine) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if settingsService != nil {
-			enabled, err := settingsService.ContentSafetyInterceptEnabled(c.Request.Context())
-			if err != nil {
-				log.Warn(c.Request.Context(), "failed to read content safety intercept setting", log.Cause(err))
-			}
-			if !enabled {
-				c.Next()
-				return
-			}
+		if apiKey, ok := contexts.GetAPIKey(c.Request.Context()); ok && apiKey != nil && !apiKey.ContentSafetyInterceptEnabled {
+			c.Next()
+			return
 		}
 
 		// Only check POST/PUT methods usually having body

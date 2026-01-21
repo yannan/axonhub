@@ -235,6 +235,8 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: "#/components/parameters/ModelQuery"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: 计费配置列表
@@ -561,6 +563,8 @@ paths:
           description: 结束日期（RFC3339 或 YYYY-MM-DD）
           schema:
             type: string
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: 聚合消耗统计
@@ -669,8 +673,6 @@ paths:
           例：`{"default":"默认分组","vip":"VIP用户","svip":"SVIP用户"}`
         - `group_ratio`: 分组倍率配置，`value` 为 JSON 对象，键为分组代码，值为倍率（数字）。
           例：`{"default":1,"vip":0.8,"svip":0.5}`
-        - `content_safety_intercept_enabled`: 内容安全拦截开关，`value` 为 JSON 对象，包含 `enabled` 布尔值。
-          例：`{"enabled":true}`
       security:
         - bearerAuth: []
       parameters:
@@ -708,8 +710,6 @@ paths:
           例：`{"key":"user_selectable_groups","value":{"default":"默认分组","vip":"VIP用户"}}`
         - `key=group_ratio`，`value` 为分组代码到倍率（数字）的映射。
           例：`{"key":"group_ratio","value":{"default":1,"vip":0.8}}`
-        - `key=content_safety_intercept_enabled`，`value` 为拦截开关对象。
-          例：`{"key":"content_safety_intercept_enabled","value":{"enabled":false}}`
       security:
         - bearerAuth: []
       requestBody:
@@ -835,6 +835,9 @@ paths:
       summary: 获取项目计费用量
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: 用量信息
@@ -1361,7 +1364,23 @@ components:
           description: 兑换码列表
           items:
             $ref: "#/components/schemas/RedemptionCode"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/RedemptionPagination"
+          description: 分页信息
+      required: [success, data, pagination]
+    RedemptionPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: 总记录数
+        offset:
+          type: integer
+          description: 当前分页偏移量
+        limit:
+          type: integer
+          description: 当前分页数量
+      required: [total, offset, limit]
     RedemptionCode:
       type: object
       properties:
@@ -1424,7 +1443,23 @@ components:
           description: 充值记录列表
           items:
             $ref: "#/components/schemas/RechargeRecord"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/RechargePagination"
+          description: 分页信息
+      required: [success, data, pagination]
+    RechargePagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: 总记录数
+        offset:
+          type: integer
+          description: 当前分页偏移量
+        limit:
+          type: integer
+          description: 当前分页数量
+      required: [total, offset, limit]
     RechargeRecord:
       type: object
       properties:
@@ -1494,7 +1529,23 @@ components:
           description: 用量记录列表
           items:
             $ref: "#/components/schemas/ConsumptionRecord"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/UsagePagination"
+          description: 分页信息
+      required: [success, data, pagination]
+    UsagePagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: 总记录数
+        offset:
+          type: integer
+          description: 当前分页偏移量
+        limit:
+          type: integer
+          description: 当前分页数量
+      required: [total, offset, limit]
     DashboardStatsResponse:
       type: object
       properties:
@@ -1567,7 +1618,23 @@ components:
           description: 按天聚合的消耗统计
           items:
             $ref: "#/components/schemas/ConsumptionStatsRow"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/ConsumptionStatsPagination"
+          description: 分页信息
+      required: [success, data, pagination]
+    ConsumptionStatsPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: 总记录数
+        offset:
+          type: integer
+          description: 当前分页偏移量
+        limit:
+          type: integer
+          description: 当前分页数量
+      required: [total, offset, limit]
     ConsumptionStatsRow:
       type: object
       properties:
@@ -1620,22 +1687,6 @@ components:
         quota:
           type: integer
           description: 消耗额度
-        billing_multiplier:
-          type: number
-          format: float
-          description: 最终计费倍率，通常等于 group_multiplier * model_multiplier（type=quota）或 group_multiplier（type=connection）
-        group_multiplier:
-          type: number
-          format: float
-          description: 分组倍率，来自系统设置的 group_ratio
-        model_multiplier:
-          type: number
-          format: float
-          description: 模型倍率，通常对应计费配置中的 quota（type=connection 时为 1）
-        completion_ratio:
-          type: number
-          format: float
-          description: 补全倍率，通常对应计费配置中的 completion_ratio（未设置时为 1）
         billing_type:
           type: string
           enum: [quota, connection]
@@ -1662,10 +1713,6 @@ components:
         total_tokens:
           type: integer
           description: Token 总数
-        content:
-          type: string
-          nullable: true
-          description: 计费扩展信息（当前实现为倍率 JSON 字符串）
         type:
           type: string
           enum: [chat, image]
@@ -1679,7 +1726,7 @@ components:
           format: date-time
           description: 更新时间
       required:
-        [id, user_id, project_id, model, quota, billing_multiplier, group_multiplier, model_multiplier, completion_ratio, prompt_tokens, completion_tokens, total_tokens, type, created_at, updated_at]
+        [id, user_id, project_id, model, quota, prompt_tokens, completion_tokens, total_tokens, type, created_at, updated_at]
     ChatCompletionRequest:
       type: object
       properties:
@@ -2177,7 +2224,23 @@ components:
           description: 计费配置列表
           items:
             $ref: "#/components/schemas/ModelPricing"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/PricingPagination"
+          description: 分页信息
+      required: [success, data, pagination]
+    PricingPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: 总记录数
+        offset:
+          type: integer
+          description: 当前分页偏移量
+        limit:
+          type: integer
+          description: 当前分页数量
+      required: [total, offset, limit]
     ModelPricing:
       type: object
       properties:

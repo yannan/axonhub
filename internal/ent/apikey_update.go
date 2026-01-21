@@ -152,6 +152,20 @@ func (_u *APIKeyUpdate) ClearIPWhitelist() *APIKeyUpdate {
 	return _u
 }
 
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (_u *APIKeyUpdate) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpdate {
+	_u.mutation.SetContentSafetyInterceptEnabled(v)
+	return _u
+}
+
+// SetNillableContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field if the given value is not nil.
+func (_u *APIKeyUpdate) SetNillableContentSafetyInterceptEnabled(v *bool) *APIKeyUpdate {
+	if v != nil {
+		_u.SetContentSafetyInterceptEnabled(*v)
+	}
+	return _u
+}
+
 // AddRequestIDs adds the "requests" edge to the Request entity by IDs.
 func (_u *APIKeyUpdate) AddRequestIDs(ids ...int) *APIKeyUpdate {
 	_u.mutation.AddRequestIDs(ids...)
@@ -350,6 +364,9 @@ func (_u *APIKeyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.IPWhitelistCleared() {
 		_spec.ClearField(apikey.FieldIPWhitelist, field.TypeString)
+	}
+	if value, ok := _u.mutation.ContentSafetyInterceptEnabled(); ok {
+		_spec.SetField(apikey.FieldContentSafetyInterceptEnabled, field.TypeBool, value)
 	}
 	if _u.mutation.RequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -582,6 +599,20 @@ func (_u *APIKeyUpdateOne) ClearIPWhitelist() *APIKeyUpdateOne {
 	return _u
 }
 
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (_u *APIKeyUpdateOne) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpdateOne {
+	_u.mutation.SetContentSafetyInterceptEnabled(v)
+	return _u
+}
+
+// SetNillableContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field if the given value is not nil.
+func (_u *APIKeyUpdateOne) SetNillableContentSafetyInterceptEnabled(v *bool) *APIKeyUpdateOne {
+	if v != nil {
+		_u.SetContentSafetyInterceptEnabled(*v)
+	}
+	return _u
+}
+
 // AddRequestIDs adds the "requests" edge to the Request entity by IDs.
 func (_u *APIKeyUpdateOne) AddRequestIDs(ids ...int) *APIKeyUpdateOne {
 	_u.mutation.AddRequestIDs(ids...)
@@ -810,6 +841,9 @@ func (_u *APIKeyUpdateOne) sqlSave(ctx context.Context) (_node *APIKey, err erro
 	}
 	if _u.mutation.IPWhitelistCleared() {
 		_spec.ClearField(apikey.FieldIPWhitelist, field.TypeString)
+	}
+	if value, ok := _u.mutation.ContentSafetyInterceptEnabled(); ok {
+		_spec.SetField(apikey.FieldContentSafetyInterceptEnabled, field.TypeBool, value)
 	}
 	if _u.mutation.RequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{

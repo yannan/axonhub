@@ -122,6 +122,10 @@
           "placeholder": "每行一个 IP 或 CIDR 段",
           "description": "非白名单 IP 的请求会被拒绝，留空表示允许所有 IP。",
           "allowAll": "允许所有 IP"
+        },
+        "contentSafetyIntercept": {
+          "label": "内容安全拦截",
+          "description": "控制此 API Key 的内容安全拦截是否启用。"
         }
       },
       "buttons": {}

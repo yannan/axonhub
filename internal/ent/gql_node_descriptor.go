@@ -53,7 +53,7 @@ func (_m *APIKey) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     _m.ID,
 		Type:   "APIKey",
-		Fields: make([]*Field, 12),
+		Fields: make([]*Field, 13),
 		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
@@ -151,6 +151,14 @@ func (_m *APIKey) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[11] = &Field{
 		Type:  "string",
 		Name:  "ip_whitelist",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(_m.ContentSafetyInterceptEnabled); err != nil {
+		return nil, err
+	}
+	node.Fields[12] = &Field{
+		Type:  "bool",
+		Name:  "content_safety_intercept_enabled",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

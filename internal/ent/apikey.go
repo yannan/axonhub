@@ -45,6 +45,8 @@ type APIKey struct {
 	Profiles *objects.APIKeyProfiles `json:"profiles,omitempty"`
 	// Allowed IPs, one per line; empty means allow all
 	IPWhitelist string `json:"ip_whitelist,omitempty"`
+	// Whether content safety interception is enabled for this API key
+	ContentSafetyInterceptEnabled bool `json:"content_safety_intercept_enabled,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the APIKeyQuery when eager-loading is set.
 	Edges        APIKeyEdges `json:"edges"`
@@ -118,6 +120,8 @@ func (*APIKey) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case apikey.FieldScopes, apikey.FieldProfiles:
 			values[i] = new([]byte)
+		case apikey.FieldContentSafetyInterceptEnabled:
+			values[i] = new(sql.NullBool)
 		case apikey.FieldID, apikey.FieldDeletedAt, apikey.FieldUserID, apikey.FieldProjectID:
 			values[i] = new(sql.NullInt64)
 		case apikey.FieldKey, apikey.FieldName, apikey.FieldType, apikey.FieldStatus, apikey.FieldIPWhitelist:
@@ -221,6 +225,12 @@ func (_m *APIKey) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IPWhitelist = value.String
 			}
+		case apikey.FieldContentSafetyInterceptEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field content_safety_intercept_enabled", values[i])
+			} else if value.Valid {
+				_m.ContentSafetyInterceptEnabled = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -312,6 +322,9 @@ func (_m *APIKey) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("ip_whitelist=")
 	builder.WriteString(_m.IPWhitelist)
+	builder.WriteString(", ")
+	builder.WriteString("content_safety_intercept_enabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ContentSafetyInterceptEnabled))
 	builder.WriteByte(')')
 	return builder.String()
 }

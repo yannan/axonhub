@@ -23,7 +23,6 @@ type GeminiHandlersParams struct {
 	ModelService     *biz.ModelService
 	RequestService   *biz.RequestService
 	SystemService    *biz.SystemService
-	SettingsService  *biz.SettingsService
 	UsageLogService  *biz.UsageLogService
 	HttpClient       *httpclient.HttpClient
 	ValidationEngine *filter.ValidationEngine
@@ -45,7 +44,6 @@ func NewGeminiHandlers(params GeminiHandlersParams) *GeminiHandlers {
 				params.HttpClient,
 				gemini.NewInboundTransformer(),
 				params.SystemService,
-				params.SettingsService,
 				params.UsageLogService,
 				params.ValidationEngine,
 			),

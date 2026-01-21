@@ -58,7 +58,14 @@ export const pricingSchema = z.object({
 export const pricingListResponseSchema = z.object({
     success: z.boolean(),
     data: z.array(pricingSchema),
+    pagination: z.object({
+        total: z.number(),
+        offset: z.number(),
+        limit: z.number(),
+    }),
 });
+
+export type PricingPagination = z.infer<typeof pricingListResponseSchema>['pagination'];
 
 export const pricingResponseSchema = z.object({
     success: z.boolean(),

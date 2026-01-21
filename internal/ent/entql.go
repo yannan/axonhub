@@ -48,18 +48,19 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		Type: "APIKey",
 		Fields: map[string]*sqlgraph.FieldSpec{
-			apikey.FieldCreatedAt:   {Type: field.TypeTime, Column: apikey.FieldCreatedAt},
-			apikey.FieldUpdatedAt:   {Type: field.TypeTime, Column: apikey.FieldUpdatedAt},
-			apikey.FieldDeletedAt:   {Type: field.TypeInt, Column: apikey.FieldDeletedAt},
-			apikey.FieldUserID:      {Type: field.TypeInt, Column: apikey.FieldUserID},
-			apikey.FieldProjectID:   {Type: field.TypeInt, Column: apikey.FieldProjectID},
-			apikey.FieldKey:         {Type: field.TypeString, Column: apikey.FieldKey},
-			apikey.FieldName:        {Type: field.TypeString, Column: apikey.FieldName},
-			apikey.FieldType:        {Type: field.TypeEnum, Column: apikey.FieldType},
-			apikey.FieldStatus:      {Type: field.TypeEnum, Column: apikey.FieldStatus},
-			apikey.FieldScopes:      {Type: field.TypeJSON, Column: apikey.FieldScopes},
-			apikey.FieldProfiles:    {Type: field.TypeJSON, Column: apikey.FieldProfiles},
-			apikey.FieldIPWhitelist: {Type: field.TypeString, Column: apikey.FieldIPWhitelist},
+			apikey.FieldCreatedAt:                     {Type: field.TypeTime, Column: apikey.FieldCreatedAt},
+			apikey.FieldUpdatedAt:                     {Type: field.TypeTime, Column: apikey.FieldUpdatedAt},
+			apikey.FieldDeletedAt:                     {Type: field.TypeInt, Column: apikey.FieldDeletedAt},
+			apikey.FieldUserID:                        {Type: field.TypeInt, Column: apikey.FieldUserID},
+			apikey.FieldProjectID:                     {Type: field.TypeInt, Column: apikey.FieldProjectID},
+			apikey.FieldKey:                           {Type: field.TypeString, Column: apikey.FieldKey},
+			apikey.FieldName:                          {Type: field.TypeString, Column: apikey.FieldName},
+			apikey.FieldType:                          {Type: field.TypeEnum, Column: apikey.FieldType},
+			apikey.FieldStatus:                        {Type: field.TypeEnum, Column: apikey.FieldStatus},
+			apikey.FieldScopes:                        {Type: field.TypeJSON, Column: apikey.FieldScopes},
+			apikey.FieldProfiles:                      {Type: field.TypeJSON, Column: apikey.FieldProfiles},
+			apikey.FieldIPWhitelist:                   {Type: field.TypeString, Column: apikey.FieldIPWhitelist},
+			apikey.FieldContentSafetyInterceptEnabled: {Type: field.TypeBool, Column: apikey.FieldContentSafetyInterceptEnabled},
 		},
 	}
 	graph.Nodes[1] = &sqlgraph.Node{
@@ -1457,6 +1458,11 @@ func (f *APIKeyFilter) WhereProfiles(p entql.BytesP) {
 // WhereIPWhitelist applies the entql string predicate on the ip_whitelist field.
 func (f *APIKeyFilter) WhereIPWhitelist(p entql.StringP) {
 	f.Where(p.Field(apikey.FieldIPWhitelist))
+}
+
+// WhereContentSafetyInterceptEnabled applies the entql bool predicate on the content_safety_intercept_enabled field.
+func (f *APIKeyFilter) WhereContentSafetyInterceptEnabled(p entql.BoolP) {
+	f.Where(p.Field(apikey.FieldContentSafetyInterceptEnabled))
 }
 
 // WhereHasUser applies a predicate to check if query has an edge user.

@@ -41,6 +41,11 @@
         },
         "empty": "No stats found."
       },
+      "pagination": {
+        "summary": "Showing {{start}}-{{end}} of {{total}}",
+        "previous": "Previous",
+        "next": "Next"
+      },
       "errors": {
         "load": "Failed to load consumption stats.",
         "export": "Failed to export consumption stats."
@@ -218,20 +223,6 @@
     "sensitiveWords": {
       "title": "Sensitive Words",
       "description": "Block requests that match the configured words.",
-      "intercept": {
-        "title": "Content Safety Intercept",
-        "description": "Control whether global content safety interception is enabled.",
-        "label": "Enable content safety intercept",
-        "hint": "When disabled, requests will no longer be intercepted by content safety checks.",
-        "enabled": "Enabled",
-        "disabled": "Disabled",
-        "messages": {
-          "updated": "Content safety intercept updated."
-        },
-        "errors": {
-          "update": "Failed to update content safety intercept."
-        }
-      },
       "form": {
         "wordLabel": "Word or phrase",
         "wordPlaceholder": "Enter a word or phrase",

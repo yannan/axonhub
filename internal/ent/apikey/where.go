@@ -95,6 +95,11 @@ func IPWhitelist(v string) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldIPWhitelist, v))
 }
 
+// ContentSafetyInterceptEnabled applies equality check predicate on the "content_safety_intercept_enabled" field. It's identical to ContentSafetyInterceptEnabledEQ.
+func ContentSafetyInterceptEnabled(v bool) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldContentSafetyInterceptEnabled, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldCreatedAt, v))
@@ -518,6 +523,16 @@ func IPWhitelistEqualFold(v string) predicate.APIKey {
 // IPWhitelistContainsFold applies the ContainsFold predicate on the "ip_whitelist" field.
 func IPWhitelistContainsFold(v string) predicate.APIKey {
 	return predicate.APIKey(sql.FieldContainsFold(FieldIPWhitelist, v))
+}
+
+// ContentSafetyInterceptEnabledEQ applies the EQ predicate on the "content_safety_intercept_enabled" field.
+func ContentSafetyInterceptEnabledEQ(v bool) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldContentSafetyInterceptEnabled, v))
+}
+
+// ContentSafetyInterceptEnabledNEQ applies the NEQ predicate on the "content_safety_intercept_enabled" field.
+func ContentSafetyInterceptEnabledNEQ(v bool) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNEQ(FieldContentSafetyInterceptEnabled, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

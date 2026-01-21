@@ -155,6 +155,20 @@ func (_c *APIKeyCreate) SetNillableIPWhitelist(v *string) *APIKeyCreate {
 	return _c
 }
 
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (_c *APIKeyCreate) SetContentSafetyInterceptEnabled(v bool) *APIKeyCreate {
+	_c.mutation.SetContentSafetyInterceptEnabled(v)
+	return _c
+}
+
+// SetNillableContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field if the given value is not nil.
+func (_c *APIKeyCreate) SetNillableContentSafetyInterceptEnabled(v *bool) *APIKeyCreate {
+	if v != nil {
+		_c.SetContentSafetyInterceptEnabled(*v)
+	}
+	return _c
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_c *APIKeyCreate) SetUser(v *User) *APIKeyCreate {
 	return _c.SetUserID(v.ID)
@@ -274,6 +288,10 @@ func (_c *APIKeyCreate) defaults() error {
 		v := apikey.DefaultIPWhitelist
 		_c.mutation.SetIPWhitelist(v)
 	}
+	if _, ok := _c.mutation.ContentSafetyInterceptEnabled(); !ok {
+		v := apikey.DefaultContentSafetyInterceptEnabled
+		_c.mutation.SetContentSafetyInterceptEnabled(v)
+	}
 	return nil
 }
 
@@ -315,6 +333,9 @@ func (_c *APIKeyCreate) check() error {
 		if err := apikey.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "APIKey.status": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.ContentSafetyInterceptEnabled(); !ok {
+		return &ValidationError{Name: "content_safety_intercept_enabled", err: errors.New(`ent: missing required field "APIKey.content_safety_intercept_enabled"`)}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "APIKey.user"`)}
@@ -388,6 +409,10 @@ func (_c *APIKeyCreate) createSpec() (*APIKey, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IPWhitelist(); ok {
 		_spec.SetField(apikey.FieldIPWhitelist, field.TypeString, value)
 		_node.IPWhitelist = value
+	}
+	if value, ok := _c.mutation.ContentSafetyInterceptEnabled(); ok {
+		_spec.SetField(apikey.FieldContentSafetyInterceptEnabled, field.TypeBool, value)
+		_node.ContentSafetyInterceptEnabled = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -627,6 +652,18 @@ func (u *APIKeyUpsert) ClearIPWhitelist() *APIKeyUpsert {
 	return u
 }
 
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (u *APIKeyUpsert) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpsert {
+	u.Set(apikey.FieldContentSafetyInterceptEnabled, v)
+	return u
+}
+
+// UpdateContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field to the value that was provided on create.
+func (u *APIKeyUpsert) UpdateContentSafetyInterceptEnabled() *APIKeyUpsert {
+	u.SetExcluded(apikey.FieldContentSafetyInterceptEnabled)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -818,6 +855,20 @@ func (u *APIKeyUpsertOne) UpdateIPWhitelist() *APIKeyUpsertOne {
 func (u *APIKeyUpsertOne) ClearIPWhitelist() *APIKeyUpsertOne {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.ClearIPWhitelist()
+	})
+}
+
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (u *APIKeyUpsertOne) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetContentSafetyInterceptEnabled(v)
+	})
+}
+
+// UpdateContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field to the value that was provided on create.
+func (u *APIKeyUpsertOne) UpdateContentSafetyInterceptEnabled() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateContentSafetyInterceptEnabled()
 	})
 }
 
@@ -1178,6 +1229,20 @@ func (u *APIKeyUpsertBulk) UpdateIPWhitelist() *APIKeyUpsertBulk {
 func (u *APIKeyUpsertBulk) ClearIPWhitelist() *APIKeyUpsertBulk {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.ClearIPWhitelist()
+	})
+}
+
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (u *APIKeyUpsertBulk) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetContentSafetyInterceptEnabled(v)
+	})
+}
+
+// UpdateContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field to the value that was provided on create.
+func (u *APIKeyUpsertBulk) UpdateContentSafetyInterceptEnabled() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateContentSafetyInterceptEnabled()
 	})
 }
 

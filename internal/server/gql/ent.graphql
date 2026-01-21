@@ -29,6 +29,10 @@ type APIKey implements Node {
   Allowed IPs, one per line; empty means allow all
   """
   ipWhitelist: String
+  """
+  Whether content safety interception is enabled for this API key
+  """
+  contentSafetyInterceptEnabled: Boolean!
   user: User!
   project: Project!
   requests(
@@ -289,6 +293,11 @@ input APIKeyWhereInput {
   ipWhitelistNotNil: Boolean
   ipWhitelistEqualFold: String
   ipWhitelistContainsFold: String
+  """
+  content_safety_intercept_enabled field predicates
+  """
+  contentSafetyInterceptEnabled: Boolean
+  contentSafetyInterceptEnabledNEQ: Boolean
   """
   user edge predicates
   """
@@ -1587,6 +1596,10 @@ input CreateAPIKeyInput {
   Allowed IPs, one per line; empty means allow all
   """
   ipWhitelist: String
+  """
+  Whether content safety interception is enabled for this API key
+  """
+  contentSafetyInterceptEnabled: Boolean
   projectID: ID!
 }
 """
@@ -6147,6 +6160,10 @@ input UpdateAPIKeyInput {
   """
   ipWhitelist: String
   clearIPWhitelist: Boolean
+  """
+  Whether content safety interception is enabled for this API key
+  """
+  contentSafetyInterceptEnabled: Boolean
 }
 """
 UpdateChannelInput is used for update Channel object.

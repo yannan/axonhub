@@ -464,6 +464,8 @@ paths:
         - bearerAuth: []
       parameters:
         - $ref: "#/components/parameters/ModelQuery"
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Pricing list
@@ -790,6 +792,8 @@ paths:
           description: End date (RFC3339 or YYYY-MM-DD)
           schema:
             type: string
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Aggregated consumption stats
@@ -898,8 +902,6 @@ paths:
           Example: `{"default":"Default","vip":"VIP","svip":"SVIP"}`
         - `group_ratio`: Group ratio configuration, `value` is a JSON object with group code to ratio number.
           Example: `{"default":1,"vip":0.8,"svip":0.5}`
-        - `content_safety_intercept_enabled`: Content safety intercept toggle, `value` is a JSON object containing a boolean `enabled`.
-          Example: `{"enabled":true}`
       security:
         - bearerAuth: []
       parameters:
@@ -937,8 +939,6 @@ paths:
           Example: `{"key":"user_selectable_groups","value":{"default":"Default","vip":"VIP"}}`
         - `key=group_ratio`, `value` is a mapping from group code to ratio (number).
           Example: `{"key":"group_ratio","value":{"default":1,"vip":0.8}}`
-        - `key=content_safety_intercept_enabled`, `value` is the intercept toggle object.
-          Example: `{"key":"content_safety_intercept_enabled","value":{"enabled":false}}`
       security:
         - bearerAuth: []
       requestBody:
@@ -1187,6 +1187,9 @@ paths:
       summary: Get project billing usage
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
           description: Usage info
@@ -2023,7 +2026,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RedemptionCode"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/RedemptionPagination"
+      required: [success, data, pagination]
+    RedemptionPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+      required: [total, offset, limit]
     RedemptionCode:
       type: object
       properties:
@@ -2071,7 +2086,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RechargeRecord"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/RechargePagination"
+      required: [success, data, pagination]
+    RechargePagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+      required: [total, offset, limit]
     RechargeRecord:
       type: object
       properties:
@@ -2126,7 +2153,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConsumptionRecord"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/UsagePagination"
+      required: [success, data, pagination]
+    UsagePagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+      required: [total, offset, limit]
     DashboardStatsResponse:
       type: object
       properties:
@@ -2185,7 +2224,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConsumptionStatsRow"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/ConsumptionStatsPagination"
+      required: [success, data, pagination]
+    ConsumptionStatsPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+      required: [total, offset, limit]
     ConsumptionStatsRow:
       type: object
       properties:
@@ -2225,18 +2276,6 @@ components:
           type: string
         quota:
           type: integer
-        billing_multiplier:
-          type: number
-          format: float
-        group_multiplier:
-          type: number
-          format: float
-        model_multiplier:
-          type: number
-          format: float
-        completion_ratio:
-          type: number
-          format: float
         trace_id:
           type: string
           nullable: true
@@ -2252,9 +2291,6 @@ components:
           type: integer
         total_tokens:
           type: integer
-        content:
-          type: string
-          nullable: true
         type:
           type: string
           enum: [chat, image]
@@ -2265,7 +2301,7 @@ components:
           type: string
           format: date-time
       required:
-        [id, user_id, project_id, model, quota, billing_multiplier, group_multiplier, model_multiplier, completion_ratio, prompt_tokens, completion_tokens, total_tokens, type, created_at, updated_at]
+        [id, user_id, project_id, model, quota, prompt_tokens, completion_tokens, total_tokens, type, created_at, updated_at]
     ChatCompletionRequest:
       type: object
       properties:
@@ -3055,7 +3091,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ModelPricing"
-      required: [success, data]
+        pagination:
+          $ref: "#/components/schemas/PricingPagination"
+      required: [success, data, pagination]
+    PricingPagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+      required: [total, offset, limit]
     ModelPricing:
       type: object
       properties:

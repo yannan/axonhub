@@ -21,6 +21,11 @@
             "createdAt": "Created At",
             "actions": "Actions"
         },
+        "pagination": {
+            "summary": "Showing {{start}}-{{end}} of {{total}}",
+            "previous": "Previous",
+            "next": "Next"
+        },
         "status": {
             "active": "Active",
             "disabled": "Disabled"

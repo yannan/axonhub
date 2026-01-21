@@ -56,14 +56,15 @@
         "model": "模型",
         "type": "类型",
         "quota": "额度",
-        "multiplier": "倍率",
-        "groupMultiplier": "分组倍率",
-        "modelMultiplier": "模型倍率",
-        "completionRatio": "补全倍率",
         "tokens": "Token",
         "apiKey": "API Key",
         "trace": "Trace",
         "createdAt": "创建时间"
+      },
+      "pagination": {
+        "summary": "显示 {{start}}-{{end}} / {{total}}",
+        "previous": "上一页",
+        "next": "下一页"
       },
       "tokens": {
         "prompt": "输入",
@@ -84,6 +85,11 @@
         "status": "状态",
         "trace": "Trace",
         "createdAt": "创建时间"
+      },
+      "pagination": {
+        "summary": "显示 {{start}}-{{end}} / {{total}}",
+        "previous": "上一页",
+        "next": "下一页"
       },
       "status": {
         "success": "成功",

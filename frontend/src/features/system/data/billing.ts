@@ -19,9 +19,15 @@ const consumptionStatsRowSchema = z.object({
 const consumptionStatsResponseSchema = z.object({
   success: z.boolean(),
   data: z.array(consumptionStatsRowSchema),
+  pagination: z.object({
+    total: z.coerce.number(),
+    offset: z.coerce.number(),
+    limit: z.coerce.number(),
+  }),
 });
 
 export type ConsumptionStatsRow = z.infer<typeof consumptionStatsRowSchema>;
+export type ConsumptionStatsPagination = z.infer<typeof consumptionStatsResponseSchema>['pagination'];
 
 export interface ConsumptionStatsFilters {
   projectId?: number;
@@ -30,7 +36,7 @@ export interface ConsumptionStatsFilters {
   endDate?: string;
 }
 
-const buildQueryParams = (filters: ConsumptionStatsFilters) => {
+const buildQueryParams = (filters: ConsumptionStatsFilters, pagination?: { offset?: number; limit?: number }) => {
   const params = new URLSearchParams();
   if (filters.projectId) {
     params.set('project_id', String(filters.projectId));
@@ -44,21 +50,34 @@ const buildQueryParams = (filters: ConsumptionStatsFilters) => {
   if (filters.endDate) {
     params.set('end_date', filters.endDate);
   }
+  if (pagination?.offset != null) {
+    params.set('offset', String(pagination.offset));
+  }
+  if (pagination?.limit != null) {
+    params.set('limit', String(pagination.limit));
+  }
   return params.toString();
 };
 
-export function useAdminConsumptionStats(filters: ConsumptionStatsFilters) {
+export function useAdminConsumptionStats(
+  filters: ConsumptionStatsFilters,
+  pagination?: { offset?: number; limit?: number }
+) {
   const { t } = useTranslation();
   const { handleError } = useErrorHandler();
 
   return useQuery({
-    queryKey: ['admin-consumption-stats', filters],
+    queryKey: ['admin-consumption-stats', filters, pagination],
     queryFn: async () => {
       try {
-        const query = buildQueryParams(filters);
+        const query = buildQueryParams(filters, pagination);
         const endpoint = query ? `/admin/billing/stats?${query}` : '/admin/billing/stats';
         const data = await apiRequest(endpoint, { requireAuth: true });
-        return consumptionStatsResponseSchema.parse(data).data;
+        const parsed = consumptionStatsResponseSchema.parse(data);
+        return {
+          records: parsed.data,
+          pagination: parsed.pagination,
+        };
       } catch (error) {
         handleError(error, t('system.billingStats.errors.load'));
         throw error;

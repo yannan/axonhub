@@ -43,6 +43,8 @@ const (
 	FieldProfiles = "profiles"
 	// FieldIPWhitelist holds the string denoting the ip_whitelist field in the database.
 	FieldIPWhitelist = "ip_whitelist"
+	// FieldContentSafetyInterceptEnabled holds the string denoting the content_safety_intercept_enabled field in the database.
+	FieldContentSafetyInterceptEnabled = "content_safety_intercept_enabled"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeProject holds the string denoting the project edge name in mutations.
@@ -98,6 +100,7 @@ var Columns = []string{
 	FieldScopes,
 	FieldProfiles,
 	FieldIPWhitelist,
+	FieldContentSafetyInterceptEnabled,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -135,6 +138,8 @@ var (
 	DefaultProfiles *objects.APIKeyProfiles
 	// DefaultIPWhitelist holds the default value on creation for the "ip_whitelist" field.
 	DefaultIPWhitelist string
+	// DefaultContentSafetyInterceptEnabled holds the default value on creation for the "content_safety_intercept_enabled" field.
+	DefaultContentSafetyInterceptEnabled bool
 )
 
 // Type defines the type for the "type" enum field.
@@ -246,6 +251,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByIPWhitelist orders the results by the ip_whitelist field.
 func ByIPWhitelist(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIPWhitelist, opts...).ToFunc()
+}
+
+// ByContentSafetyInterceptEnabled orders the results by the content_safety_intercept_enabled field.
+func ByContentSafetyInterceptEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContentSafetyInterceptEnabled, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.
