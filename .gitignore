@@ -142,5 +142,4 @@ scripts/.e2e-backend-db-type
 # Migration testing artifacts
 scripts/migration-test/
 tools
-frontend/
 scripts/air-dev.sh
