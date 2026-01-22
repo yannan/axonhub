@@ -1,6 +1,33 @@
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
+import { startOfDay, endOfDay, startOfWeek, startOfMonth, format } from 'date-fns';
 import { graphqlRequest } from '@/gql/graphql';
+import { projectApi } from '@/lib/api-client';
+import { useSelectedProjectId } from '@/stores/projectStore';
+
+function getRangeDates(range: 'thisDay' | 'thisWeek' | 'thisMonth') {
+  const now = new Date();
+  let start: Date;
+  const end: Date = endOfDay(now);
+
+  switch (range) {
+    case 'thisDay':
+      start = startOfDay(now);
+      break;
+    case 'thisWeek':
+      start = startOfWeek(now, { weekStartsOn: 1 });
+      break;
+    case 'thisMonth':
+      start = startOfMonth(now);
+      break;
+  }
+
+  const fmt = 'yyyy-MM-dd';
+  return {
+    start_date: format(start, fmt),
+    end_date: format(end, fmt),
+  };
+}
 
 // Schema definitions
 export const requestStatsSchema = z.object({
@@ -246,6 +273,40 @@ export function useTopProjects() {
 }
 
 export function useTokenStats() {
+  const projectId = useSelectedProjectId();
+  return useQuery({
+    queryKey: ['tokenStats', projectId],
+    queryFn: async () => {
+      if (projectId) {
+        const [dayStats, weekStats, monthStats] = await Promise.all([
+          projectApi.getDashboardStats(projectId, getRangeDates('thisDay')),
+          projectApi.getDashboardStats(projectId, getRangeDates('thisWeek')),
+          projectApi.getDashboardStats(projectId, getRangeDates('thisMonth')),
+        ]);
+
+        if (dayStats.success && weekStats.success && monthStats.success) {
+          return {
+            totalInputTokensToday: dayStats.data.prompt_tokens,
+            totalOutputTokensToday: dayStats.data.completion_tokens,
+            totalCachedTokensToday: dayStats.data.total_tokens,
+            totalInputTokensThisWeek: weekStats.data.prompt_tokens,
+            totalOutputTokensThisWeek: weekStats.data.completion_tokens,
+            totalCachedTokensThisWeek: weekStats.data.total_tokens,
+            totalInputTokensThisMonth: monthStats.data.prompt_tokens,
+            totalOutputTokensThisMonth: monthStats.data.completion_tokens,
+            totalCachedTokensThisMonth: monthStats.data.total_tokens,
+          };
+        }
+        throw new Error('Failed to fetch dashboard stats');
+      }
+      const data = await graphqlRequest<{ tokenStats: TokenStats }>(TOKEN_STATS_AGGR_QUERY);
+      return tokenStatsSchema.parse(data.tokenStats);
+    },
+    refetchInterval: 300000,
+  });
+}
+
+export function useTokenStatsCOPY() {
   return useQuery({
     queryKey: ['tokenStats'],
     queryFn: async () => {

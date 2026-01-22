@@ -57,11 +57,6 @@ export const routeConfigs: RouteGroup[] = [
         mode: 'hidden',
       },
       {
-        path: '/pricing',
-        requiredScopes: ['read_system'],
-        mode: 'hidden',
-      },
-      {
         path: '/system',
         requiredScopes: ['read_system'],
         mode: 'hidden',
@@ -69,6 +64,16 @@ export const routeConfigs: RouteGroup[] = [
       {
         path: '/permission-demo',
         // 权限演示页面所有用户都可以访问
+      },
+      {
+        path: '/ratio-setting',
+        requiredScopes: ['read_system'],
+        mode: 'hidden',
+      },
+      {
+        path: '/redemptions',
+        requiredScopes: ['read_system'],
+        mode: 'hidden',
       },
     ],
   },
@@ -92,11 +97,6 @@ export const routeConfigs: RouteGroup[] = [
         mode: 'hidden',
       },
       {
-        path: '/project/billing',
-        requiredScopes: ['read_requests'],
-        mode: 'hidden',
-      },
-      {
         path: '/project/users',
         requiredScopes: ['read_users'],
         mode: 'hidden',
@@ -109,6 +109,11 @@ export const routeConfigs: RouteGroup[] = [
       {
         path: '/project/playground',
         // Playground is accessible to all users
+      },
+      {
+        path: '/project/topup',
+        requiredScopes: ['read_topup'],
+        mode: 'hidden',
       },
     ],
   },

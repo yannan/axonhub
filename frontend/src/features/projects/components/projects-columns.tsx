@@ -78,23 +78,7 @@ export const createColumns = (t: ReturnType<typeof useTranslation>['t'], canWrit
       header: t('projects.columns.group'),
       cell: ({ row }) => {
         const group = row.getValue('group') as string;
-        return <Badge variant='outline'>{group || '-'}</Badge>;
-      },
-    },
-    {
-      accessorKey: 'quota',
-      header: t('projects.columns.quota'),
-      cell: ({ row }) => {
-        const quota = row.getValue('quota') as number;
-        return <div className='text-muted-foreground'>{Number.isFinite(quota) ? quota.toLocaleString() : '-'}</div>;
-      },
-    },
-    {
-      accessorKey: 'usedQuota',
-      header: t('projects.columns.usedQuota'),
-      cell: ({ row }) => {
-        const usedQuota = row.getValue('usedQuota') as number;
-        return <div className='text-muted-foreground'>{Number.isFinite(usedQuota) ? usedQuota.toLocaleString() : '-'}</div>;
+        return <div className='text-muted-foreground'>{group || '-'}</div>;
       },
     },
     {

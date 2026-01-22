@@ -34,19 +34,15 @@ export default defineConfig({
     port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 5173,
     proxy: {
       '/admin': {
-        target: process.env.VITE_API_URL || 'http://localhost:8090',
-        changeOrigin: true,
-      },
-      '/user': {
-        target: process.env.VITE_API_URL || 'http://localhost:8090',
-        changeOrigin: true,
-      },
-      '/project': {
-        target: process.env.VITE_API_URL || 'http://localhost:8090',
+        target: process.env.VITE_API_URL || 'http://114.132.183.239:8090',
         changeOrigin: true,
       },
       '/v1': {
-        target: process.env.VITE_API_URL || 'http://localhost:8090',
+        target: process.env.VITE_API_URL || 'http://114.132.183.239:8090',
+        changeOrigin: true,
+      },
+      '/project': {
+        target: process.env.VITE_API_URL || 'http://114.132.183.239:8090',
         changeOrigin: true,
       },
     },

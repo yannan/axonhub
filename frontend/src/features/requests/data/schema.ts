@@ -5,10 +5,7 @@ import { channelSchema } from '@/features/channels/data';
 import { usageLogSchema } from '@/features/usage-logs/data/schema';
 
 // Request Status
-export const requestStatusSchema = z.preprocess(
-  (value) => (value === 'blocked' ? 'failed' : value),
-  z.enum(['pending', 'processing', 'completed', 'failed', 'canceled'])
-);
+export const requestStatusSchema = z.string();
 export type RequestStatus = z.infer<typeof requestStatusSchema>;
 
 // Request Source
@@ -16,17 +13,8 @@ export const requestSourceSchema = z.enum(['api', 'playground', 'test']);
 export type RequestSource = z.infer<typeof requestSourceSchema>;
 
 // Request Execution Status
-export const requestExecutionStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed', 'canceled']);
+export const requestExecutionStatusSchema = z.string();
 export type RequestExecutionStatus = z.infer<typeof requestExecutionStatusSchema>;
-
-const requestTraceSchema = z
-  .object({
-    id: z.string(),
-    traceID: z.string(),
-    cost: z.number().nullable().optional(),
-  })
-  .nullable()
-  .optional();
 
 // Request Execution
 export const requestExecutionSchema = z.object({
@@ -65,11 +53,9 @@ export const requestSchema = z.object({
   responseBody: z.any().nullable().optional(), // JSONRawMessage
   responseChunks: z.array(z.any()).nullable().optional(), // [JSONRawMessage!]
   status: requestStatusSchema,
-  cost: z.number().nullable().optional(),
   stream: z.boolean().nullable(),
   metricsLatencyMs: z.number().nullable().optional(),
   metricsFirstTokenLatencyMs: z.number().nullable().optional(),
-  trace: requestTraceSchema,
   executions: z
     .object({
       edges: z.array(

@@ -107,6 +107,16 @@
           "label": "权限范围",
           "description": "选择此服务账号 API Key 的权限"
         },
+        "ipWhitelist": {
+          "label": "IP 白名单",
+          "placeholder": "每行输入一个 IP 地址",
+          "description": "允许访问的 IP 白名单，按行分隔；为空表示允许全部"
+        },
+        "clearIPWhitelist": "清空 IP 白名单",
+        "contentSafetyInterceptEnabled": {
+          "label": "内容安全拦截",
+          "description": "是否启用该 API Key 的内容安全拦截（默认 true）"
+        },
         "userID": {
           "label": "用户ID",
           "placeholder": "输入用户ID",
@@ -116,16 +126,6 @@
           "label": "API Key",
           "placeholder": "输入 API Key",
           "description": "API Key 值"
-        },
-        "ipWhitelist": {
-          "label": "IP 白名单",
-          "placeholder": "每行一个 IP 或 CIDR 段",
-          "description": "非白名单 IP 的请求会被拒绝，留空表示允许所有 IP。",
-          "allowAll": "允许所有 IP"
-        },
-        "contentSafetyIntercept": {
-          "label": "内容安全拦截",
-          "description": "控制此 API Key 的内容安全拦截是否启用。"
         }
       },
       "buttons": {}

@@ -220,7 +220,6 @@ print(response.text)`
   };
 
   const maskedKey = selectedApiKey?.key ? selectedApiKey.key.replace(/./g, '*').slice(0, -4) + selectedApiKey.key.slice(-4) : '';
-  const ipWhitelist = selectedApiKey?.ipWhitelist?.trim() || '';
 
   return (
     <Dialog open={isDialogOpen.view} onOpenChange={() => closeDialog()}>
@@ -255,10 +254,26 @@ print(response.text)`
               </Button>
             </div>
           </div>
+
+          {selectedApiKey?.ipWhitelist && (
+            <div>
+              <label className='text-sm font-medium'>{t('apikeys.dialogs.fields.ipWhitelist.label')}</label>
+              <div className='bg-muted mt-1 rounded-md p-3 font-mono text-sm whitespace-pre-wrap break-all'>
+                {selectedApiKey.ipWhitelist}
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className='text-sm font-medium'>{t('apikeys.dialogs.fields.ipWhitelist.label')}</label>
-            <div className='bg-muted mt-1 rounded-md p-3 text-sm whitespace-pre-wrap'>
-              {ipWhitelist || t('apikeys.dialogs.fields.ipWhitelist.allowAll')}
+            <label className='text-sm font-medium'>{t('apikeys.dialogs.fields.contentSafetyInterceptEnabled.label')}</label>
+            <div className='bg-muted mt-1 rounded-md p-3'>
+              {selectedApiKey?.contentSafetyInterceptEnabled === true ? (
+                <span className='text-green-600'>{t('common.enabled')}</span>
+              ) : selectedApiKey?.contentSafetyInterceptEnabled === false ? (
+                <span className='text-red-600'>{t('common.disabled')}</span>
+              ) : (
+                <span className='text-muted-foreground'>{t('common.unknown')}</span>
+              )}
             </div>
           </div>
         </div>

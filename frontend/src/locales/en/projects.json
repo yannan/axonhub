@@ -8,11 +8,9 @@
       "name": "Name",
       "description": "Description",
       "status": "Status",
-      "group": "Billing Group",
-      "quota": "Quota",
-      "usedQuota": "Used Quota",
       "createdAt": "Created At",
       "updatedAt": "Updated At",
+      "group": "Group",
       "actions": "Actions",
       "selectAll": "Select all",
       "selectRow": "Select row"
@@ -59,17 +57,8 @@
         },
         "group": {
           "label": "Billing Group",
-          "placeholder": "default",
-          "description": "Billing group for this project (e.g. default/vip/svip)"
-        },
-        "quota": {
-          "label": "Project Quota",
-          "placeholder": "0",
-          "description": "Total quota for this project"
-        },
-        "usedQuota": {
-          "label": "Used Quota",
-          "description": "Quota already consumed by this project"
+          "placeholder": "Select a group",
+          "description": "Billing group of the project"
         }
       },
       "buttons": {

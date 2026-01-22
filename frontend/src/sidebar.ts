@@ -13,7 +13,8 @@ import {
   IconAB2,
   IconBaselineDensityMedium,
   IconAi,
-  IconWallet,
+  IconRelationOneToOne,
+  IconCreditCard,
 } from '@tabler/icons-react';
 import { Command } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -91,16 +92,6 @@ export function useSidebarData(): SidebarData {
           icon: IconDatabase,
         } as NavLink,
         {
-          title: t('sidebar.items.pricing'),
-          url: '/pricing',
-          icon: IconWallet,
-        } as NavLink,
-        {
-          title: 'System Settings',
-          url: '/system',
-          icon: IconSettings,
-        } as NavLink,
-        {
           title: t('sidebar.items.users'),
           url: '/users',
           icon: IconUsers,
@@ -109,6 +100,16 @@ export function useSidebarData(): SidebarData {
           title: t('sidebar.items.roles'),
           url: '/roles',
           icon: IconShield,
+        } as NavLink,
+        {
+          title: t('sidebar.items.ratioSetting'),
+          url: '/ratio-setting',
+          icon: IconSettings,
+        } as NavLink,
+        {
+          title: t('sidebar.items.redemptions'),
+          url: '/redemptions',
+          icon: IconRelationOneToOne,
         } as NavLink,
         // {
         //   title: 'Permission Demo',
@@ -146,11 +147,6 @@ export function useSidebarData(): SidebarData {
           icon: IconKey,
         } as NavLink,
         {
-          title: t('sidebar.items.billing'),
-          url: '/project/billing',
-          icon: IconWallet,
-        } as NavLink,
-        {
           title: t('sidebar.items.users'),
           url: '/project/users',
           icon: IconUsers,
@@ -164,6 +160,11 @@ export function useSidebarData(): SidebarData {
           title: t('sidebar.items.playground'),
           url: '/project/playground',
           icon: IconRobot,
+        } as NavLink,
+        {
+          title: t('sidebar.items.topup'),
+          url: '/project/topup',
+          icon: IconCreditCard,
         } as NavLink,
       ],
     },

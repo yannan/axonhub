@@ -1,7 +1,7 @@
 import React from 'react';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
-import { IconEdit, IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconCreditCard } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,7 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { t } = useTranslation();
   const project = row.original;
-  const { setEditingProject, setArchivingProject, setActivatingProject } = useProjectsContext();
+  const { setEditingProject, setArchivingProject, setActivatingProject, setRedeemingProject } = useProjectsContext();
   const { projectPermissions } = usePermissions();
   const [open, setOpen] = React.useState(false);
 
@@ -44,6 +44,11 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const handleActivate = () => {
     setOpen(false);
     setTimeout(() => setActivatingProject(project), 0);
+  };
+
+  const handleRedeem = () => {
+    setOpen(false);
+    setTimeout(() => setRedeemingProject(project), 0);
   };
 
   return (
@@ -78,6 +83,14 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           <DropdownMenuItem onClick={handleActivate}>
             <IconEdit className='mr-2 h-4 w-4' />
             {t('common.buttons.activate')}
+          </DropdownMenuItem>
+        )}
+
+        {/* Redeem - requires write permission, only for active projects */}
+        {projectPermissions.canWrite && project.status === 'active' && (
+          <DropdownMenuItem onClick={handleRedeem}>
+            <IconCreditCard className='mr-2 h-4 w-4' />
+            {t('topup.redeem.title')}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

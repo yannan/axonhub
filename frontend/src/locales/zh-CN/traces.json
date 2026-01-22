@@ -57,8 +57,6 @@
       "durationLabel": "持续时间",
       "tokensLabel": "令牌数",
       "costLabel": "成本",
-      "blockedTitle": "请求已拦截",
-      "blockedDescription": "该 Trace 因命中敏感词被拦截，未进入模型执行流程。",
       "itemsLabel": "项目数",
       "inputTokensLabel": "输入令牌数",
       "outputTokensLabel": "输出令牌数",

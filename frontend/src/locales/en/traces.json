@@ -57,8 +57,6 @@
       "durationLabel": "Duration",
       "tokensLabel": "Tokens",
       "costLabel": "Cost",
-      "blockedTitle": "Request blocked",
-      "blockedDescription": "This trace was blocked by the sensitive word filter and did not proceed to model execution.",
       "itemsLabel": "Items",
       "inputTokensLabel": "Input Tokens",
       "outputTokensLabel": "Output Tokens",

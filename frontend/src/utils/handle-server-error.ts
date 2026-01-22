@@ -2,10 +2,6 @@ import { toast } from 'sonner';
 import i18n from '@/lib/i18n';
 
 export function handleServerError(error: unknown) {
-  if (error && typeof error === 'object' && 'suppressToast' in error && (error as { suppressToast?: boolean }).suppressToast) {
-    return;
-  }
-
   let errMsg = i18n.t('common.errors.somethingWentWrong');
 
   if (error && typeof error === 'object' && 'status' in error && Number(error.status) === 204) {

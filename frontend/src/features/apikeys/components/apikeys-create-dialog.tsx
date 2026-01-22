@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useApiKeysContext } from '../context/apikeys-context';
 import { useCreateApiKey } from '../data/apikeys';
 import { CreateApiKeyInput, createApiKeyInputSchema } from '../data/schema';
@@ -27,7 +28,6 @@ export function ApiKeysCreateDialog() {
       name: '',
       type: 'user',
       scopes: undefined, // Don't set scopes for user type
-      ipWhitelist: '',
     },
   });
 
@@ -112,35 +112,62 @@ export function ApiKeysCreateDialog() {
             />
 
             {apiKeyType === 'service_account' && (
-              <FormField
-                control={form.control}
-                name='scopes'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('apikeys.dialogs.fields.scopes.label')}</FormLabel>
-                    <FormControl>
-                      <ScopesSelect value={field.value || []} onChange={field.onChange} portalContainer={dialogContent} />
-                    </FormControl>
-                    <FormDescription>{t('apikeys.dialogs.fields.scopes.description')}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <>
+                <FormField
+                  control={form.control}
+                  name='scopes'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('apikeys.dialogs.fields.scopes.label')}</FormLabel>
+                      <FormControl>
+                        <ScopesSelect value={field.value || []} onChange={field.onChange} portalContainer={dialogContent} />
+                      </FormControl>
+                      <FormDescription>{t('apikeys.dialogs.fields.scopes.description')}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='ipWhitelist'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('apikeys.dialogs.fields.ipWhitelist.label')}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={t('apikeys.dialogs.fields.ipWhitelist.placeholder')}
+                          className='min-h-[100px] resize-y'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>{t('apikeys.dialogs.fields.ipWhitelist.description')}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='contentSafetyInterceptEnabled'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                      <div className='space-y-0.5'>
+                        <FormLabel className='text-base'>
+                          {t('apikeys.dialogs.fields.contentSafetyInterceptEnabled.label')}
+                        </FormLabel>
+                        <FormDescription>
+                          {t('apikeys.dialogs.fields.contentSafetyInterceptEnabled.description')}
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch checked={field.value ?? true} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
-            <FormField
-              control={form.control}
-              name='ipWhitelist'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('apikeys.dialogs.fields.ipWhitelist.label')}</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder={t('apikeys.dialogs.fields.ipWhitelist.placeholder')} rows={4} {...field} />
-                  </FormControl>
-                  <FormDescription>{t('apikeys.dialogs.fields.ipWhitelist.description')}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <DialogFooter className='flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end'>
               <div className='flex w-full gap-2 sm:w-auto'>

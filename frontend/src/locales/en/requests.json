@@ -38,7 +38,8 @@
       "processing": "Processing",
       "completed": "Completed",
       "failed": "Failed",
-      "canceled": "Canceled"
+      "canceled": "Canceled",
+      "blocked": "Blocked"
     },
     "stream": {
       "streaming": "Streaming",

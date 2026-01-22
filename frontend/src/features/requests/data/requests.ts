@@ -12,16 +12,6 @@ import {
   requestSchema,
 } from './schema';
 
-function withRequestCost(request: Request): Request {
-  if (request.cost != null) {
-    return request;
-  }
-  return {
-    ...request,
-    cost: request.trace?.cost ?? null,
-  };
-}
-
 // Dynamic GraphQL query builder
 function buildRequestsQuery(permissions: { canViewApiKeys: boolean; canViewChannels: boolean }) {
   const apiKeyFields = permissions.canViewApiKeys
@@ -59,14 +49,8 @@ function buildRequestsQuery(permissions: { canViewApiKeys: boolean; canViewChann
             modelID
             stream
             status
-            cost
             metricsLatencyMs
             metricsFirstTokenLatencyMs
-            trace {
-              id
-              traceID
-              cost
-            }
             usageLogs(first: 1) {
               edges {
                 node {
@@ -130,12 +114,6 @@ function buildRequestDetailQuery(permissions: { canViewApiKeys: boolean; canView
           responseBody
           responseChunks
           status
-          cost
-          trace {
-            id
-            traceID
-            cost
-          }
           usageLogs(first: 1) {
             edges {
               node {
@@ -238,14 +216,7 @@ export function useRequests(variables?: {
         const query = buildRequestsQuery(permissions);
         const headers = selectedProjectId ? { 'X-Project-ID': selectedProjectId } : undefined;
         const data = await graphqlRequest<{ requests: RequestConnection }>(query, variables, headers);
-        const parsed = requestConnectionSchema.parse(data?.requests);
-        return {
-          ...parsed,
-          edges: parsed.edges.map((edge) => ({
-            ...edge,
-            node: withRequestCost(edge.node),
-          })),
-        };
+        return requestConnectionSchema.parse(data?.requests);
       } catch (error) {
         handleError(error, '获取请求数据');
         throw error;
@@ -270,7 +241,7 @@ export function useRequest(id: string) {
         if (!data.node) {
           throw new Error('Request not found');
         }
-        return withRequestCost(requestSchema.parse(data.node));
+        return requestSchema.parse(data.node);
       } catch (error) {
         handleError(error, '获取请求详情');
         throw error;

@@ -105,7 +105,17 @@
         },
         "scopes": {
           "label": "Scopes",
-          "description": "Select the permissions for this service account API key"
+          "description": "Select permissions for this service account API key"
+        },
+        "ipWhitelist": {
+          "label": "IP Whitelist",
+          "placeholder": "Enter one IP address per line",
+          "description": "Allowed IP whitelist, separated by lines; empty means allow all"
+        },
+        "clearIPWhitelist": "Clear IP Whitelist",
+        "contentSafetyInterceptEnabled": {
+          "label": "Content Safety Intercept",
+          "description": "Whether to enable content safety intercept for this API Key (default true)"
         },
         "userID": {
           "label": "User ID",
@@ -116,16 +126,6 @@
           "label": "API Key",
           "placeholder": "Enter API Key",
           "description": "The API Key value"
-        },
-        "ipWhitelist": {
-          "label": "IP Allowlist",
-          "placeholder": "Enter IPs or CIDR blocks, one per line",
-          "description": "Requests from other IPs will be rejected. Leave empty to allow all.",
-          "allowAll": "Allow all IPs"
-        },
-        "contentSafetyIntercept": {
-          "label": "Content safety intercept",
-          "description": "Control whether content safety interception is enabled for this API key."
         }
       },
       "buttons": {}

@@ -12,7 +12,6 @@
       "channels": "Channels",
       "models": "Models",
       "dataStorages": "Data Storages",
-      "pricing": "Pricing",
       "users": "Users",
       "roles": "Roles",
       "system": "System",
@@ -21,10 +20,12 @@
       "threads": "Threads",
       "usageLogs": "Usage Logs",
       "apiKeys": "API Keys",
-      "billing": "Billing",
       "playground": "Playground",
       "profile": "Profile",
-      "projects": "Projects"
+      "projects": "Projects",
+      "ratioSetting": "Pricing Setting",
+      "redemptions": "Redemptions Management",
+      "topup": "Quota Management"
     },
     "team": {
       "name": "AxonHub",
@@ -127,6 +128,9 @@
     "dragging": "Dragging",
     "unsavedChanges": "You have unsaved changes",
     "copied": "Copied",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "unknown": "Unknown",
     "sort": {
       "ascending": "Ascending",
       "descending": "Descending",
@@ -159,7 +163,9 @@
       "archiving": "Archiving...",
       "activate": "Activate",
       "activating": "Activating...",
-      "remove": "Remove"
+      "remove": "Remove",
+      "void": "Void",
+      "voiding": "Voiding..."
     },
     "actions": {
       "test": "Test",

@@ -13,34 +13,48 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useProjectsContext } from '../context/projects-context';
-import { useCreateProject, useUpdateProject, useArchiveProject, useActivateProject } from '../data/projects';
+import { useCreateProject, useUpdateProject, useArchiveProject, useActivateProject, useRedeemProject } from '../data/projects';
 import { createProjectInputSchema, updateProjectInputSchema } from '../data/schema';
-import { useQuerySystemSetting } from '@/features/system-settings/data/settings';
+import { useQuery } from '@tanstack/react-query';
+import { systemSettingsApi } from '@/lib/api-client';
+
+// Hook to fetch user selectable groups
+function useUserSelectableGroups() {
+  return useQuery({
+    queryKey: ['systemSettings', 'user_selectable_groups'],
+    queryFn: async () => {
+      const response = await systemSettingsApi.getSettings();
+      const setting = response.settings.find((s) => s.key === 'user_selectable_groups');
+      if (setting && setting.value && typeof setting.value === 'object') {
+        // Handle both array and object formats
+        if (Array.isArray(setting.value)) {
+          return setting.value.map((v) => ({ label: v, value: v }));
+        }
+        // Handle object format: { "key": "Label" }
+        return Object.entries(setting.value).map(([key, label]) => ({
+          label: label as string,
+          value: key,
+        }));
+      }
+      return [];
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
 
 // Create Project Dialog
 export function CreateProjectDialog() {
   const { t } = useTranslation();
   const { isCreateDialogOpen, setIsCreateDialogOpen } = useProjectsContext();
   const createProject = useCreateProject();
-
-  // Fetch user selectable groups from system settings
-  const { data: selectableGroupsData } = useQuerySystemSetting('user_selectable_groups');
-
-  // Get selectable groups or use default
-  const selectableGroups = React.useMemo(() => {
-    if (selectableGroupsData?.settings?.[0]?.value) {
-      return selectableGroupsData.settings[0].value as Record<string, string>;
-    }
-    return { default: '默认分组' };
-  }, [selectableGroupsData]);
+  const { data: groups } = useUserSelectableGroups();
 
   const form = useForm<z.infer<typeof createProjectInputSchema>>({
     resolver: zodResolver(createProjectInputSchema),
     defaultValues: {
       name: '',
       description: '',
-      quota: 0,
-      group: 'default',
+      group: undefined,
     },
   });
 
@@ -106,56 +120,33 @@ export function CreateProjectDialog() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name='group'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('projects.dialogs.fields.group.label')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('projects.dialogs.fields.group.placeholder')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.entries(selectableGroups).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>{t('projects.dialogs.fields.group.description')}</FormDescription>
-                  <div className='min-h-[1.25rem]'>
+            {groups && groups.length > 0 && (
+              <FormField
+                control={form.control}
+                name='group'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('projects.dialogs.fields.group.label') || 'Group'}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('projects.dialogs.fields.group.placeholder') || 'Select a group'} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {groups.map((group) => (
+                          <SelectItem key={group.value} value={group.value}>
+                            {group.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>{t('projects.dialogs.fields.group.description') || 'Select the billing group for this project'}</FormDescription>
                     <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='quota'
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel>{t('projects.dialogs.fields.quota.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type='number'
-                      min={0}
-                      placeholder={t('projects.dialogs.fields.quota.placeholder')}
-                      aria-invalid={!!fieldState.error}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>{t('projects.dialogs.fields.quota.description')}</FormDescription>
-                  <div className='min-h-[1.25rem]'>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <DialogFooter>
               <Button type='button' variant='outline' onClick={handleClose}>
@@ -177,26 +168,14 @@ export function EditProjectDialog() {
   const { t } = useTranslation();
   const { editingProject, setEditingProject } = useProjectsContext();
   const updateProject = useUpdateProject();
-
-  // Fetch user selectable groups from system settings
-  const { data: selectableGroupsData } = useQuerySystemSetting('user_selectable_groups');
-
-  // Get selectable groups or use default
-  const selectableGroups = React.useMemo(() => {
-    if (selectableGroupsData?.settings?.[0]?.value) {
-      return selectableGroupsData.settings[0].value as Record<string, string>;
-    }
-    return { default: '默认分组' };
-  }, [selectableGroupsData]);
+  const { data: groups } = useUserSelectableGroups();
 
   const form = useForm<z.infer<typeof updateProjectInputSchema>>({
     resolver: zodResolver(updateProjectInputSchema),
     defaultValues: {
       name: '',
       description: '',
-      quota: 0,
-      usedQuota: 0,
-      group: 'default',
+      group: undefined,
     },
   });
 
@@ -205,12 +184,10 @@ export function EditProjectDialog() {
       form.reset({
         name: editingProject.name,
         description: editingProject.description || '',
-        quota: editingProject.quota ?? 0,
-        usedQuota: editingProject.usedQuota ?? 0,
-        group: editingProject.group ?? 'default',
+        group: editingProject.group || undefined,
       });
     }
-  }, [editingProject, form]);
+  }, [editingProject, form.reset]);
 
   const onSubmit = async (values: z.infer<typeof updateProjectInputSchema>) => {
     if (!editingProject) return;
@@ -277,70 +254,33 @@ export function EditProjectDialog() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name='group'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('projects.dialogs.fields.group.label')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('projects.dialogs.fields.group.placeholder')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.entries(selectableGroups).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>{t('projects.dialogs.fields.group.description')}</FormDescription>
-                  <div className='min-h-[1.25rem]'>
+            {groups && groups.length > 0 && (
+              <FormField
+                control={form.control}
+                name='group'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('projects.dialogs.fields.group.label') || 'Group'}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('projects.dialogs.fields.group.placeholder') || 'Select a group'} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {groups.map((group) => (
+                          <SelectItem key={group.value} value={group.value}>
+                            {group.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>{t('projects.dialogs.fields.group.description') || 'Select the billing group for this project'}</FormDescription>
                     <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='quota'
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel>{t('projects.dialogs.fields.quota.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type='number'
-                      min={0}
-                      placeholder={t('projects.dialogs.fields.quota.placeholder')}
-                      aria-invalid={!!fieldState.error}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>{t('projects.dialogs.fields.quota.description')}</FormDescription>
-                  <div className='min-h-[1.25rem]'>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='usedQuota'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('projects.dialogs.fields.usedQuota.label')}</FormLabel>
-                  <FormControl>
-                    <Input type='number' min={0} readOnly disabled {...field} />
-                  </FormControl>
-                  <FormDescription>{t('projects.dialogs.fields.usedQuota.description')}</FormDescription>
-                </FormItem>
-              )}
-            />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <DialogFooter>
               <Button type='button' variant='outline' onClick={handleClose}>
@@ -363,28 +303,26 @@ export function ArchiveProjectDialog() {
   const { archivingProject, setArchivingProject } = useProjectsContext();
   const archiveProject = useArchiveProject();
 
-  const handleConfirm = async () => {
-    if (!archivingProject) return;
+  if (!archivingProject) return null;
 
+  const handleConfirm = async () => {
     try {
       await archiveProject.mutateAsync(archivingProject.id);
       setArchivingProject(null);
-    } catch (error) {
-      // Error is handled by the mutation
-    }
+    } catch (error) {}
   };
 
   return (
     <ConfirmDialog
       open={!!archivingProject}
-      onOpenChange={() => setArchivingProject(null)}
+      onOpenChange={(open) => !open && setArchivingProject(null)}
       title={t('projects.dialogs.archive.title')}
-      desc={t('projects.dialogs.archive.description', { name: archivingProject?.name })}
+      desc={t('projects.dialogs.archive.description', { name: archivingProject.name })}
       confirmText={t('common.buttons.archive')}
       cancelBtnText={t('common.buttons.cancel')}
+      destructive
       handleConfirm={handleConfirm}
       isLoading={archiveProject.isPending}
-      destructive
     />
   );
 }
@@ -395,23 +333,21 @@ export function ActivateProjectDialog() {
   const { activatingProject, setActivatingProject } = useProjectsContext();
   const activateProject = useActivateProject();
 
-  const handleConfirm = async () => {
-    if (!activatingProject) return;
+  if (!activatingProject) return null;
 
+  const handleConfirm = async () => {
     try {
       await activateProject.mutateAsync(activatingProject.id);
       setActivatingProject(null);
-    } catch (error) {
-      // Error is handled by the mutation
-    }
+    } catch (error) {}
   };
 
   return (
     <ConfirmDialog
       open={!!activatingProject}
-      onOpenChange={() => setActivatingProject(null)}
+      onOpenChange={(open) => !open && setActivatingProject(null)}
       title={t('projects.dialogs.activate.title')}
-      desc={t('projects.dialogs.activate.description', { name: activatingProject?.name })}
+      desc={t('projects.dialogs.activate.description', { name: activatingProject.name })}
       confirmText={t('common.buttons.activate')}
       cancelBtnText={t('common.buttons.cancel')}
       handleConfirm={handleConfirm}
@@ -420,7 +356,61 @@ export function ActivateProjectDialog() {
   );
 }
 
-// Combined Dialogs Component
+// Redeem Project Dialog
+export function RedeemProjectDialog() {
+  const { t } = useTranslation();
+  const { redeemingProject, setRedeemingProject } = useProjectsContext();
+  const redeemProject = useRedeemProject();
+  const [code, setCode] = React.useState('');
+
+  if (!redeemingProject) return null;
+
+  const handleClose = () => {
+    setRedeemingProject(null);
+    setCode('');
+  };
+
+  const handleConfirm = async () => {
+    if (!code) return;
+    try {
+      await redeemProject.mutateAsync({ id: redeemingProject.id, code });
+      handleClose();
+    } catch (error) {}
+  };
+
+  return (
+    <Dialog open={!!redeemingProject} onOpenChange={handleClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('topup.redeem.title')}</DialogTitle>
+          <DialogDescription>
+            {t('projects.dialogs.redeem.description', { defaultValue: 'Enter the redemption code for project {{name}}', name: redeemingProject.name })}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Input
+              id="code"
+              placeholder={t('topup.redeem.placeholder')}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>
+            {t('common.buttons.cancel')}
+          </Button>
+          <Button onClick={handleConfirm} disabled={!code || redeemProject.isPending}>
+            {redeemProject.isPending ? t('common.processing') : t('topup.redeem.button')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ProjectsDialogs
 export function ProjectsDialogs() {
   return (
     <>
@@ -428,6 +418,7 @@ export function ProjectsDialogs() {
       <EditProjectDialog />
       <ArchiveProjectDialog />
       <ActivateProjectDialog />
+      <RedeemProjectDialog />
     </>
   );
 }

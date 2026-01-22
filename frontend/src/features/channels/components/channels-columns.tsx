@@ -65,7 +65,7 @@ const ActionCell = memo(({ row }: { row: Row<Channel> }) => {
         channelID: channel.id,
         modelID: channel.defaultTestModel || undefined,
       });
-    } catch (_error) { }
+    } catch (_error) {}
   };
 
   const handleOpenTestDialog = useCallback(() => {
@@ -94,7 +94,7 @@ const ActionCell = memo(({ row }: { row: Row<Channel> }) => {
             <DotsHorizontalIcon className='h-3 w-3' />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='w-[160px]'>
+       <DropdownMenuContent align='end' className='w-[160px]'>
           <DropdownMenuItem onClick={handleOpenTestDialog}>
             <IconPlayerPlay size={16} className='mr-2' />
             {t('channels.actions.test')}
@@ -433,28 +433,28 @@ export const createColumns = (t: ReturnType<typeof useTranslation>['t'], canWrit
     },
     ...(canWrite
       ? [
-        {
-          id: 'select',
-          header: ({ table }: { table: Table<Channel> }) => (
-            <Checkbox
-              checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-              aria-label={t('channels.columns.selectAll')}
-              className='translate-y-[2px]'
-            />
-          ),
-          cell: ({ row }: { row: Row<Channel> }) => (
-            <Checkbox
-              checked={row.getIsSelected()}
-              onCheckedChange={(value) => row.toggleSelected(!!value)}
-              aria-label={t('channels.columns.selectRow')}
-              className='translate-y-[2px]'
-            />
-          ),
-          enableSorting: false,
-          enableHiding: false,
-        },
-      ]
+          {
+            id: 'select',
+            header: ({ table }: { table: Table<Channel> }) => (
+              <Checkbox
+                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label={t('channels.columns.selectAll')}
+                className='translate-y-[2px]'
+              />
+            ),
+            cell: ({ row }: { row: Row<Channel> }) => (
+              <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => row.toggleSelected(!!value)}
+                aria-label={t('channels.columns.selectRow')}
+                className='translate-y-[2px]'
+              />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+          },
+        ]
       : []),
     {
       accessorKey: 'name',
@@ -476,25 +476,6 @@ export const createColumns = (t: ReturnType<typeof useTranslation>['t'], canWrit
       },
       enableSorting: false,
       enableHiding: false,
-    },
-    {
-      accessorKey: 'group',
-      header: ({ column }) => <DataTableColumnHeader column={column} title={t('Group')} />,
-      cell: ({ row }) => {
-        const groupStr = row.original.group || 'default';
-        const groups = groupStr.split(',');
-        return (
-          <div className='flex flex-wrap gap-1'>
-            {groups.map((group) => (
-              <Badge key={group} variant='outline' className='capitalize'>
-                {group}
-              </Badge>
-            ))}
-          </div>
-        );
-      },
-      enableSorting: true,
-      enableHiding: true,
     },
     {
       accessorKey: 'status',
