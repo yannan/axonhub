@@ -201,7 +201,7 @@ if loadBalancer != nil {
 **功能**:
 - **请求过滤**: 检查请求内容是否包含敏感词
 - 使用腾讯云内容安全 TMS TextModeration 进行检测（Base64 传输）
-- 依赖环境变量 `TENCENTCLOUD_SECRET_ID` / `TENCENTCLOUD_SECRET_KEY`（可选 `TENCENTCLOUD_TOKEN`、`TENCENTCLOUD_REGION`）
+- 依赖环境变量 `TENCENTCLOUD_SECRET_ID` / `TENCENTCLOUD_SECRET_KEY`（可选 `TENCENTCLOUD_TOKEN`、`TENCENTCLOUD_REGION`、`TENCENTCLOUD_BIZ_TYPE`）
 - 上游异常时记录告警并放行（fail-open）
 
 **实现**:

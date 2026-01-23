@@ -58,6 +58,9 @@ func (e *ValidationEngine) Validate(content string) (bool, string) {
 	encoded := base64.StdEncoding.EncodeToString([]byte(content))
 	request := tms.NewTextModerationRequest()
 	request.Content = common.StringPtr(encoded)
+	if bizType := os.Getenv("TENCENTCLOUD_BIZ_TYPE"); bizType != "" {
+		request.BizType = common.StringPtr(bizType)
+	}
 
 	response, err := e.client.TextModeration(request)
 	if err != nil {

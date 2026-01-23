@@ -263,6 +263,7 @@ func (s *BillingService) StopSettlementQueue() {
 
 // ResolveGroupMultiplier returns the multiplier for the provided group name.
 func ResolveGroupMultiplier(group string, ratios map[string]float64) float64 {
+	log.Info(context.Background(), "ResolveGroupMultiplier", log.String("group", group), log.Any("ratios", ratios))
 	if group == "" {
 		group = "default"
 	}
@@ -280,7 +281,7 @@ func ResolveGroupMultiplier(group string, ratios map[string]float64) float64 {
 		normalized[key] = multiplier
 	}
 
-	maxMultiplier := 1.0
+	maxMultiplier := 0.0
 	for _, g := range groups {
 		g = strings.ToLower(strings.TrimSpace(g))
 		if g == "" {
