@@ -37,9 +37,15 @@ export function ApiKeysEditDialog() {
 
   useEffect(() => {
     if (selectedApiKey && isDialogOpen.edit) {
+      let scopes = selectedApiKey.scopes || [];
+      // 如果是服务账户且没有 read_channels 权限，自动添加
+      if (selectedApiKey.type === 'service_account' && !scopes.includes('read_channels')) {
+        scopes = [...scopes, 'read_channels'];
+      }
+
       form.reset({
         name: selectedApiKey.name,
-        scopes: selectedApiKey.scopes || [],
+        scopes: scopes,
         ipWhitelist: selectedApiKey.ipWhitelist || '',
         clearIPWhitelist: false,
         contentSafetyInterceptEnabled: selectedApiKey.contentSafetyInterceptEnabled ?? true,

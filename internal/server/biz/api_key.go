@@ -101,6 +101,9 @@ func (s *APIKeyService) CreateAPIKey(ctx context.Context, input ent.CreateAPIKey
 	if input.IPWhitelist != nil {
 		create.SetIPWhitelist(strings.TrimSpace(*input.IPWhitelist))
 	}
+	if input.ContentSafetyInterceptEnabled != nil {
+		create.SetContentSafetyInterceptEnabled(*input.ContentSafetyInterceptEnabled)
+	}
 
 	apiKey, err := create.Save(ctx)
 	if err != nil {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +32,16 @@ export function ApiKeysCreateDialog() {
   });
 
   const apiKeyType = form.watch('type');
+
+  // 当切换到服务账户时，自动添加 read_channels 权限
+  useEffect(() => {
+    if (apiKeyType === 'service_account') {
+      const currentScopes = form.getValues('scopes') || [];
+      if (!currentScopes.includes('read_channels')) {
+        form.setValue('scopes', [...currentScopes, 'read_channels']);
+      }
+    }
+  }, [apiKeyType, form]);
 
   const onSubmit = async (data: CreateApiKeyInput) => {
     setIsSubmitting(true);
