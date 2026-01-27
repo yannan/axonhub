@@ -68,7 +68,7 @@ export function useSidebarData(): SidebarData {
       items: [
         {
           title: t('sidebar.items.dashboard'),
-          url: '/',
+          url: '/dashboard',
           icon: IconLayoutDashboard,
         } as NavLink,
         {
