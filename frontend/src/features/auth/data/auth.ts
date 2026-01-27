@@ -72,11 +72,6 @@ export function useSignIn() {
       }
 
       toast.success(i18n.t('common.success.signedIn'));
-
-      // Redirect based on user role
-      // Owner users go to dashboard, non-owner users go to requests page
-      const redirectPath = data.user.isOwner ? '/' : '/project/playground';
-      router.navigate({ to: redirectPath });
     },
     onError: (error: any) => {
       const errorMessage = error.message || 'Failed to sign in';
@@ -89,7 +84,10 @@ export function useSignOut() {
   const { reset } = useAuthStore((state) => state.auth);
   const router = useRouter();
 
-  return () => {
+  return async () => {
+    // Navigate to root first to avoid AuthGuard redirecting to sign-in
+    await router.navigate({ to: '/' });
+
     // Clear token from localStorage
     removeTokenFromStorage();
 
@@ -97,8 +95,5 @@ export function useSignOut() {
     reset();
 
     toast.success(i18n.t('common.success.signedOut'));
-
-    // Redirect to sign in page
-    router.navigate({ to: '/sign-in' });
   };
 }

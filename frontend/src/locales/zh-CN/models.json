@@ -219,6 +219,12 @@
       "bulkEnableError": "启用模型失败：{{error}}"
     },
     "onboarding": {
+       "models.onboarding.steps.settingsButton.description": "点击这里访问全局模型设置。让我们一起探索您可以配置的内容。",
+  "models.input": "输入",
+  "models.output": "输出",
+  "models.noResults": "未找到模型",
+  "models.noResultsDesc": "尝试调整筛选条件或搜索词以找到您需要的模型。",
+  "models.searchPlaceholder": "搜索模型...",
       "title": "欢迎来到模型管理",
       "description": "让我们快速了解一下模型设置功能",
       "startTour": "开始导览",

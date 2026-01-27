@@ -219,6 +219,12 @@
       "bulkEnableError": "Failed to enable models: {{error}}"
     },
     "onboarding": {
+      "models.onboarding.steps.settingsButton.description": "Click here to access global model settings. Let's explore what you can configure.",
+      "models.input": "Input",
+      "models.output": "Output",
+      "models.noResults": "No models found",
+      "models.noResultsDesc": "Try adjusting your filters or search terms to find what you're looking for.",
+      "models.searchPlaceholder": "Search models...",
       "title": "Welcome to Models",
       "description": "Let's take a quick tour to help you understand model settings",
       "startTour": "Start Tour",

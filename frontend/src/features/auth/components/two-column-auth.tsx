@@ -41,7 +41,7 @@ export default function TwoColumnAuth({
             <div className='mb-8'>
               <h1 className='mb-4 text-4xl font-light text-slate-100'>{t('auth.brand.title')}</h1>
               <h2 className='mb-6 bg-gradient-to-r from-emerald-300 to-teal-200 bg-clip-text text-5xl font-bold text-transparent'>
-                AxonHub
+                GodawnAi
               </h2>
               <p className='text-lg leading-relaxed text-slate-300'>{t('auth.brand.description')}</p>
             </div>
@@ -82,7 +82,7 @@ export default function TwoColumnAuth({
             <CardContent className='px-6 pb-8 sm:px-8'>{children}</CardContent>
           </Card>
 
-          {rightFooter ? <div className='mt-6 px-4 text-center sm:mt-8'>{rightFooter}</div> : null}
+          {/* {rightFooter ? <div className='mt-6 px-4 text-center sm:mt-8'>{rightFooter}</div> : null} */}
         </div>
       </div>
     </div>

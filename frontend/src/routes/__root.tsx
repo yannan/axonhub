@@ -8,7 +8,7 @@ import { InitializationGuard } from '@/components/initialization-guard';
 import { NavigationProgress } from '@/components/navigation-progress';
 import GeneralError from '@/features/errors/general-error';
 import NotFoundError from '@/features/errors/not-found-error';
-
+import { AuthGuard } from '@/components/auth-guard';
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
@@ -17,7 +17,9 @@ export const Route = createRootRouteWithContext<{
       <>
         <NavigationProgress />
         <InitializationGuard>
-          <Outlet />
+          <AuthGuard>
+            <Outlet />
+          </AuthGuard>
         </InitializationGuard>
         <CommandMenu />
         <Toaster duration={3000} />

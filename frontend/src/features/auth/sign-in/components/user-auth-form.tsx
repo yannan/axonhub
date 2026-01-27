@@ -2,7 +2,7 @@ import { HTMLAttributes, useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from '@tanstack/react-router';
+import { Link, useRouter, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { passwordSchema } from '@/lib/validation';
@@ -23,8 +23,11 @@ const createFormSchema = (t: (key: string) => string) =>
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const signInMutation = useSignIn();
+  const isNavigating = useRouterState({ select: (s) => s.status === 'pending' });
   const [rememberMe, setRememberMe] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
 
   const formSchema = createFormSchema(t);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -36,7 +39,26 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   });
 
   function onSubmit(data: z.infer<typeof formSchema>) {
-    signInMutation.mutate(data);
+    signInMutation.mutate(data, {
+      onSuccess: async (responseData) => {
+        setShowLoading(true);
+        // Redirect based on user role
+        // Owner users go to dashboard, non-owner users go to requests page
+        const redirectPath = responseData.user.isOwner ? '/dashboard' : '/project/playground';
+        await router.navigate({ to: redirectPath });
+      },
+    });
+  }
+
+  const isLoading = signInMutation.isPending || showLoading || isNavigating;
+
+  if (showLoading) {
+    return (
+      <div className='flex h-[400px] w-full flex-col items-center justify-center space-y-4'>
+        <div className='h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800'></div>
+        <p className='text-sm font-medium text-slate-600 animate-pulse'>{t('auth.signIn.form.signingIn')}</p>
+      </div>
+    );
   }
 
   return (
@@ -71,7 +93,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                 <FormLabel className='text-sm font-medium text-slate-700'>{t('auth.signIn.form.password.label')}</FormLabel>
                 <Link
                   to='/forgot-password'
-                  className='text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 hover:underline'
+                  className='text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 hover:underline underline-offset-4'
                 >
                   {t('auth.signIn.links.forgotPassword')}
                 </Link>
@@ -104,16 +126,19 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             </div>
             <span className='text-sm text-slate-700'>{t('auth.signIn.form.rememberMe')}</span>
           </label>
+          <Link to='/sign-up' className='text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 hover:underline underline-offset-4'>
+                {t('auth.signUp.title')}
+          </Link>
         </div>
 
         {/* Submit Button */}
         <Button
           type='submit'
           className='mt-6 w-full rounded-lg bg-slate-800 px-6 py-3 font-medium text-white shadow-lg transition-all duration-300 hover:bg-slate-700 hover:shadow-xl focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50'
-          disabled={signInMutation.isPending}
+          disabled={isLoading}
           data-testid='sign-in-submit'
         >
-          {signInMutation.isPending ? (
+          {isLoading ? (
             <div className='flex items-center justify-center gap-2'>
               <div className='h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white'></div>
               {t('auth.signIn.form.signingIn')}
