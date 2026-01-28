@@ -116,7 +116,7 @@ export function TokenStatsCard() {
           </div>
           <div className='bg-border h-8 w-px'></div>
           <div className='text-center'>
-            <div className='text-muted-foreground mb-1 text-xs'>{t('dashboard.stats.cached')}</div>
+            <div className='text-muted-foreground mb-1 text-xs'>{t('dashboard.stats.totalTokens')}</div>
             <div className='text-muted-foreground font-mono text-lg font-bold'>{formatNumber(tokens.cached)}</div>
           </div>
         </div>

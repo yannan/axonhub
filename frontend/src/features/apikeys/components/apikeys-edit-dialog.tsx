@@ -5,8 +5,12 @@ import { IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useApiKeysContext } from '../context/apikeys-context';
 import { useUpdateApiKey } from '../data/apikeys';
 import { UpdateApiKeyInput, updateApiKeyInputSchemaFactory } from '../data/schema';
@@ -25,14 +29,26 @@ export function ApiKeysEditDialog() {
     defaultValues: {
       name: '',
       scopes: [],
+      ipWhitelist: '',
+      clearIPWhitelist: false,
+      contentSafetyInterceptEnabled: true,
     },
   });
 
   useEffect(() => {
     if (selectedApiKey && isDialogOpen.edit) {
+      let scopes = selectedApiKey.scopes || [];
+      // 如果是服务账户且没有 read_channels 权限，自动添加
+      if (selectedApiKey.type === 'service_account' && !scopes.includes('read_channels')) {
+        scopes = [...scopes, 'read_channels'];
+      }
+
       form.reset({
         name: selectedApiKey.name,
-        scopes: selectedApiKey.scopes || [],
+        scopes: scopes,
+        ipWhitelist: selectedApiKey.ipWhitelist || '',
+        clearIPWhitelist: false,
+        contentSafetyInterceptEnabled: selectedApiKey.contentSafetyInterceptEnabled ?? true,
       });
     }
   }, [selectedApiKey, isDialogOpen.edit, form]);
@@ -48,6 +64,16 @@ export function ApiKeysEditDialog() {
 
       if (selectedApiKey.type === 'service_account') {
         input.scopes = data.scopes;
+      }
+
+      if (data.clearIPWhitelist) {
+        input.clearIPWhitelist = true;
+      } else if (data.ipWhitelist) {
+        input.ipWhitelist = data.ipWhitelist;
+      }
+
+      if (data.contentSafetyInterceptEnabled !== undefined) {
+        input.contentSafetyInterceptEnabled = data.contentSafetyInterceptEnabled;
       }
 
       await updateApiKey.mutateAsync({
@@ -92,19 +118,81 @@ export function ApiKeysEditDialog() {
               )}
             />
             {isServiceAccount && (
-              <FormField
-                control={form.control}
-                name='scopes'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('apikeys.dialogs.fields.scopes.label')}</FormLabel>
-                    <FormControl>
-                      <ScopesSelect value={field.value || []} onChange={field.onChange} portalContainer={dialogContent} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <>
+                <FormField
+                  control={form.control}
+                  name='scopes'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('apikeys.dialogs.fields.scopes.label')}</FormLabel>
+                      <FormControl>
+                        <ScopesSelect value={field.value || []} onChange={field.onChange} portalContainer={dialogContent} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='ipWhitelist'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('apikeys.dialogs.fields.ipWhitelist.label')}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={t('apikeys.dialogs.fields.ipWhitelist.placeholder')}
+                          className='min-h-[100px] resize-y'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>{t('apikeys.dialogs.fields.ipWhitelist.description')}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='clearIPWhitelist'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4'>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className='space-y-1 leading-none'>
+                        <FormLabel>{t('apikeys.dialogs.fields.clearIPWhitelist')}</FormLabel>
+                        <FormDescription>
+                          {t('apikeys.dialogs.fields.ipWhitelist.description')}
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='contentSafetyInterceptEnabled'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
+                      <div className='space-y-0.5'>
+                        <FormLabel className='text-base'>
+                          {t('apikeys.dialogs.fields.contentSafetyInterceptEnabled.label')}
+                        </FormLabel>
+                        <FormDescription>
+                          {t('apikeys.dialogs.fields.contentSafetyInterceptEnabled.description')}
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch checked={field.value ?? true} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
             <div className='space-y-4'>
               <div>

@@ -1,0 +1,35 @@
+{
+  "topup": {
+    "title": "Top-up Center",
+    "description": "Manage your account balance and top-up history",
+    "balanceUsage": "Quota Usage (Used / Total)",
+    "usage": {
+      "model": "Model",
+      "tokens": "Tokens",
+      "cost": "Cost",
+      "time": "Time"
+    },
+    "redeem": {
+      "title": "Redeem Code",
+      "placeholder": "Enter redemption code",
+      "button": "Redeem",
+      "success": "Redeemed successfully",
+      "error": "Redemption failed"
+    },
+    "history": {
+      "title": "Top-up History",
+      "description": "View all your top-up and transaction history",
+      "time": "Time",
+      "amount": "Amount",
+      "type": "Method",
+      "status": "Status"
+    },
+    "transfer": {
+      "title": "Transfer",
+      "button": "Transfer",
+      "recipient": "Recipient",
+      "amount": "Amount",
+      "success": "Transfer successful"
+    }
+  }
+}

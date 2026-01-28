@@ -20,13 +20,16 @@ export function AuthGuard({ children }: AuthGuardProps) {
     // If no token, redirect to sign-in
     if (!accessToken) {
       const currentPath = window.location.pathname;
-      // Don't redirect if already on auth pages
+      // Don't redirect if already on auth pages OR public pages
       if (
         !currentPath.startsWith('/sign-in') &&
         !currentPath.startsWith('/sign-up') &&
         !currentPath.startsWith('/initialization') &&
         !currentPath.startsWith('/forgot-password') &&
-        !currentPath.startsWith('/otp')
+        !currentPath.startsWith('/otp') &&
+        !currentPath.startsWith('/_public') &&
+        currentPath !== '/' &&
+        currentPath !== '/available-models'
       ) {
         router.navigate({ to: '/sign-in' });
       }
@@ -44,13 +47,16 @@ export function AuthGuard({ children }: AuthGuardProps) {
   // Show loading while checking auth
   if (!accessToken) {
     const currentPath = window.location.pathname;
-    // Don't show loading on auth pages
+    // Don't show loading on auth pages OR public pages
     if (
       currentPath.startsWith('/sign-in') ||
       currentPath.startsWith('/sign-up') ||
       currentPath.startsWith('/initialization') ||
       currentPath.startsWith('/forgot-password') ||
-      currentPath.startsWith('/otp')
+      currentPath.startsWith('/otp') ||
+      currentPath.startsWith('/_public') ||
+      currentPath === '/' ||
+      currentPath === '/available-models'
     ) {
       return <>{children}</>;
     }
@@ -67,6 +73,21 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   // Show loading while fetching user info
   if (accessToken && isMeLoading) {
+    const currentPath = window.location.pathname;
+    // Don't show loading on auth pages OR public pages
+    if (
+      currentPath.startsWith('/sign-in') ||
+      currentPath.startsWith('/sign-up') ||
+      currentPath.startsWith('/initialization') ||
+      currentPath.startsWith('/forgot-password') ||
+      currentPath.startsWith('/otp') ||
+      currentPath.startsWith('/_public') ||
+      currentPath === '/' ||
+      currentPath === '/available-models'
+    ) {
+      return <>{children}</>;
+    }
+
     return (
       <div className='flex h-screen items-center justify-center'>
         <div className='space-y-4'>

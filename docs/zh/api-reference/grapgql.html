@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>项目创建与编辑 - GraphQL API 文档</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Space+Grotesk:wght@400;600&display=swap');
+
+      :root {
+        --ink: #0f1b2d;
+        --muted: #5a6a86;
+        --paper: #f7f3ed;
+        --paper-2: #f1e8dd;
+        --accent: #c46b3b;
+        --accent-2: #2a6f5d;
+        --shadow: rgba(15, 27, 45, 0.15);
+        --border: rgba(15, 27, 45, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 600px at 10% -10%, #f7d7c4, transparent 60%),
+          radial-gradient(900px 500px at 110% 10%, #cde6df, transparent 55%),
+          linear-gradient(160deg, var(--paper), var(--paper-2));
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 56px 6vw 24px;
+      }
+
+      .title {
+        font-family: "Newsreader", "Georgia", serif;
+        font-size: clamp(32px, 4vw, 52px);
+        letter-spacing: 0.5px;
+        margin: 0 0 12px;
+      }
+
+      .subtitle {
+        max-width: 820px;
+        font-size: 16px;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.6;
+      }
+
+      .badge-row {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .badge {
+        border: 1px solid var(--border);
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
+      }
+
+      main {
+        padding: 0 6vw 80px;
+        display: grid;
+        gap: 28px;
+      }
+
+      .panel {
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 20px 60px var(--shadow);
+        backdrop-filter: blur(6px);
+        animation: floatIn 0.6s ease both;
+      }
+
+      .panel h2 {
+        margin: 0 0 10px;
+        font-size: 22px;
+      }
+
+      .panel p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .grid {
+        display: grid;
+        gap: 20px;
+      }
+
+      .two-col {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+
+      .code {
+        background: #0f1b2d;
+        color: #f9f4ee;
+        border-radius: 14px;
+        padding: 16px;
+        font-family: "SFMono-Regular", "Consolas", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        text-align: left;
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        background: rgba(196, 107, 59, 0.12);
+        color: var(--accent);
+        border: 1px solid rgba(196, 107, 59, 0.25);
+      }
+
+      .note {
+        background: rgba(42, 111, 93, 0.08);
+        border-left: 3px solid var(--accent-2);
+        padding: 12px 14px;
+        border-radius: 10px;
+        color: #244b3f;
+        font-size: 13px;
+      }
+
+      @keyframes floatIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 class="title">项目创建与编辑</h1>
+      <p class="subtitle">
+        基于当前 GraphQL Schema，整理项目创建（createProject）与项目编辑（updateProject）两个 Mutation 的静态文档。
+        适用于后台 GraphQL 接口：<strong>POST /admin/graphql</strong>。
+      </p>
+      <div class="badge-row">
+        <span class="badge">Content-Type: application/json</span>
+        <span class="badge">Authorization: Bearer &lt;JWT&gt;</span>
+        <span class="badge">Schema: axonhub/internal/server/gql</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>通用请求格式</h2>
+        <div class="grid two-col">
+          <div class="code">
+{<br />
+  "query": "mutation MyMutation($input: CreateProjectInput!) { createProject(input: $input) { id name status } }",<br />
+  "variables": { "input": { "name": "Demo Project" } },<br />
+  "operationName": "MyMutation"<br />
+}
+          </div>
+          <div>
+            <p>
+              GraphQL Endpoint 为 <strong>/admin/graphql</strong>，需携带 JWT 鉴权头。Project 的状态枚举值来自 Schema：
+              <span class="tag">active</span>
+              <span class="tag">archived</span>
+            </p>
+            <div class="note">
+              Project 类型字段 <code>description</code> 为非空字符串。创建时若不填写，后端通常会落为空字符串（依 Ent 默认值而定）。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>创建项目 - createProject</h2>
+        <p>Mutation 签名：<code>createProject(input: CreateProjectInput!): Project!</code></p>
+        <div class="grid two-col">
+          <div class="code">
+mutation CreateProject($input: CreateProjectInput!) {<br />
+  createProject(input: $input) {<br />
+    id<br />
+    name<br />
+    description<br />
+    status<br />
+    group<br />
+    createdAt<br />
+    updatedAt<br />
+  }<br />
+}
+          </div>
+          <div class="code">
+{<br />
+  "input": {<br />
+    "name": "AxonHub Docs",<br />
+    "description": "用于演示的项目",<br />
+    "status": "active",<br />
+    "group": "default",<br />
+    "userIDs": ["User:1", "User:2"]<br />
+  }<br />
+}
+          </div>
+        </div>
+        <h3>输入字段（CreateProjectInput）</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>字段</th>
+              <th>类型</th>
+              <th>必填</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>name</td>
+              <td>String</td>
+              <td>是</td>
+              <td>项目名称</td>
+            </tr>
+            <tr>
+              <td>description</td>
+              <td>String</td>
+              <td>否</td>
+              <td>项目描述</td>
+            </tr>
+            <tr>
+              <td>status</td>
+              <td>ProjectStatus</td>
+              <td>否</td>
+              <td>项目状态：active / archived</td>
+            </tr>
+            <tr>
+              <td>group</td>
+              <td>String</td>
+              <td>否</td>
+              <td>计费分组：default / vip / svip</td>
+            </tr>
+            <tr>
+              <td>userIDs</td>
+              <td>[ID!]</td>
+              <td>否</td>
+              <td>创建时同时加入的用户 ID 列表</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>编辑项目 - updateProject</h2>
+        <p>Mutation 签名：<code>updateProject(id: ID!, input: UpdateProjectInput!): Project!</code></p>
+        <div class="grid two-col">
+          <div class="code">
+mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {<br />
+  updateProject(id: $id, input: $input) {<br />
+    id<br />
+    name<br />
+    description<br />
+    status<br />
+    group<br />
+    updatedAt<br />
+  }<br />
+}
+          </div>
+          <div class="code">
+{<br />
+  "id": "Project:42",<br />
+  "input": {<br />
+    "name": "AxonHub Docs v2",<br />
+    "description": "更新项目描述",<br />
+    "status": "active",<br />
+    "addUserIDs": ["User:9"],<br />
+    "removeUserIDs": ["User:7"],<br />
+    "clearUsers": false<br />
+  }<br />
+}
+          </div>
+        </div>
+        <h3>输入字段（UpdateProjectInput）</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>字段</th>
+              <th>类型</th>
+              <th>必填</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>name</td>
+              <td>String</td>
+              <td>否</td>
+              <td>项目名称</td>
+            </tr>
+            <tr>
+              <td>description</td>
+              <td>String</td>
+              <td>否</td>
+              <td>项目描述</td>
+            </tr>
+            <tr>
+              <td>status</td>
+              <td>ProjectStatus</td>
+              <td>否</td>
+              <td>项目状态：active / archived</td>
+            </tr>
+            <tr>
+              <td>group</td>
+              <td>String</td>
+              <td>否</td>
+              <td>计费分组：default / vip / svip</td>
+            </tr>
+            <tr>
+              <td>addUserIDs</td>
+              <td>[ID!]</td>
+              <td>否</td>
+              <td>新增项目成员</td>
+            </tr>
+            <tr>
+              <td>removeUserIDs</td>
+              <td>[ID!]</td>
+              <td>否</td>
+              <td>移除项目成员</td>
+            </tr>
+            <tr>
+              <td>clearUsers</td>
+              <td>Boolean</td>
+              <td>否</td>
+              <td>是否清空全部成员</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

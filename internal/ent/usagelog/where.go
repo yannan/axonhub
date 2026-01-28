@@ -285,26 +285,6 @@ func APIKeyIDNotIn(vs ...int) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldNotIn(FieldAPIKeyID, vs...))
 }
 
-// APIKeyIDGT applies the GT predicate on the "api_key_id" field.
-func APIKeyIDGT(v int) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldGT(FieldAPIKeyID, v))
-}
-
-// APIKeyIDGTE applies the GTE predicate on the "api_key_id" field.
-func APIKeyIDGTE(v int) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldGTE(FieldAPIKeyID, v))
-}
-
-// APIKeyIDLT applies the LT predicate on the "api_key_id" field.
-func APIKeyIDLT(v int) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldLT(FieldAPIKeyID, v))
-}
-
-// APIKeyIDLTE applies the LTE predicate on the "api_key_id" field.
-func APIKeyIDLTE(v int) predicate.UsageLog {
-	return predicate.UsageLog(sql.FieldLTE(FieldAPIKeyID, v))
-}
-
 // APIKeyIDIsNil applies the IsNil predicate on the "api_key_id" field.
 func APIKeyIDIsNil() predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldIsNull(FieldAPIKeyID))
@@ -1235,6 +1215,29 @@ func HasRequest() predicate.UsageLog {
 func HasRequestWith(preds ...predicate.Request) predicate.UsageLog {
 	return predicate.UsageLog(func(s *sql.Selector) {
 		step := newRequestStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAPIKey applies the HasEdge predicate on the "api_key" edge.
+func HasAPIKey() predicate.UsageLog {
+	return predicate.UsageLog(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, APIKeyTable, APIKeyColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAPIKeyWith applies the HasEdge predicate on the "api_key" edge with a given conditions (other predicates).
+func HasAPIKeyWith(preds ...predicate.APIKey) predicate.UsageLog {
+	return predicate.UsageLog(func(s *sql.Selector) {
+		step := newAPIKeyStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

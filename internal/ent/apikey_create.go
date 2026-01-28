@@ -14,6 +14,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/request"
+	"github.com/looplj/axonhub/internal/ent/usagelog"
 	"github.com/looplj/axonhub/internal/ent/user"
 	"github.com/looplj/axonhub/internal/objects"
 )
@@ -140,6 +141,34 @@ func (_c *APIKeyCreate) SetProfiles(v *objects.APIKeyProfiles) *APIKeyCreate {
 	return _c
 }
 
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (_c *APIKeyCreate) SetIPWhitelist(v string) *APIKeyCreate {
+	_c.mutation.SetIPWhitelist(v)
+	return _c
+}
+
+// SetNillableIPWhitelist sets the "ip_whitelist" field if the given value is not nil.
+func (_c *APIKeyCreate) SetNillableIPWhitelist(v *string) *APIKeyCreate {
+	if v != nil {
+		_c.SetIPWhitelist(*v)
+	}
+	return _c
+}
+
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (_c *APIKeyCreate) SetContentSafetyInterceptEnabled(v bool) *APIKeyCreate {
+	_c.mutation.SetContentSafetyInterceptEnabled(v)
+	return _c
+}
+
+// SetNillableContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field if the given value is not nil.
+func (_c *APIKeyCreate) SetNillableContentSafetyInterceptEnabled(v *bool) *APIKeyCreate {
+	if v != nil {
+		_c.SetContentSafetyInterceptEnabled(*v)
+	}
+	return _c
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_c *APIKeyCreate) SetUser(v *User) *APIKeyCreate {
 	return _c.SetUserID(v.ID)
@@ -163,6 +192,21 @@ func (_c *APIKeyCreate) AddRequests(v ...*Request) *APIKeyCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddRequestIDs(ids...)
+}
+
+// AddUsageLogIDs adds the "usage_logs" edge to the UsageLog entity by IDs.
+func (_c *APIKeyCreate) AddUsageLogIDs(ids ...int) *APIKeyCreate {
+	_c.mutation.AddUsageLogIDs(ids...)
+	return _c
+}
+
+// AddUsageLogs adds the "usage_logs" edges to the UsageLog entity.
+func (_c *APIKeyCreate) AddUsageLogs(v ...*UsageLog) *APIKeyCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUsageLogIDs(ids...)
 }
 
 // Mutation returns the APIKeyMutation object of the builder.
@@ -240,6 +284,14 @@ func (_c *APIKeyCreate) defaults() error {
 		v := apikey.DefaultProfiles
 		_c.mutation.SetProfiles(v)
 	}
+	if _, ok := _c.mutation.IPWhitelist(); !ok {
+		v := apikey.DefaultIPWhitelist
+		_c.mutation.SetIPWhitelist(v)
+	}
+	if _, ok := _c.mutation.ContentSafetyInterceptEnabled(); !ok {
+		v := apikey.DefaultContentSafetyInterceptEnabled
+		_c.mutation.SetContentSafetyInterceptEnabled(v)
+	}
 	return nil
 }
 
@@ -281,6 +333,9 @@ func (_c *APIKeyCreate) check() error {
 		if err := apikey.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "APIKey.status": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.ContentSafetyInterceptEnabled(); !ok {
+		return &ValidationError{Name: "content_safety_intercept_enabled", err: errors.New(`ent: missing required field "APIKey.content_safety_intercept_enabled"`)}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "APIKey.user"`)}
@@ -351,6 +406,14 @@ func (_c *APIKeyCreate) createSpec() (*APIKey, *sqlgraph.CreateSpec) {
 		_spec.SetField(apikey.FieldProfiles, field.TypeJSON, value)
 		_node.Profiles = value
 	}
+	if value, ok := _c.mutation.IPWhitelist(); ok {
+		_spec.SetField(apikey.FieldIPWhitelist, field.TypeString, value)
+		_node.IPWhitelist = value
+	}
+	if value, ok := _c.mutation.ContentSafetyInterceptEnabled(); ok {
+		_spec.SetField(apikey.FieldContentSafetyInterceptEnabled, field.TypeBool, value)
+		_node.ContentSafetyInterceptEnabled = value
+	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -394,6 +457,22 @@ func (_c *APIKeyCreate) createSpec() (*APIKey, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UsageLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apikey.UsageLogsTable,
+			Columns: []string{apikey.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -552,6 +631,36 @@ func (u *APIKeyUpsert) UpdateProfiles() *APIKeyUpsert {
 // ClearProfiles clears the value of the "profiles" field.
 func (u *APIKeyUpsert) ClearProfiles() *APIKeyUpsert {
 	u.SetNull(apikey.FieldProfiles)
+	return u
+}
+
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (u *APIKeyUpsert) SetIPWhitelist(v string) *APIKeyUpsert {
+	u.Set(apikey.FieldIPWhitelist, v)
+	return u
+}
+
+// UpdateIPWhitelist sets the "ip_whitelist" field to the value that was provided on create.
+func (u *APIKeyUpsert) UpdateIPWhitelist() *APIKeyUpsert {
+	u.SetExcluded(apikey.FieldIPWhitelist)
+	return u
+}
+
+// ClearIPWhitelist clears the value of the "ip_whitelist" field.
+func (u *APIKeyUpsert) ClearIPWhitelist() *APIKeyUpsert {
+	u.SetNull(apikey.FieldIPWhitelist)
+	return u
+}
+
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (u *APIKeyUpsert) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpsert {
+	u.Set(apikey.FieldContentSafetyInterceptEnabled, v)
+	return u
+}
+
+// UpdateContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field to the value that was provided on create.
+func (u *APIKeyUpsert) UpdateContentSafetyInterceptEnabled() *APIKeyUpsert {
+	u.SetExcluded(apikey.FieldContentSafetyInterceptEnabled)
 	return u
 }
 
@@ -725,6 +834,41 @@ func (u *APIKeyUpsertOne) UpdateProfiles() *APIKeyUpsertOne {
 func (u *APIKeyUpsertOne) ClearProfiles() *APIKeyUpsertOne {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.ClearProfiles()
+	})
+}
+
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (u *APIKeyUpsertOne) SetIPWhitelist(v string) *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetIPWhitelist(v)
+	})
+}
+
+// UpdateIPWhitelist sets the "ip_whitelist" field to the value that was provided on create.
+func (u *APIKeyUpsertOne) UpdateIPWhitelist() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateIPWhitelist()
+	})
+}
+
+// ClearIPWhitelist clears the value of the "ip_whitelist" field.
+func (u *APIKeyUpsertOne) ClearIPWhitelist() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.ClearIPWhitelist()
+	})
+}
+
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (u *APIKeyUpsertOne) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetContentSafetyInterceptEnabled(v)
+	})
+}
+
+// UpdateContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field to the value that was provided on create.
+func (u *APIKeyUpsertOne) UpdateContentSafetyInterceptEnabled() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateContentSafetyInterceptEnabled()
 	})
 }
 
@@ -1064,6 +1208,41 @@ func (u *APIKeyUpsertBulk) UpdateProfiles() *APIKeyUpsertBulk {
 func (u *APIKeyUpsertBulk) ClearProfiles() *APIKeyUpsertBulk {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.ClearProfiles()
+	})
+}
+
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (u *APIKeyUpsertBulk) SetIPWhitelist(v string) *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetIPWhitelist(v)
+	})
+}
+
+// UpdateIPWhitelist sets the "ip_whitelist" field to the value that was provided on create.
+func (u *APIKeyUpsertBulk) UpdateIPWhitelist() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateIPWhitelist()
+	})
+}
+
+// ClearIPWhitelist clears the value of the "ip_whitelist" field.
+func (u *APIKeyUpsertBulk) ClearIPWhitelist() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.ClearIPWhitelist()
+	})
+}
+
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (u *APIKeyUpsertBulk) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetContentSafetyInterceptEnabled(v)
+	})
+}
+
+// UpdateContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field to the value that was provided on create.
+func (u *APIKeyUpsertBulk) UpdateContentSafetyInterceptEnabled() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateContentSafetyInterceptEnabled()
 	})
 }
 

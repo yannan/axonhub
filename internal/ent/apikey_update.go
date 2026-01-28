@@ -15,6 +15,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/predicate"
 	"github.com/looplj/axonhub/internal/ent/request"
+	"github.com/looplj/axonhub/internal/ent/usagelog"
 	"github.com/looplj/axonhub/internal/objects"
 )
 
@@ -131,6 +132,40 @@ func (_u *APIKeyUpdate) ClearProfiles() *APIKeyUpdate {
 	return _u
 }
 
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (_u *APIKeyUpdate) SetIPWhitelist(v string) *APIKeyUpdate {
+	_u.mutation.SetIPWhitelist(v)
+	return _u
+}
+
+// SetNillableIPWhitelist sets the "ip_whitelist" field if the given value is not nil.
+func (_u *APIKeyUpdate) SetNillableIPWhitelist(v *string) *APIKeyUpdate {
+	if v != nil {
+		_u.SetIPWhitelist(*v)
+	}
+	return _u
+}
+
+// ClearIPWhitelist clears the value of the "ip_whitelist" field.
+func (_u *APIKeyUpdate) ClearIPWhitelist() *APIKeyUpdate {
+	_u.mutation.ClearIPWhitelist()
+	return _u
+}
+
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (_u *APIKeyUpdate) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpdate {
+	_u.mutation.SetContentSafetyInterceptEnabled(v)
+	return _u
+}
+
+// SetNillableContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field if the given value is not nil.
+func (_u *APIKeyUpdate) SetNillableContentSafetyInterceptEnabled(v *bool) *APIKeyUpdate {
+	if v != nil {
+		_u.SetContentSafetyInterceptEnabled(*v)
+	}
+	return _u
+}
+
 // AddRequestIDs adds the "requests" edge to the Request entity by IDs.
 func (_u *APIKeyUpdate) AddRequestIDs(ids ...int) *APIKeyUpdate {
 	_u.mutation.AddRequestIDs(ids...)
@@ -144,6 +179,21 @@ func (_u *APIKeyUpdate) AddRequests(v ...*Request) *APIKeyUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddRequestIDs(ids...)
+}
+
+// AddUsageLogIDs adds the "usage_logs" edge to the UsageLog entity by IDs.
+func (_u *APIKeyUpdate) AddUsageLogIDs(ids ...int) *APIKeyUpdate {
+	_u.mutation.AddUsageLogIDs(ids...)
+	return _u
+}
+
+// AddUsageLogs adds the "usage_logs" edges to the UsageLog entity.
+func (_u *APIKeyUpdate) AddUsageLogs(v ...*UsageLog) *APIKeyUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUsageLogIDs(ids...)
 }
 
 // Mutation returns the APIKeyMutation object of the builder.
@@ -170,6 +220,27 @@ func (_u *APIKeyUpdate) RemoveRequests(v ...*Request) *APIKeyUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveRequestIDs(ids...)
+}
+
+// ClearUsageLogs clears all "usage_logs" edges to the UsageLog entity.
+func (_u *APIKeyUpdate) ClearUsageLogs() *APIKeyUpdate {
+	_u.mutation.ClearUsageLogs()
+	return _u
+}
+
+// RemoveUsageLogIDs removes the "usage_logs" edge to UsageLog entities by IDs.
+func (_u *APIKeyUpdate) RemoveUsageLogIDs(ids ...int) *APIKeyUpdate {
+	_u.mutation.RemoveUsageLogIDs(ids...)
+	return _u
+}
+
+// RemoveUsageLogs removes "usage_logs" edges to UsageLog entities.
+func (_u *APIKeyUpdate) RemoveUsageLogs(v ...*UsageLog) *APIKeyUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUsageLogIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -288,6 +359,15 @@ func (_u *APIKeyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.ProfilesCleared() {
 		_spec.ClearField(apikey.FieldProfiles, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.IPWhitelist(); ok {
+		_spec.SetField(apikey.FieldIPWhitelist, field.TypeString, value)
+	}
+	if _u.mutation.IPWhitelistCleared() {
+		_spec.ClearField(apikey.FieldIPWhitelist, field.TypeString)
+	}
+	if value, ok := _u.mutation.ContentSafetyInterceptEnabled(); ok {
+		_spec.SetField(apikey.FieldContentSafetyInterceptEnabled, field.TypeBool, value)
+	}
 	if _u.mutation.RequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -326,6 +406,51 @@ func (_u *APIKeyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UsageLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apikey.UsageLogsTable,
+			Columns: []string{apikey.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUsageLogsIDs(); len(nodes) > 0 && !_u.mutation.UsageLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apikey.UsageLogsTable,
+			Columns: []string{apikey.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UsageLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apikey.UsageLogsTable,
+			Columns: []string{apikey.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -454,6 +579,40 @@ func (_u *APIKeyUpdateOne) ClearProfiles() *APIKeyUpdateOne {
 	return _u
 }
 
+// SetIPWhitelist sets the "ip_whitelist" field.
+func (_u *APIKeyUpdateOne) SetIPWhitelist(v string) *APIKeyUpdateOne {
+	_u.mutation.SetIPWhitelist(v)
+	return _u
+}
+
+// SetNillableIPWhitelist sets the "ip_whitelist" field if the given value is not nil.
+func (_u *APIKeyUpdateOne) SetNillableIPWhitelist(v *string) *APIKeyUpdateOne {
+	if v != nil {
+		_u.SetIPWhitelist(*v)
+	}
+	return _u
+}
+
+// ClearIPWhitelist clears the value of the "ip_whitelist" field.
+func (_u *APIKeyUpdateOne) ClearIPWhitelist() *APIKeyUpdateOne {
+	_u.mutation.ClearIPWhitelist()
+	return _u
+}
+
+// SetContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field.
+func (_u *APIKeyUpdateOne) SetContentSafetyInterceptEnabled(v bool) *APIKeyUpdateOne {
+	_u.mutation.SetContentSafetyInterceptEnabled(v)
+	return _u
+}
+
+// SetNillableContentSafetyInterceptEnabled sets the "content_safety_intercept_enabled" field if the given value is not nil.
+func (_u *APIKeyUpdateOne) SetNillableContentSafetyInterceptEnabled(v *bool) *APIKeyUpdateOne {
+	if v != nil {
+		_u.SetContentSafetyInterceptEnabled(*v)
+	}
+	return _u
+}
+
 // AddRequestIDs adds the "requests" edge to the Request entity by IDs.
 func (_u *APIKeyUpdateOne) AddRequestIDs(ids ...int) *APIKeyUpdateOne {
 	_u.mutation.AddRequestIDs(ids...)
@@ -467,6 +626,21 @@ func (_u *APIKeyUpdateOne) AddRequests(v ...*Request) *APIKeyUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddRequestIDs(ids...)
+}
+
+// AddUsageLogIDs adds the "usage_logs" edge to the UsageLog entity by IDs.
+func (_u *APIKeyUpdateOne) AddUsageLogIDs(ids ...int) *APIKeyUpdateOne {
+	_u.mutation.AddUsageLogIDs(ids...)
+	return _u
+}
+
+// AddUsageLogs adds the "usage_logs" edges to the UsageLog entity.
+func (_u *APIKeyUpdateOne) AddUsageLogs(v ...*UsageLog) *APIKeyUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUsageLogIDs(ids...)
 }
 
 // Mutation returns the APIKeyMutation object of the builder.
@@ -493,6 +667,27 @@ func (_u *APIKeyUpdateOne) RemoveRequests(v ...*Request) *APIKeyUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveRequestIDs(ids...)
+}
+
+// ClearUsageLogs clears all "usage_logs" edges to the UsageLog entity.
+func (_u *APIKeyUpdateOne) ClearUsageLogs() *APIKeyUpdateOne {
+	_u.mutation.ClearUsageLogs()
+	return _u
+}
+
+// RemoveUsageLogIDs removes the "usage_logs" edge to UsageLog entities by IDs.
+func (_u *APIKeyUpdateOne) RemoveUsageLogIDs(ids ...int) *APIKeyUpdateOne {
+	_u.mutation.RemoveUsageLogIDs(ids...)
+	return _u
+}
+
+// RemoveUsageLogs removes "usage_logs" edges to UsageLog entities.
+func (_u *APIKeyUpdateOne) RemoveUsageLogs(v ...*UsageLog) *APIKeyUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUsageLogIDs(ids...)
 }
 
 // Where appends a list predicates to the APIKeyUpdate builder.
@@ -641,6 +836,15 @@ func (_u *APIKeyUpdateOne) sqlSave(ctx context.Context) (_node *APIKey, err erro
 	if _u.mutation.ProfilesCleared() {
 		_spec.ClearField(apikey.FieldProfiles, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.IPWhitelist(); ok {
+		_spec.SetField(apikey.FieldIPWhitelist, field.TypeString, value)
+	}
+	if _u.mutation.IPWhitelistCleared() {
+		_spec.ClearField(apikey.FieldIPWhitelist, field.TypeString)
+	}
+	if value, ok := _u.mutation.ContentSafetyInterceptEnabled(); ok {
+		_spec.SetField(apikey.FieldContentSafetyInterceptEnabled, field.TypeBool, value)
+	}
 	if _u.mutation.RequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -679,6 +883,51 @@ func (_u *APIKeyUpdateOne) sqlSave(ctx context.Context) (_node *APIKey, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(request.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UsageLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apikey.UsageLogsTable,
+			Columns: []string{apikey.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUsageLogsIDs(); len(nodes) > 0 && !_u.mutation.UsageLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apikey.UsageLogsTable,
+			Columns: []string{apikey.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UsageLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   apikey.UsageLogsTable,
+			Columns: []string{apikey.UsageLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usagelog.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

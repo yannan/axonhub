@@ -145,3 +145,4 @@ tools
 
 mise.toml
 locales_backup
+scripts/air-dev.sh

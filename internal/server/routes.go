@@ -7,6 +7,8 @@ import (
 
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/request"
+	"github.com/looplj/axonhub/internal/pkg/billing"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/server/api"
 	"github.com/looplj/axonhub/internal/server/biz"
 	"github.com/looplj/axonhub/internal/server/gql"
@@ -30,14 +32,21 @@ type Handlers struct {
 	Jina           *api.JinaHandlers
 	Codex          *api.CodexHandlers
 	ClaudeCode     *api.ClaudeCodeHandlers
+	Redemption     *api.RedemptionHandlers
+	Filter         *api.FilterHandlers
+	Pricing        *api.PricingHandlers
+	Billing        *api.BillingHandlers
+	Settings       *api.SettingsHandlers
 }
 
 type Services struct {
 	fx.In
 
-	TraceService  *biz.TraceService
-	ThreadService *biz.ThreadService
-	AuthService   *biz.AuthService
+	TraceService   *biz.TraceService
+	ThreadService  *biz.ThreadService
+	AuthService    *biz.AuthService
+	BillingService *billing.BillingService
+	FilterEngine   *filter.ValidationEngine
 }
 
 func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services Services) {
@@ -72,6 +81,16 @@ func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services
 		publicGroup.GET("/health", handlers.System.Health)
 	}
 
+	publicAdminGroup := server.Group("/admin", middleware.WithTimeout(server.Config.RequestTimeout))
+	{
+		publicAdminGroup.GET("/graphql-docs", func(c *gin.Context) {
+			handlers.Graphql.Playground.ServeHTTP(c.Writer, c.Request)
+		})
+		publicAdminGroup.GET("/playground", func(c *gin.Context) {
+			handlers.Graphql.Playground.ServeHTTP(c.Writer, c.Request)
+		})
+	}
+
 	unSecureAdminGroup := server.Group("/admin", middleware.WithTimeout(server.Config.RequestTimeout))
 	{
 		// System Status and Initialize - DO NOT AUTH
@@ -84,9 +103,6 @@ func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services
 	adminGroup := server.Group("/admin", middleware.WithJWTAuth(services.AuthService), middleware.WithProjectID())
 	// 管理员路由 - 使用 JWT 认证
 	{
-		adminGroup.GET("/playground", middleware.WithTimeout(server.Config.RequestTimeout), func(c *gin.Context) {
-			handlers.Graphql.Playground.ServeHTTP(c.Writer, c.Request)
-		})
 		adminGroup.POST("/graphql", middleware.WithTimeout(server.Config.RequestTimeout), func(c *gin.Context) {
 			handlers.Graphql.Graphql.ServeHTTP(c.Writer, c.Request)
 		})
@@ -98,12 +114,60 @@ func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services
 		adminGroup.POST("/claudecode/oauth/exchange", handlers.ClaudeCode.Exchange)
 
 		// Playground API with channel specification support
-		adminGroup.POST(
-			"/playground/chat",
-			middleware.WithTimeout(server.Config.LLMRequestTimeout),
+		adminGroup.POST("/playground/chat",
 			middleware.WithSource(request.SourcePlayground),
 			handlers.Playground.ChatCompletion,
 		)
+
+		// Redemption (Admin)
+		adminGroup.POST("/redemption/generate", handlers.Redemption.GenerateCodes)
+		adminGroup.GET("/redemption", handlers.Redemption.ListCodes)
+		adminGroup.POST("/redemption/:id/void", handlers.Redemption.VoidCode)
+		adminGroup.POST("/redemption/delete", handlers.Redemption.DeleteCodes)
+		adminGroup.GET("/recharges", handlers.Redemption.ListRechargesAdmin)
+
+		// Filter (Admin)
+		adminGroup.POST("/filter/words", handlers.Filter.AddSensitiveWord)
+		adminGroup.GET("/filter/words", handlers.Filter.ListSensitiveWords)
+		adminGroup.DELETE("/filter/words/:id", handlers.Filter.DeleteSensitiveWord)
+
+		// Pricing (Admin)
+		adminGroup.GET("/pricing", handlers.Pricing.ListPrices)
+		adminGroup.POST("/pricing", handlers.Pricing.CreatePrice)
+		adminGroup.POST("/pricing/batch", handlers.Pricing.CreatePricesBatch)
+		adminGroup.PUT("/pricing", handlers.Pricing.UpdatePrice)
+		adminGroup.DELETE("/pricing/:model", handlers.Pricing.DeletePrice)
+		adminGroup.PUT("/pricing/:model/disable", handlers.Pricing.DisablePrice)
+		adminGroup.PUT("/pricing/:model/enable", handlers.Pricing.EnablePrice)
+
+		// Billing (Admin)
+		adminGroup.GET("/billing/stats", handlers.Billing.GetConsumptionStats)
+		adminGroup.GET("/billing/export", handlers.Billing.ExportConsumptionStats)
+
+		// System Settings (Admin)
+		adminGroup.GET("/system/settings", handlers.Settings.GetSystemSettings)
+		adminGroup.PUT("/system/settings", handlers.Settings.UpdateSystemSettings)
+	}
+
+	userGroup := server.Group("/user", middleware.WithJWTAuth(services.AuthService), middleware.WithProjectID())
+	{
+		userGroup.POST("/redemption/redeem", handlers.Redemption.RedeemCode)
+		userGroup.GET("/recharges", handlers.Redemption.ListUserRecharges)
+
+		// Billing (User) - deprecated, keep for backward compatibility
+		userGroup.GET("/billing/subscription", handlers.Billing.GetSubscription)
+		userGroup.GET("/billing/usage", handlers.Billing.GetUsage)
+	}
+
+	projectGroup := server.Group("/project", middleware.WithJWTAuth(services.AuthService), middleware.WithProjectID())
+	{
+		projectGroup.POST("/redemption/redeem", handlers.Redemption.RedeemCode)
+		projectGroup.GET("/recharges", handlers.Redemption.ListUserRecharges)
+
+		// Billing (Project)
+		projectGroup.GET("/billing/subscription", handlers.Billing.GetSubscription)
+		projectGroup.GET("/billing/usage", handlers.Billing.GetUsage)
+		projectGroup.GET("/dashboard/stats", handlers.Billing.GetDashboardStats)
 	}
 
 	openAPIGroup := server.Group("/openapi", middleware.WithOpenAPIAuth(services.AuthService), middleware.WithTimeout(server.Config.RequestTimeout))
@@ -122,6 +186,8 @@ func SetupRoutes(server *Server, handlers Handlers, client *ent.Client, services
 		middleware.WithSource(request.SourceAPI),
 		middleware.WithThread(server.Config.Trace, services.ThreadService),
 		middleware.WithTrace(server.Config.Trace, services.TraceService),
+		middleware.WithSensitiveWordFilter(services.FilterEngine),
+		middleware.WithBilling(services.BillingService),
 	)
 
 	{

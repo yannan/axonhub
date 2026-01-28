@@ -40,6 +40,8 @@ func (User) Fields() []ent.Field {
 			},
 		),
 		field.Bool("is_owner").Default(false),
+		field.Int64("quota").Default(0).Comment("当前用户额度"),
+		field.Int64("used_quota").Default(0).Comment("已使用额度"),
 		field.Strings("scopes").
 			Comment("User scopes in system level: write_channels, read_channels, add_users, read_users, etc.").
 			Default([]string{}).
@@ -69,6 +71,18 @@ func (User) Edges() []ent.Edge {
 		edge.To("channel_override_templates", ChannelOverrideTemplate.Type).
 			Annotations(
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.RelayConnection(),
+			),
+		edge.To("consumption_records", ConsumptionRecord.Type).
+			Annotations(
+				entgql.RelayConnection(),
+			),
+		edge.To("redemption_codes", RedemptionCode.Type).
+			Annotations(
+				entgql.RelayConnection(),
+			),
+		edge.To("recharge_records", RechargeRecord.Type).
+			Annotations(
 				entgql.RelayConnection(),
 			),
 	}

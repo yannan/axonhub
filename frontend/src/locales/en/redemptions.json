@@ -1,0 +1,47 @@
+{
+  "redemptions": {
+    "title": "Redemption Codes",
+    "description": "Manage system redemption codes for credit top-up.",
+    "fields": {
+      "id": "ID",
+      "name": "Name",
+      "code": "Code",
+      "status": "Status",
+      "quota": "Quota",
+      "createdTime": "Created At",
+      "count": "Quantity",
+      "max_uses": "Max Uses",
+      "used_times": "Used Times"
+    },
+    "status": {
+      "active": "Active",
+      "unused": "Unused",
+      "used": "Used",
+      "expired": "Expired",
+      "unknown": "Unknown"
+    },
+    "filter": {
+      "placeholder": "Search codes..."
+    },
+    "actions": {
+      "create": "New Redemption"
+    },
+    "messages": {
+      "loadError": "Failed to load redemption codes",
+      "createSuccess": "Created successfully",
+      "createError": "Failed to create",
+      "updateSuccess": "Updated successfully",
+      "updateError": "Failed to update",
+      "deleteSuccess": "Deleted successfully",
+      "deleteError": "Failed to delete"
+    },
+    "dialog": {
+      "createTitle": "Create Redemption Code",
+      "editTitle": "Edit Redemption Code",
+      "deleteTitle": "Delete Redemption Code",
+      "deleteDescription": "Are you sure you want to delete redemption code \"{{name}}\"? This action cannot be undone.",
+      "voidTitle": "Void Redemption Code",
+      "voidDescription": "Are you sure you want to void redemption code \"{{name}}\"? This will make it unusable immediately."
+    }
+  }
+}

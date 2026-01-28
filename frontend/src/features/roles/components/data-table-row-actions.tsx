@@ -22,7 +22,7 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { t } = useTranslation();
   const role = row.original;
-  const { openDialog } = useRolesContext();
+  const { setEditingRole, setDeletingRole } = useRolesContext();
   const { rolePermissions } = usePermissions();
   const [open, setOpen] = React.useState(false);
 
@@ -34,13 +34,13 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const handleEdit = () => {
     setOpen(false);
     // Use setTimeout to ensure dropdown closes before opening dialog
-    setTimeout(() => openDialog('edit', role), 0);
+    setTimeout(() => setEditingRole(role), 0);
   };
 
   const handleDelete = () => {
     setOpen(false);
     // Use setTimeout to ensure dropdown closes before opening dialog
-    setTimeout(() => openDialog('delete', role), 0);
+    setTimeout(() => setDeletingRole(role), 0);
   };
 
   return (

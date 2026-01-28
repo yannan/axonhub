@@ -75,8 +75,7 @@ function ThreadsContent() {
       setDateRange(range);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   const handleThreadIdFilterChange = useCallback(
@@ -84,8 +83,7 @@ function ThreadsContent() {
       setThreadIdFilter(threadId);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   return (
@@ -117,16 +115,15 @@ export default function ThreadsManagement() {
 
   return (
     <>
-      <Header fixed>
-        <div className='flex flex-1 items-center justify-between'>
-          <div>
-            <h2 className='text-xl font-bold tracking-tight'>{t('threads.title')}</h2>
-            <p className='text-sm text-muted-foreground'>{t('threads.description')}</p>
-          </div>
-        </div>
-      </Header>
+      <Header fixed></Header>
 
       <Main fixed>
+        <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
+          <div>
+            <h2 className='text-2xl font-bold tracking-tight'>{t('threads.title')}</h2>
+            <p className='text-muted-foreground'>{t('threads.description')}</p>
+          </div>
+        </div>
         <ThreadsContent />
       </Main>
     </>

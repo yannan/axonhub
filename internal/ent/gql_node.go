@@ -21,15 +21,21 @@ import (
 	"github.com/looplj/axonhub/internal/ent/channeloverridetemplate"
 	"github.com/looplj/axonhub/internal/ent/channelperformance"
 	"github.com/looplj/axonhub/internal/ent/channelprobe"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/modelpricing"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/prompt"
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
+	"github.com/looplj/axonhub/internal/ent/redemptioncode"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
 	"github.com/looplj/axonhub/internal/ent/role"
+	"github.com/looplj/axonhub/internal/ent/sensitiveword"
 	"github.com/looplj/axonhub/internal/ent/system"
+	"github.com/looplj/axonhub/internal/ent/systemsettings"
 	"github.com/looplj/axonhub/internal/ent/thread"
 	"github.com/looplj/axonhub/internal/ent/trace"
 	"github.com/looplj/axonhub/internal/ent/usagelog"
@@ -80,6 +86,11 @@ var channelprobeImplementors = []string{"ChannelProbe", "Node"}
 // IsNode implements the Node interface check for GQLGen.
 func (*ChannelProbe) IsNode() {}
 
+var consumptionrecordImplementors = []string{"ConsumptionRecord", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ConsumptionRecord) IsNode() {}
+
 var datastorageImplementors = []string{"DataStorage", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
@@ -89,6 +100,11 @@ var modelImplementors = []string{"Model", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Model) IsNode() {}
+
+var modelpricingImplementors = []string{"ModelPricing", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ModelPricing) IsNode() {}
 
 var projectImplementors = []string{"Project", "Node"}
 
@@ -105,6 +121,16 @@ var providerquotastatusImplementors = []string{"ProviderQuotaStatus", "Node"}
 // IsNode implements the Node interface check for GQLGen.
 func (*ProviderQuotaStatus) IsNode() {}
 
+var rechargerecordImplementors = []string{"RechargeRecord", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*RechargeRecord) IsNode() {}
+
+var redemptioncodeImplementors = []string{"RedemptionCode", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*RedemptionCode) IsNode() {}
+
 var requestImplementors = []string{"Request", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
@@ -120,10 +146,20 @@ var roleImplementors = []string{"Role", "Node"}
 // IsNode implements the Node interface check for GQLGen.
 func (*Role) IsNode() {}
 
+var sensitivewordImplementors = []string{"SensitiveWord", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*SensitiveWord) IsNode() {}
+
 var systemImplementors = []string{"System", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*System) IsNode() {}
+
+var systemsettingsImplementors = []string{"SystemSettings", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*SystemSettings) IsNode() {}
 
 var threadImplementors = []string{"Thread", "Node"}
 
@@ -276,6 +312,15 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			}
 		}
 		return query.Only(ctx)
+	case consumptionrecord.Table:
+		query := c.ConsumptionRecord.Query().
+			Where(consumptionrecord.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, consumptionrecordImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
 	case datastorage.Table:
 		query := c.DataStorage.Query().
 			Where(datastorage.ID(id))
@@ -290,6 +335,15 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			Where(model.ID(id))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, modelImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case modelpricing.Table:
+		query := c.ModelPricing.Query().
+			Where(modelpricing.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, modelpricingImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -321,6 +375,24 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			}
 		}
 		return query.Only(ctx)
+	case rechargerecord.Table:
+		query := c.RechargeRecord.Query().
+			Where(rechargerecord.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, rechargerecordImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case redemptioncode.Table:
+		query := c.RedemptionCode.Query().
+			Where(redemptioncode.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, redemptioncodeImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
 	case request.Table:
 		query := c.Request.Query().
 			Where(request.ID(id))
@@ -348,11 +420,29 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			}
 		}
 		return query.Only(ctx)
+	case sensitiveword.Table:
+		query := c.SensitiveWord.Query().
+			Where(sensitiveword.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, sensitivewordImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
 	case system.Table:
 		query := c.System.Query().
 			Where(system.ID(id))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, systemImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case systemsettings.Table:
+		query := c.SystemSettings.Query().
+			Where(systemsettings.ID(id))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, systemsettingsImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -596,6 +686,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 				*noder = node
 			}
 		}
+	case consumptionrecord.Table:
+		query := c.ConsumptionRecord.Query().
+			Where(consumptionrecord.IDIn(ids...))
+		query, err := query.CollectFields(ctx, consumptionrecordImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case datastorage.Table:
 		query := c.DataStorage.Query().
 			Where(datastorage.IDIn(ids...))
@@ -616,6 +722,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.Model.Query().
 			Where(model.IDIn(ids...))
 		query, err := query.CollectFields(ctx, modelImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case modelpricing.Table:
+		query := c.ModelPricing.Query().
+			Where(modelpricing.IDIn(ids...))
+		query, err := query.CollectFields(ctx, modelpricingImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -676,6 +798,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 				*noder = node
 			}
 		}
+	case rechargerecord.Table:
+		query := c.RechargeRecord.Query().
+			Where(rechargerecord.IDIn(ids...))
+		query, err := query.CollectFields(ctx, rechargerecordImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case redemptioncode.Table:
+		query := c.RedemptionCode.Query().
+			Where(redemptioncode.IDIn(ids...))
+		query, err := query.CollectFields(ctx, redemptioncodeImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case request.Table:
 		query := c.Request.Query().
 			Where(request.IDIn(ids...))
@@ -724,10 +878,42 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 				*noder = node
 			}
 		}
+	case sensitiveword.Table:
+		query := c.SensitiveWord.Query().
+			Where(sensitiveword.IDIn(ids...))
+		query, err := query.CollectFields(ctx, sensitivewordImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case system.Table:
 		query := c.System.Query().
 			Where(system.IDIn(ids...))
 		query, err := query.CollectFields(ctx, systemImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case systemsettings.Table:
+		query := c.SystemSettings.Query().
+			Where(systemsettings.IDIn(ids...))
+		query, err := query.CollectFields(ctx, systemsettingsImplementors...)
 		if err != nil {
 			return nil, err
 		}

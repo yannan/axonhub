@@ -8,10 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import LongText from '@/components/long-text';
-import { useTestChannel, useUpdateChannel } from '../data/channels';
+import { useTestChannel } from '../data/channels';
 import { Channel } from '../data/schema';
 
 type TestStatus = 'not_started' | 'testing' | 'success' | 'failed';
@@ -34,14 +32,11 @@ export function ChannelsTestDialog({ open, onOpenChange, channel }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [testResults, setTestResults] = useState<Record<string, ModelTestResult>>({});
-  const [localSupportedModels, setLocalSupportedModels] = useState<string[]>(channel.supportedModels);
   const [isTesting, setIsTesting] = useState(false);
-  const [isRemovePopoverOpen, setIsRemovePopoverOpen] = useState(false);
   const testChannel = useTestChannel();
-  const updateChannel = useUpdateChannel();
 
   // Filter models based on search query
-  const filteredModels = localSupportedModels.filter((model) => model.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredModels = channel.supportedModels.filter((model) => model.toLowerCase().includes(searchQuery.toLowerCase()));
 
   // Initialize test results when dialog opens
   useEffect(() => {
@@ -54,7 +49,6 @@ export function ChannelsTestDialog({ open, onOpenChange, channel }: Props) {
         };
       });
       setTestResults(initialResults);
-      setLocalSupportedModels(channel.supportedModels);
       setSelectedModels([]);
       setSearchQuery('');
     }
@@ -147,27 +141,6 @@ export function ChannelsTestDialog({ open, onOpenChange, channel }: Props) {
   const isAllSelected = filteredModels.length > 0 && filteredModels.every((model) => selectedModels.includes(model));
   const isIndeterminate = selectedModels.length > 0 && !isAllSelected;
 
-  const failedModels = selectedModels.filter((model) => testResults[model]?.status === 'failed');
-
-  const handleRemoveFailed = async () => {
-    const failedModelNames = new Set(failedModels);
-    const newSupportedModels = localSupportedModels.filter((model) => !failedModelNames.has(model));
-
-    try {
-      await updateChannel.mutateAsync({
-        id: channel.id,
-        input: {
-          supportedModels: newSupportedModels,
-        },
-      });
-      setLocalSupportedModels(newSupportedModels);
-      setSelectedModels((prev) => prev.filter((model) => !failedModelNames.has(model)));
-      setIsRemovePopoverOpen(false);
-    } catch (error) {
-      // Error is handled by useUpdateChannel toast
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='flex max-h-[90vh] flex-col sm:max-w-2xl'>
@@ -226,11 +199,7 @@ export function ChannelsTestDialog({ open, onOpenChange, channel }: Props) {
                         </TableCell>
                         <TableCell className='font-medium'>
                           <div>{model}</div>
-                          {result?.error && (
-                            <LongText className='mt-1 max-w-[200px] cursor-help text-xs text-red-600'>
-                              {result.error}
-                            </LongText>
-                          )}
+                          {result?.error && <div className='mt-1 text-xs text-red-600'>{result.error}</div>}
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(result?.status || 'not_started')}
@@ -256,38 +225,10 @@ export function ChannelsTestDialog({ open, onOpenChange, channel }: Props) {
           </div>
         </div>
 
-        <DialogFooter className='flex items-center justify-between'>
-          <div className='flex gap-2'>
-            <Button variant='outline' onClick={() => onOpenChange(false)}>
-              {t('common.buttons.cancel')}
-            </Button>
-            {failedModels.length > 0 && (
-              <Popover open={isRemovePopoverOpen} onOpenChange={setIsRemovePopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant='destructive' size='sm'>
-                    {t('channels.dialogs.test.removeFailed')} ({failedModels.length})
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-80'>
-                  <div className='grid gap-4'>
-                    <div className='space-y-2'>
-                      <p className='text-muted-foreground text-sm'>{t('channels.dialogs.test.removeFailedConfirm')}</p>
-                    </div>
-                    <div className='flex justify-end gap-2'>
-                      <Button
-                        size='sm'
-                        variant='destructive'
-                        onClick={handleRemoveFailed}
-                        disabled={updateChannel.isPending}
-                      >
-                        {updateChannel.isPending ? t('common.buttons.saving') : t('common.buttons.confirm')}
-                      </Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
+        <DialogFooter className='flex justify-between'>
+          <Button variant='outline' onClick={() => onOpenChange(false)}>
+            {t('common.buttons.cancel')}
+          </Button>
           <Button onClick={handleTestSelected} disabled={selectedModels.length === 0 || isTesting}>
             <IconPlayerPlay className='mr-2 h-4 w-4' />
             {t('channels.dialogs.test.testAllButton', { count: selectedModels.length })}

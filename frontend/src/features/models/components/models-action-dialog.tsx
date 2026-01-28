@@ -21,8 +21,8 @@ import { AutoCompleteSelect } from '@/components/auto-complete-select';
 import { useModels } from '../context/models-context';
 import { DEVELOPER_IDS, DEVELOPER_ICONS } from '../data/constants';
 import { useCreateModel, useUpdateModel } from '../data/models';
-import { useDevelopersData } from '../data/providers';
-import { type Provider, type ProviderModel } from '../data/providers.schema';
+import providersDataRaw from '../data/providers.json';
+import { providersDataSchema, type ProvidersData } from '../data/providers.schema';
 import { CreateModelInput, createModelInputSchema, UpdateModelInput, ModelCard, updateModelInputSchema } from '../data/schema';
 
 function isDeveloper(provider: string) {
@@ -34,7 +34,6 @@ export function ModelsActionDialog() {
   const { open, setOpen, currentRow } = useModels();
   const createModel = useCreateModel();
   const updateModel = useUpdateModel();
-  const { data: developersData } = useDevelopersData();
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [developerSearchValue, setDeveloperSearchValue] = useState<string>('');
   const [modelIdInput, setModelIdInput] = useState<string>('');
@@ -47,16 +46,20 @@ export function ModelsActionDialog() {
   const isEdit = open === 'edit';
   const isOpen = open === 'create' || open === 'edit';
 
+  // Parse and validate providers data with Zod schema
+  const providersData = useMemo((): ProvidersData => {
+    return providersDataSchema.parse(providersDataRaw);
+  }, []);
+
   const providers = useMemo(() => {
-    if (!developersData) return [];
-    return Object.entries(developersData.providers)
+    return Object.entries(providersData.providers)
       .filter(([key]) => isDeveloper(key))
-      .map(([key, provider]: [string, Provider]) => ({
+      .map(([key, provider]) => ({
         id: key,
         name: provider.display_name || provider.name,
         models: provider.models || [],
       }));
-  }, [developersData]);
+  }, [providersData]);
 
   const selectedProviderModels = useMemo(() => {
     if (!selectedProvider) return [];
@@ -72,7 +75,7 @@ export function ModelsActionDialog() {
   }, []);
 
   const modelIdOptions = useMemo(() => {
-    return selectedProviderModels.map((m: ProviderModel) => ({
+    return selectedProviderModels.map((m) => ({
       value: m.id,
       label: m.id,
     }));
@@ -168,9 +171,9 @@ export function ModelsActionDialog() {
       setModelIdInput(modelId);
       setModelIdSearchValue(modelId);
       form.setValue('modelID', modelId);
-  
-      const selectedModel = selectedProviderModels.find((m: ProviderModel) => m.id === modelId);
-  
+
+      const selectedModel = selectedProviderModels.find((m) => m.id === modelId);
+
       if (selectedModel) {
         form.setValue('name', selectedModel.display_name || selectedModel.name || '');
         form.setValue('group', selectedModel.family || selectedProvider);
@@ -559,7 +562,6 @@ export function ModelsActionDialog() {
 
                   <div className='space-y-2'>
                     <FormLabel>{t('models.modelCard.cost')} ($/M tokens)</FormLabel>
-                    <p className='text-xs text-muted-foreground'>{t('models.modelCard.costHint')}</p>
                     <div className='grid grid-cols-2 gap-2'>
                       <FormField
                         control={form.control}

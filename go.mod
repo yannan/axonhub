@@ -53,6 +53,7 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
+	github.com/tencentcloud/tencentcloud-sdk-go v3.0.233+incompatible
 	github.com/tidwall/gjson v1.18.0
 	github.com/tidwall/sjson v1.2.5
 	github.com/tmaxmax/go-sse v0.11.0
@@ -78,6 +79,8 @@ require (
 replace github.com/99designs/gqlgen => github.com/looplj/gqlgen v0.0.0-20251206072334-03e453169896
 
 replace github.com/tmaxmax/go-sse => github.com/looplj/go-sse v0.0.0-20250909130008-e74a1155bc3b
+
+replace github.com/ankknown/ahocorasick => github.com/cloudflare/ahocorasick v0.0.0-20240916140611-054963ec9396
 
 require (
 	ariga.io/atlas v0.38.0 // indirect

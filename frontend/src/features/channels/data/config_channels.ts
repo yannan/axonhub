@@ -21,9 +21,6 @@ import {
   Bailian,
   Jina,
   DeepInfra,
-  Github,
-  Claude,
-  Cerebras,
 } from '@lobehub/icons';
 import { BURNCLOUD_DEFAULT_MODELS } from './burncloud-models';
 import { ApiFormat, ChannelType } from './schema';
@@ -76,14 +73,6 @@ export const CHANNEL_CONFIGS: Record<ChannelType, ChannelConfig> = {
     color: 'bg-green-100 text-green-800 border-green-200',
     icon: OpenAI,
   },
-  codex: {
-    channelType: 'codex',
-    baseURL: 'https://chatgpt.com/backend-api/codex#',
-    defaultModels: ['gpt-5.2', 'gpt-5.2-codex'],
-    apiFormat: OPENAI_RESPONSES,
-    color: 'bg-[#32746D] text-white border-[#32746D]',
-    icon: OpenAI,
-  },
   deepseek: {
     channelType: 'deepseek',
     baseURL: 'https://api.deepseek.com/v1',
@@ -113,7 +102,7 @@ export const CHANNEL_CONFIGS: Record<ChannelType, ChannelConfig> = {
     baseURL: 'https://api.anthropic.com',
     defaultModels: ['claude-opus-4-5', 'claude-sonnet-4-5'],
     apiFormat: ANTHROPIC_MESSAGES,
-    color: 'bg-gray-100 text-gray-800 border-gray-200',
+    color: 'bg-orange-100 text-orange-800 border-orange-200',
     icon: Anthropic,
   },
   gemini_openai: {
@@ -204,6 +193,7 @@ export const CHANNEL_CONFIGS: Record<ChannelType, ChannelConfig> = {
     color: 'bg-cyan-100 text-cyan-800 border-cyan-200',
     icon: ZAI,
   },
+
   doubao: {
     channelType: 'doubao',
     baseURL: 'https://ark.cn-beijing.volces.com/api/v3',
@@ -399,7 +389,12 @@ export const CHANNEL_CONFIGS: Record<ChannelType, ChannelConfig> = {
   modelscope: {
     channelType: 'modelscope',
     baseURL: 'https://api-inference.modelscope.cn/v1',
-    defaultModels: ['qwen-plus', 'qwen-turbo', 'qwen-max', 'qwen2.5-72b-instruct'],
+    defaultModels: [
+      'qwen-plus',
+      'qwen-turbo',
+      'qwen-max',
+      'qwen2.5-72b-instruct',
+    ],
     apiFormat: OPENAI_CHAT_COMPLETIONS,
     color: 'bg-purple-100 text-purple-800 border-purple-200',
     icon: ModelScope,
@@ -448,42 +443,6 @@ export const CHANNEL_CONFIGS: Record<ChannelType, ChannelConfig> = {
     color: 'bg-purple-100 text-purple-800 border-purple-200',
     icon: Jina,
   },
-  github: {
-    channelType: 'github',
-    baseURL: 'https://models.github.ai/inference',
-    defaultModels: [
-      'openai/gpt-4.1',
-      'openai/gpt-4o',
-      'openai/gpt-4o-mini',
-      'openai/o3',
-      'openai/o4-mini',
-      'anthropic/claude-sonnet-4',
-      'anthropic/claude-3.5-sonnet',
-      'meta/llama-4-scout-17b-16e-instruct',
-      'meta/llama-4-maverick-17b-128e-instruct',
-      'deepseek/DeepSeek-V3-0324',
-      'mistral-ai/mistral-large-2411',
-    ],
-    apiFormat: OPENAI_CHAT_COMPLETIONS,
-    color: 'bg-gray-100 text-gray-800 border-gray-200',
-    icon: Github,
-  },
-  claudecode: {
-    channelType: 'claudecode',
-    baseURL: 'https://api.anthropic.com/v1',
-    defaultModels: ['claude-haiku-4-5', 'claude-sonnet-4-5', 'claude-opus-4-5'],
-    apiFormat: ANTHROPIC_MESSAGES,
-    color: 'bg-orange-100 text-orange-800 border-orange-200',
-    icon: Claude,
-  },
-  cerebras: {
-    channelType: 'cerebras',
-    baseURL: 'https://api.cerebras.ai/v1',
-    defaultModels: ['llama3.1-8b', 'llama3.1-70b', 'llama-3.3-70b'],
-    apiFormat: OPENAI_CHAT_COMPLETIONS,
-    color: 'bg-[#F15928] text-white border-[#F15928]',
-    icon: Cerebras,
-  },
 };
 
 /**
@@ -506,7 +465,6 @@ export const getDefaultModels = (channelType: ChannelType): string[] => {
 export type Provider =
   | 'openai'
   | 'anthropic'
-  | 'claudecode'
   | 'deepseek'
   | 'deepinfra'
   | 'gemini'
@@ -526,10 +484,7 @@ export type Provider =
   | 'burncloud'
   | 'modelscope'
   | 'bailian'
-  | 'jina'
-  | 'github'
-  | 'cerebras'
-  | 'codex';
+  | 'jina';
 
 /**
  * Map channel type to provider
@@ -571,10 +526,6 @@ export const CHANNEL_TYPE_TO_PROVIDER: Record<ChannelType, Provider> = {
   modelscope: 'modelscope',
   bailian: 'bailian',
   jina: 'jina',
-  github: 'github',
-  codex: 'codex',
-  claudecode: 'claudecode',
-  cerebras: 'cerebras',
 };
 
 /**

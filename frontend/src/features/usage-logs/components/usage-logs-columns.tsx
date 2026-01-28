@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DataTableColumnHeader } from '@/components/data-table-column-header';
-import { useGeneralSettings } from '@/features/system/data/system';
 import { useUsageLogPermissions } from '../../../gql/useUsageLogPermissions';
 import { useUsageLogsContext } from '../context';
 import { UsageLog, UsageLogSource } from '../data/schema';
@@ -35,13 +34,12 @@ export function useUsageLogsColumns(): ColumnDef<UsageLog>[] {
   const locale = i18n.language === 'zh' ? zhCN : enUS;
   const permissions = useUsageLogPermissions();
   const navigate = useNavigate();
-  const { data: settings } = useGeneralSettings();
 
   // Define all columns
   const columns: ColumnDef<UsageLog>[] = [
     {
       accessorKey: 'id',
-      header: ({ column }) => <DataTableColumnHeader column={column} title={t('common.columns.id')} />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={t('usageLogs.columns.id')} />,
       cell: ({ row }) => <div className='font-mono text-xs'>#{extractNumberID(row.getValue('id'))}</div>,
       enableSorting: true,
       enableHiding: false,
@@ -124,30 +122,6 @@ export function useUsageLogsColumns(): ColumnDef<UsageLog>[] {
       enableSorting: false,
     },
     {
-      id: 'totalCost',
-      header: ({ column }) => <DataTableColumnHeader column={column} title={t('usageLogs.columns.totalCost')} />,
-      cell: ({ row }) => {
-        const cost = row.original.totalCost || 0;
-        if (cost === 0) return <div className='text-muted-foreground text-sm'>-</div>;
-        return (
-          <div className='text-sm font-medium'>
-            {t('currencies.format', {
-              val: cost,
-              currency: settings?.currencyCode,
-              locale: i18n.language === 'zh' ? 'zh-CN' : 'en-US',
-              minimumFractionDigits: 6,
-            })}
-          </div>
-        );
-      },
-      enableSorting: true,
-      sortingFn: (rowA, rowB) => {
-        const a = rowA.original.totalCost || 0;
-        const b = rowB.original.totalCost || 0;
-        return a - b;
-      },
-    },
-    {
       id: 'cacheTokens',
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('usageLogs.columns.cacheTokens')} />,
       cell: ({ row }) => {
@@ -228,7 +202,7 @@ export function useUsageLogsColumns(): ColumnDef<UsageLog>[] {
     // },
     {
       accessorKey: 'createdAt',
-      header: ({ column }) => <DataTableColumnHeader column={column} title={t('common.columns.createdAt')} />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={t('usageLogs.columns.createdAt')} />,
       cell: ({ row }) => {
         const date = new Date(row.getValue('createdAt'));
         return <div className='text-xs'>{format(date, 'yyyy-MM-dd HH:mm:ss', { locale })}</div>;
@@ -236,7 +210,6 @@ export function useUsageLogsColumns(): ColumnDef<UsageLog>[] {
     },
     {
       id: 'actions',
-      header: t('common.columns.actions'),
       cell: ({ row }) => {
         const usageLog = row.original;
         const { setCurrentUsageLog, setDetailDialogOpen } = useUsageLogsContext();

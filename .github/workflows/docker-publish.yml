@@ -8,6 +8,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build_single_arch:
@@ -34,39 +35,58 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Resolve tag & write VERSION
+      - name: Resolve version & write VERSION
         run: |
           git fetch --tags --force --depth=1
-          TAG=${GITHUB_REF#refs/tags/}
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "$TAG" > internal/build/VERSION
-          echo "Building tag: $TAG for ${{ matrix.arch }}"
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Tag build
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "Building tag: $VERSION for ${{ matrix.arch }}"
+          else
+            # Branch build
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            SHORT_SHA=$(git rev-parse --short=8 HEAD)
+            VERSION="${BRANCH_NAME}-${SHORT_SHA}"
+            echo "Building branch: $BRANCH_NAME (commit: $SHORT_SHA) for ${{ matrix.arch }}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "$VERSION" > internal/build/VERSION
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
+      - name: Log in to Huawei Cloud SWR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: swr.cn-east-3.myhuaweicloud.com
+          username: ${{ secrets.HUAWEI_SWR_USERNAME }}
+          password: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+
+      - name: Prepare image tags
+        id: tags
+        run: |
+          TAGS="swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub:${{ env.VERSION }}-${{ matrix.arch }}"
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAGS="$TAGS"$'\n'"swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub:latest-${{ matrix.arch }}"
+          fi
+          echo "tags<<EOF" >> $GITHUB_OUTPUT
+          echo "$TAGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Extract metadata (labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            looplj/axonhub
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub
 
-      - name: Build & push single-arch (to both registries)
+      - name: Build & push single-arch
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: ${{ matrix.platform }}
           push: true
-          tags: |
-            looplj/axonhub:${{ env.TAG }}-${{ matrix.arch }}
-            looplj/axonhub:latest-${{ matrix.arch }}
+          tags: ${{ steps.tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -74,30 +94,48 @@ jobs:
           sbom: false
 
   create_manifests:
-    name: Create multi-arch manifests (Docker Hub)
+    name: Create multi-arch manifests (Huawei Cloud SWR)
     needs: [build_single_arch]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Extract tag
-        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: Check out (shallow)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - name: Log in to Docker Hub
+      - name: Extract version
+        run: |
+          git fetch --tags --force --depth=1
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            SHORT_SHA=$(git rev-parse --short=8 HEAD)
+            VERSION="${BRANCH_NAME}-${SHORT_SHA}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Huawei Cloud SWR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: swr.cn-east-3.myhuaweicloud.com
+          username: ${{ secrets.HUAWEI_SWR_USERNAME }}
+          password: ${{ secrets.HUAWEI_SWR_PASSWORD }}
 
-      - name: Create & push manifest (Docker Hub - version)
+      - name: Create & push manifest (SWR - version)
         run: |
           docker buildx imagetools create \
-            -t looplj/axonhub:${TAG} \
-            looplj/axonhub:${TAG}-amd64 \
-            looplj/axonhub:${TAG}-arm64
+            -t swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub:${VERSION} \
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub:${VERSION}-amd64 \
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub:${VERSION}-arm64
 
-      - name: Create & push manifest (Docker Hub - latest)
+      - name: Create & push manifest (SWR - latest)
         run: |
           docker buildx imagetools create \
-            -t looplj/axonhub:latest \
-            looplj/axonhub:latest-amd64 \
-            looplj/axonhub:latest-arm64
+            -t swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub:latest \
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub:latest-amd64 \
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub:latest-arm64

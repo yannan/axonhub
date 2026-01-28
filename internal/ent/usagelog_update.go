@@ -487,9 +487,6 @@ func (_u *UsageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(usagelog.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if _u.mutation.APIKeyIDCleared() {
-		_spec.ClearField(usagelog.FieldAPIKeyID, field.TypeInt)
-	}
 	if value, ok := _u.mutation.PromptTokens(); ok {
 		_spec.SetField(usagelog.FieldPromptTokens, field.TypeInt64, value)
 	}
@@ -1122,9 +1119,6 @@ func (_u *UsageLogUpdateOne) sqlSave(ctx context.Context) (_node *UsageLog, err 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(usagelog.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if _u.mutation.APIKeyIDCleared() {
-		_spec.ClearField(usagelog.FieldAPIKeyID, field.TypeInt)
 	}
 	if value, ok := _u.mutation.PromptTokens(); ok {
 		_spec.SetField(usagelog.FieldPromptTokens, field.TypeInt64, value)

@@ -76,8 +76,7 @@ function TracesContent() {
       setDateRange(range);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   const handleTraceIdFilterChange = useCallback(
@@ -85,8 +84,7 @@ function TracesContent() {
       setTraceIdFilter(traceId);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   return (
@@ -118,16 +116,15 @@ export default function TracesManagement() {
 
   return (
     <TracesProvider>
-      <Header fixed>
-        <div className='flex flex-1 items-center justify-between'>
-          <div>
-            <h2 className='text-xl font-bold tracking-tight'>{t('traces.title')}</h2>
-            <p className='text-sm text-muted-foreground'>{t('traces.description')}</p>
-          </div>
-        </div>
-      </Header>
+      <Header fixed></Header>
 
       <Main fixed>
+        <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
+          <div>
+            <h2 className='text-2xl font-bold tracking-tight'>{t('traces.title')}</h2>
+            <p className='text-muted-foreground'>{t('traces.description')}</p>
+          </div>
+        </div>
         <TracesContent />
       </Main>
     </TracesProvider>

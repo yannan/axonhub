@@ -1,0 +1,56 @@
+# AxonHub Docker Compose Configuration - 使用外部 MariaDB
+#
+# 此配置用于连接到已存在的 MariaDB 实例
+# 使用方法：
+#   1. 修改下面的环境变量，填入你的 MariaDB 连接信息
+#   2. 运行: docker compose -f docker-compose.external-mariadb.yml up -d axonhub
+
+services:
+  # AxonHub 主服务 (使用外部 MariaDB)
+  axonhub:
+    image: looplj/axonhub:latest
+    container_name: axonhub-app
+    environment:
+      # 数据库配置 - 请修改为你的 MariaDB 连接信息
+      AXONHUB_DB_DIALECT: mysql
+      # DSN 格式: user:password@tcp(host:port)/database?charset=utf8mb4&parseTime=True&loc=Local
+      # 示例：
+      # - 本地 MariaDB: axonhub:password@tcp(host.docker.internal:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+      # - Docker 网络中的 MariaDB: axonhub:password@tcp(mariadb:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+      # - 远程 MariaDB: axonhub:password@tcp(192.168.1.100:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+      AXONHUB_DB_DSN: ${AXONHUB_DB_DSN:-axonhub:axonhub_password@tcp(host.docker.internal:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local}
+      
+      # 服务器配置（可选）
+      AXONHUB_SERVER_PORT: ${AXONHUB_SERVER_PORT:-8090}
+      AXONHUB_SERVER_NAME: ${AXONHUB_SERVER_NAME:-AxonHub}
+      AXONHUB_SERVER_DEBUG: ${AXONHUB_SERVER_DEBUG:-false}
+      
+      # 日志配置（可选）
+      AXONHUB_LOG_LEVEL: ${AXONHUB_LOG_LEVEL:-info}
+      AXONHUB_LOG_ENCODING: ${AXONHUB_LOG_ENCODING:-json}
+    ports:
+      - "${AXONHUB_SERVER_PORT:-8090}:8090"
+    volumes:
+      # 如果需要使用配置文件，取消下面的注释并创建 config.yml
+      # - ./config.yml:/app/config.yml:ro
+    restart: unless-stopped
+    # 如果 MariaDB 在 Docker 网络中，取消下面的注释并设置 network_mode
+    # network_mode: "bridge"  # 或 "host" 如果 MariaDB 在主机上
+    extra_hosts:
+      # 如果 MariaDB 在主机上，添加这行以允许容器访问主机
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8090/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+

@@ -5,7 +5,7 @@ import { channelSchema } from '@/features/channels/data';
 import { usageLogSchema } from '@/features/usage-logs/data/schema';
 
 // Request Status
-export const requestStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed', 'canceled']);
+export const requestStatusSchema = z.string();
 export type RequestStatus = z.infer<typeof requestStatusSchema>;
 
 // Request Source
@@ -13,7 +13,7 @@ export const requestSourceSchema = z.enum(['api', 'playground', 'test']);
 export type RequestSource = z.infer<typeof requestSourceSchema>;
 
 // Request Execution Status
-export const requestExecutionStatusSchema = z.enum(['pending', 'processing', 'completed', 'failed', 'canceled']);
+export const requestExecutionStatusSchema = z.string();
 export type RequestExecutionStatus = z.infer<typeof requestExecutionStatusSchema>;
 
 // Request Execution
@@ -53,7 +53,6 @@ export const requestSchema = z.object({
   responseBody: z.any().nullable().optional(), // JSONRawMessage
   responseChunks: z.array(z.any()).nullable().optional(), // [JSONRawMessage!]
   status: requestStatusSchema,
-  clientIP: z.string().nullable().optional(),
   stream: z.boolean().nullable(),
   metricsLatencyMs: z.number().nullable().optional(),
   metricsFirstTokenLatencyMs: z.number().nullable().optional(),
@@ -61,7 +60,7 @@ export const requestSchema = z.object({
     .object({
       edges: z.array(
         z.object({
-          node: requestExecutionSchema.partial().nullable().optional(),
+          node: requestExecutionSchema,
           cursor: z.string(),
         })
       ),
@@ -71,18 +70,15 @@ export const requestSchema = z.object({
     .optional(),
   usageLogs: z
     .object({
-      edges: z
-        .array(
-          z.object({
-            node: usageLogSchema.partial().nullable().optional(),
-            cursor: z.string().optional(),
-          })
-        )
-        .optional(),
+      edges: z.array(
+        z.object({
+          node: usageLogSchema.partial().nullable().optional(),
+          cursor: z.string().optional(),
+        })
+      ).optional(),
       pageInfo: pageInfoSchema.optional(),
     })
-    .optional()
-    .nullable(),
+    .optional().nullable(),
 });
 
 export type Request = z.infer<typeof requestSchema>;

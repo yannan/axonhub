@@ -920,6 +920,18 @@ func TestAPIKeyService_CreateAPIKey_Type(t *testing.T) {
 		require.NotContains(t, apiKey.Scopes, "write_channels")
 	})
 
+	t.Run("Create API key with content safety intercept disabled", func(t *testing.T) {
+		disabled := false
+		apiKey, err := apiKeyService.CreateAPIKey(ctxWithUser, ent.CreateAPIKeyInput{
+			Name:                          "API Key Content Safety Disabled",
+			ProjectID:                     testProject.ID,
+			ContentSafetyInterceptEnabled: &disabled,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, apiKey)
+		require.False(t, apiKey.ContentSafetyInterceptEnabled)
+	})
+
 	t.Run("Create multiple API keys with different types", func(t *testing.T) {
 		userType := apikey.TypeUser
 		serviceAccountType := apikey.TypeServiceAccount

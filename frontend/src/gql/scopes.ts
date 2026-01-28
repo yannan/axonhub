@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { graphqlRequest } from './graphql';
 
@@ -24,7 +23,6 @@ const ALL_SCOPES_QUERY = `
 
 export function useAllScopes(level?: 'system' | 'project') {
   const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
 
   return useQuery({
     queryKey: ['allScopes', level],
@@ -33,7 +31,7 @@ export function useAllScopes(level?: 'system' | 'project') {
         const data = await graphqlRequest<{ allScopes: ScopeInfo[] }>(ALL_SCOPES_QUERY, { level });
         return data.allScopes.map((scope) => scopeInfoSchema.parse(scope));
       } catch (error) {
-        handleError(error, t('common.errors.loadFailed'));
+        handleError(error, '获取权限列表');
         throw error;
       }
     },

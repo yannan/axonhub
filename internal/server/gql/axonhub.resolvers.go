@@ -440,6 +440,29 @@ func (r *queryResolver) QueryChannelOverrideTemplates(ctx context.Context, input
 	return r.channelOverrideTemplateService.QueryTemplates(ctx, bizInput)
 }
 
+// Cost is the resolver for the cost field.
+func (r *requestResolver) Cost(ctx context.Context, obj *ent.Request) (*int, error) {
+	if obj.TraceID == 0 {
+		return nil, nil
+	}
+
+	if obj.Edges.Trace != nil {
+		cost := int(obj.Edges.Trace.Cost)
+		return &cost, nil
+	}
+
+	traceEntry, err := r.client.Trace.Get(ctx, obj.TraceID)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	cost := int(traceEntry.Cost)
+	return &cost, nil
+}
+
 // ID is the resolver for the id field.
 func (r *segmentResolver) ID(ctx context.Context, obj *biz.Segment) (*objects.GUID, error) {
 	return &objects.GUID{Type: ent.TypeRequest, ID: obj.ID}, nil

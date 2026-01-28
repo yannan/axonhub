@@ -114,7 +114,7 @@ export const createColumns = (
     },
     {
       accessorKey: 'status',
-      header: t('common.columns.status'),
+      header: t('users.columns.status'),
       cell: ({ row }) => {
         const status = row.getValue('status') as string;
         return (
@@ -126,7 +126,7 @@ export const createColumns = (
     },
     {
       accessorKey: 'createdAt',
-      header: t('common.columns.createdAt'),
+      header: t('users.columns.createdAt'),
       cell: ({ row }) => {
         const date = new Date(row.getValue('createdAt'));
         return date.toLocaleDateString();
@@ -134,7 +134,7 @@ export const createColumns = (
     },
     {
       accessorKey: 'updatedAt',
-      header: t('common.columns.updatedAt'),
+      header: t('users.columns.updatedAt'),
       cell: ({ row }) => {
         const date = new Date(row.getValue('updatedAt'));
         return date.toLocaleDateString();

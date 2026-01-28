@@ -15,8 +15,11 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/channeloverridetemplate"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/predicate"
 	"github.com/looplj/axonhub/internal/ent/project"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
+	"github.com/looplj/axonhub/internal/ent/redemptioncode"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/user"
 	"github.com/looplj/axonhub/internal/ent/userproject"
@@ -34,6 +37,9 @@ type UserQuery struct {
 	withAPIKeys                       *APIKeyQuery
 	withRoles                         *RoleQuery
 	withChannelOverrideTemplates      *ChannelOverrideTemplateQuery
+	withConsumptionRecords            *ConsumptionRecordQuery
+	withRedemptionCodes               *RedemptionCodeQuery
+	withRechargeRecords               *RechargeRecordQuery
 	withProjectUsers                  *UserProjectQuery
 	withUserRoles                     *UserRoleQuery
 	loadTotal                         []func(context.Context, []*User) error
@@ -42,6 +48,9 @@ type UserQuery struct {
 	withNamedAPIKeys                  map[string]*APIKeyQuery
 	withNamedRoles                    map[string]*RoleQuery
 	withNamedChannelOverrideTemplates map[string]*ChannelOverrideTemplateQuery
+	withNamedConsumptionRecords       map[string]*ConsumptionRecordQuery
+	withNamedRedemptionCodes          map[string]*RedemptionCodeQuery
+	withNamedRechargeRecords          map[string]*RechargeRecordQuery
 	withNamedProjectUsers             map[string]*UserProjectQuery
 	withNamedUserRoles                map[string]*UserRoleQuery
 	// intermediate query (i.e. traversal path).
@@ -161,6 +170,72 @@ func (_q *UserQuery) QueryChannelOverrideTemplates() *ChannelOverrideTemplateQue
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(channeloverridetemplate.Table, channeloverridetemplate.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ChannelOverrideTemplatesTable, user.ChannelOverrideTemplatesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConsumptionRecords chains the current query on the "consumption_records" edge.
+func (_q *UserQuery) QueryConsumptionRecords() *ConsumptionRecordQuery {
+	query := (&ConsumptionRecordClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(consumptionrecord.Table, consumptionrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ConsumptionRecordsTable, user.ConsumptionRecordsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRedemptionCodes chains the current query on the "redemption_codes" edge.
+func (_q *UserQuery) QueryRedemptionCodes() *RedemptionCodeQuery {
+	query := (&RedemptionCodeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(redemptioncode.Table, redemptioncode.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RedemptionCodesTable, user.RedemptionCodesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRechargeRecords chains the current query on the "recharge_records" edge.
+func (_q *UserQuery) QueryRechargeRecords() *RechargeRecordQuery {
+	query := (&RechargeRecordClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(rechargerecord.Table, rechargerecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RechargeRecordsTable, user.RechargeRecordsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -408,6 +483,9 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withAPIKeys:                  _q.withAPIKeys.Clone(),
 		withRoles:                    _q.withRoles.Clone(),
 		withChannelOverrideTemplates: _q.withChannelOverrideTemplates.Clone(),
+		withConsumptionRecords:       _q.withConsumptionRecords.Clone(),
+		withRedemptionCodes:          _q.withRedemptionCodes.Clone(),
+		withRechargeRecords:          _q.withRechargeRecords.Clone(),
 		withProjectUsers:             _q.withProjectUsers.Clone(),
 		withUserRoles:                _q.withUserRoles.Clone(),
 		// clone intermediate query.
@@ -458,6 +536,39 @@ func (_q *UserQuery) WithChannelOverrideTemplates(opts ...func(*ChannelOverrideT
 		opt(query)
 	}
 	_q.withChannelOverrideTemplates = query
+	return _q
+}
+
+// WithConsumptionRecords tells the query-builder to eager-load the nodes that are connected to
+// the "consumption_records" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithConsumptionRecords(opts ...func(*ConsumptionRecordQuery)) *UserQuery {
+	query := (&ConsumptionRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConsumptionRecords = query
+	return _q
+}
+
+// WithRedemptionCodes tells the query-builder to eager-load the nodes that are connected to
+// the "redemption_codes" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithRedemptionCodes(opts ...func(*RedemptionCodeQuery)) *UserQuery {
+	query := (&RedemptionCodeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRedemptionCodes = query
+	return _q
+}
+
+// WithRechargeRecords tells the query-builder to eager-load the nodes that are connected to
+// the "recharge_records" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithRechargeRecords(opts ...func(*RechargeRecordQuery)) *UserQuery {
+	query := (&RechargeRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRechargeRecords = query
 	return _q
 }
 
@@ -567,11 +678,14 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [9]bool{
 			_q.withProjects != nil,
 			_q.withAPIKeys != nil,
 			_q.withRoles != nil,
 			_q.withChannelOverrideTemplates != nil,
+			_q.withConsumptionRecords != nil,
+			_q.withRedemptionCodes != nil,
+			_q.withRechargeRecords != nil,
 			_q.withProjectUsers != nil,
 			_q.withUserRoles != nil,
 		}
@@ -627,6 +741,29 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := _q.withConsumptionRecords; query != nil {
+		if err := _q.loadConsumptionRecords(ctx, query, nodes,
+			func(n *User) { n.Edges.ConsumptionRecords = []*ConsumptionRecord{} },
+			func(n *User, e *ConsumptionRecord) {
+				n.Edges.ConsumptionRecords = append(n.Edges.ConsumptionRecords, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRedemptionCodes; query != nil {
+		if err := _q.loadRedemptionCodes(ctx, query, nodes,
+			func(n *User) { n.Edges.RedemptionCodes = []*RedemptionCode{} },
+			func(n *User, e *RedemptionCode) { n.Edges.RedemptionCodes = append(n.Edges.RedemptionCodes, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRechargeRecords; query != nil {
+		if err := _q.loadRechargeRecords(ctx, query, nodes,
+			func(n *User) { n.Edges.RechargeRecords = []*RechargeRecord{} },
+			func(n *User, e *RechargeRecord) { n.Edges.RechargeRecords = append(n.Edges.RechargeRecords, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withProjectUsers; query != nil {
 		if err := _q.loadProjectUsers(ctx, query, nodes,
 			func(n *User) { n.Edges.ProjectUsers = []*UserProject{} },
@@ -666,6 +803,27 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadChannelOverrideTemplates(ctx, query, nodes,
 			func(n *User) { n.appendNamedChannelOverrideTemplates(name) },
 			func(n *User, e *ChannelOverrideTemplate) { n.appendNamedChannelOverrideTemplates(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedConsumptionRecords {
+		if err := _q.loadConsumptionRecords(ctx, query, nodes,
+			func(n *User) { n.appendNamedConsumptionRecords(name) },
+			func(n *User, e *ConsumptionRecord) { n.appendNamedConsumptionRecords(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedRedemptionCodes {
+		if err := _q.loadRedemptionCodes(ctx, query, nodes,
+			func(n *User) { n.appendNamedRedemptionCodes(name) },
+			func(n *User, e *RedemptionCode) { n.appendNamedRedemptionCodes(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedRechargeRecords {
+		if err := _q.loadRechargeRecords(ctx, query, nodes,
+			func(n *User) { n.appendNamedRechargeRecords(name) },
+			func(n *User, e *RechargeRecord) { n.appendNamedRechargeRecords(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -858,6 +1016,96 @@ func (_q *UserQuery) loadChannelOverrideTemplates(ctx context.Context, query *Ch
 	}
 	query.Where(predicate.ChannelOverrideTemplate(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.ChannelOverrideTemplatesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadConsumptionRecords(ctx context.Context, query *ConsumptionRecordQuery, nodes []*User, init func(*User), assign func(*User, *ConsumptionRecord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(consumptionrecord.FieldUserID)
+	}
+	query.Where(predicate.ConsumptionRecord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ConsumptionRecordsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadRedemptionCodes(ctx context.Context, query *RedemptionCodeQuery, nodes []*User, init func(*User), assign func(*User, *RedemptionCode)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(redemptioncode.FieldUsedBy)
+	}
+	query.Where(predicate.RedemptionCode(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RedemptionCodesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UsedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "used_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadRechargeRecords(ctx context.Context, query *RechargeRecordQuery, nodes []*User, init func(*User), assign func(*User, *RechargeRecord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(rechargerecord.FieldUserID)
+	}
+	query.Where(predicate.RechargeRecord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RechargeRecordsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -1080,6 +1328,48 @@ func (_q *UserQuery) WithNamedChannelOverrideTemplates(name string, opts ...func
 		_q.withNamedChannelOverrideTemplates = make(map[string]*ChannelOverrideTemplateQuery)
 	}
 	_q.withNamedChannelOverrideTemplates[name] = query
+	return _q
+}
+
+// WithNamedConsumptionRecords tells the query-builder to eager-load the nodes that are connected to the "consumption_records"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithNamedConsumptionRecords(name string, opts ...func(*ConsumptionRecordQuery)) *UserQuery {
+	query := (&ConsumptionRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedConsumptionRecords == nil {
+		_q.withNamedConsumptionRecords = make(map[string]*ConsumptionRecordQuery)
+	}
+	_q.withNamedConsumptionRecords[name] = query
+	return _q
+}
+
+// WithNamedRedemptionCodes tells the query-builder to eager-load the nodes that are connected to the "redemption_codes"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithNamedRedemptionCodes(name string, opts ...func(*RedemptionCodeQuery)) *UserQuery {
+	query := (&RedemptionCodeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedRedemptionCodes == nil {
+		_q.withNamedRedemptionCodes = make(map[string]*RedemptionCodeQuery)
+	}
+	_q.withNamedRedemptionCodes[name] = query
+	return _q
+}
+
+// WithNamedRechargeRecords tells the query-builder to eager-load the nodes that are connected to the "recharge_records"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithNamedRechargeRecords(name string, opts ...func(*RechargeRecordQuery)) *UserQuery {
+	query := (&RechargeRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedRechargeRecords == nil {
+		_q.withNamedRechargeRecords = make(map[string]*RechargeRecordQuery)
+	}
+	_q.withNamedRechargeRecords[name] = query
 	return _q
 }
 

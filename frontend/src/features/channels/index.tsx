@@ -12,14 +12,12 @@ import { ChannelsPrimaryButtons } from './components/channels-primary-buttons';
 import { ChannelsTable } from './components/channels-table';
 import { ChannelsTypeTabs } from './components/channels-type-tabs';
 import ChannelsProvider from './context/channels-context';
-import { useQueryChannels, useChannelTypes, useErrorChannelsCount, useChannelProbeData } from './data/channels';
-import { useProvidersData } from '@/features/models/data/providers';
+import { useQueryChannels, useChannelTypes, useErrorChannelsCount } from './data/channels';
 
 const ChannelsDialogs = lazy(() => import('./components/channels-dialogs').then((m) => ({ default: m.ChannelsDialogs })));
 
 function ChannelsContent() {
   const { t } = useTranslation();
-  useProvidersData();
   const { channelPermissions } = usePermissions();
   const { pageSize, setCursors, setPageSize, resetCursor, paginationArgs } = usePaginationSearch({
     defaultPageSize: 20,
@@ -42,18 +40,6 @@ function ChannelsContent() {
       }
     }
     return [{ id: 'createdAt', desc: true }];
-  });
-  const [isHealthColumnVisible, setIsHealthColumnVisible] = useState<boolean>(() => {
-    const stored = localStorage.getItem('channels-table-column-visibility');
-    if (stored) {
-      try {
-        const visibility = JSON.parse(stored);
-        return visibility.health !== false;
-      } catch {
-        return true;
-      }
-    }
-    return true;
   });
 
   useEffect(() => {
@@ -117,9 +103,6 @@ function ChannelsContent() {
         return { field: 'NAME', direction: primary.desc ? 'DESC' : 'ASC' } as const;
       case 'status':
         return { field: 'STATUS', direction: primary.desc ? 'DESC' : 'ASC' } as const;
-      case 'provider':
-      case 'type':
-        return { field: 'TYPE', direction: primary.desc ? 'DESC' : 'ASC' } as const;
       case 'createdAt':
         return { field: 'CREATED_AT', direction: primary.desc ? 'DESC' : 'ASC' } as const;
       case 'updatedAt':
@@ -140,23 +123,6 @@ function ChannelsContent() {
     hasTag: tagFilter || undefined,
     model: modelFilter || undefined,
   });
-
-  const channelIDs = useMemo(() => {
-    return data?.edges?.map((edge) => edge.node.id) || [];
-  }, [data?.edges]);
-
-  const { data: probeData } = useChannelProbeData(channelIDs, { enabled: isHealthColumnVisible });
-
-  const channelsWithProbeData = useMemo(() => {
-    if (!data?.edges) return [];
-    
-    const probeMap = new Map(probeData?.map((probe) => [probe.channelID, probe.points]) || []);
-    
-    return data.edges.map((edge) => ({
-      ...edge.node,
-      probePoints: probeMap.get(edge.node.id) || [],
-    }));
-  }, [data?.edges, probeData]);
 
   const handleNextPage = useCallback(() => {
     if (data?.pageInfo?.hasNextPage && data?.pageInfo?.endCursor) {
@@ -182,8 +148,7 @@ function ChannelsContent() {
       setNameFilter(filter);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   const handleTypeFilterChange = useCallback(
@@ -191,8 +156,7 @@ function ChannelsContent() {
       setTypeFilter(filters);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   const handleTabChange = useCallback(
@@ -201,8 +165,7 @@ function ChannelsContent() {
       setTypeFilter([]);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setSelectedTypeTab, setTypeFilter]
+    [setSelectedTypeTab, setTypeFilter, resetCursor]
   );
 
   const handleStatusFilterChange = useCallback(
@@ -210,8 +173,7 @@ function ChannelsContent() {
       setStatusFilter(filters);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   const handleTagFilterChange = useCallback(
@@ -219,8 +181,7 @@ function ChannelsContent() {
       setTagFilter(filter);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   const handleModelFilterChange = useCallback(
@@ -228,21 +189,18 @@ function ChannelsContent() {
       setModelFilter(filter);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   const handleFilterErrorChannels = useCallback(() => {
     setShowErrorOnly(true);
     resetCursor();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [resetCursor]);
 
   const handleExitErrorOnlyMode = useCallback(() => {
     setShowErrorOnly(false);
     resetCursor();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [resetCursor]);
 
   const columns = useMemo(() => createColumns(t, channelPermissions.canWrite), [t, channelPermissions.canWrite]);
 
@@ -257,7 +215,7 @@ function ChannelsContent() {
       <ChannelsTypeTabs typeCounts={channelTypeCounts} selectedTab={selectedTypeTab} onTabChange={handleTabChange} />
       <ChannelsTable
         loading={isLoading}
-        data={channelsWithProbeData}
+        data={data?.edges?.map((edge) => edge.node) || []}
         columns={columns}
         pageInfo={data?.pageInfo}
         pageSize={pageSize}
@@ -281,7 +239,6 @@ function ChannelsContent() {
         onStatusFilterChange={handleStatusFilterChange}
         onTagFilterChange={handleTagFilterChange}
         onModelFilterChange={handleModelFilterChange}
-        onHealthColumnVisibilityChange={setIsHealthColumnVisible}
         canWrite={channelPermissions.canWrite}
       />
     </div>
@@ -293,17 +250,16 @@ export default function ChannelsManagement() {
 
   return (
     <ChannelsProvider>
-      <Header fixed>
-        <div className='flex flex-1 items-center justify-between'>
+      <Header fixed>{/* <Search /> */}</Header>
+
+      <Main fixed>
+        <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
           <div>
-            <h2 className='text-xl font-bold tracking-tight'>{t('channels.title')}</h2>
-            <p className='text-sm text-muted-foreground'>{t('channels.description')}</p>
+            <h2 className='text-2xl font-bold tracking-tight'>{t('channels.title')}</h2>
+            <p className='text-muted-foreground'>{t('channels.description')}</p>
           </div>
           <ChannelsPrimaryButtons />
         </div>
-      </Header>
-
-      <Main fixed>
         <ChannelsContent />
       </Main>
       <Suspense fallback={null}>

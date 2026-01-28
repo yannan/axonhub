@@ -82,7 +82,7 @@ export function UsersChangePasswordDialog({ currentRow, open, onOpenChange }: Pr
                 <FormItem>
                   <FormLabel>{t('users.form.newPassword')}</FormLabel>
                   <FormControl>
-                    <Input type='password' placeholder={t('users.form.placeholders.newPassword')} {...field} />
+                    <Input type='password' placeholder={t('users.form.placeholders.newPasswordPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -96,7 +96,7 @@ export function UsersChangePasswordDialog({ currentRow, open, onOpenChange }: Pr
                 <FormItem>
                   <FormLabel>{t('users.form.confirmNewPassword')}</FormLabel>
                   <FormControl>
-                    <Input type='password' placeholder={t('users.form.placeholders.confirmNewPassword')} {...field} />
+                    <Input type='password' placeholder={t('users.form.placeholders.confirmNewPasswordPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

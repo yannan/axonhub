@@ -1,0 +1,45 @@
+{
+  "redemptions": {
+    "title": "兑换码管理",
+    "description": "管理系统兑换码，用于充值额度。",
+    "fields": {
+      "id": "ID",
+      "name": "名称",
+      "status": "状态",
+      "quota": "额度",
+      "createdTime": "创建时间",
+      "count": "生成数量",
+      "max_uses": "最大使用次数",
+      "used_times": "已使用次数"
+    },
+    "status": {
+      "active": "活跃的",
+      "used": "已使用",
+      "expired": "已过期",
+      "unknown": "未知"
+    },
+    "filter": {
+      "placeholder": "搜索兑换码..."
+    },
+    "actions": {
+      "create": "新建兑换码"
+    },
+    "messages": {
+      "loadError": "加载兑换码失败",
+      "createSuccess": "创建成功",
+      "createError": "创建失败",
+      "updateSuccess": "更新成功",
+      "updateError": "更新失败",
+      "deleteSuccess": "删除成功",
+      "deleteError": "删除失败"
+    },
+    "dialog": {
+      "createTitle": "新建兑换码",
+      "editTitle": "编辑兑换码",
+      "deleteTitle": "删除兑换码",
+      "deleteDescription": "确定要删除兑换码 \"{{name}}\" 吗？此操作无法撤销。",
+      "voidTitle": "作废兑换码",
+      "voidDescription": "确定要作废兑换码 \"{{name}}\" 吗？此操作将使其立即失效。"
+    }
+  }
+}

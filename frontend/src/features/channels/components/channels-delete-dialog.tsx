@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { IconAlertTriangle } from '@tabler/icons-react';
-import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +16,6 @@ interface Props {
 }
 
 export function ChannelsDeleteDialog({ open, onOpenChange, currentRow }: Props) {
-  const { t } = useTranslation();
   const [value, setValue] = useState('');
   const deleteChannel = useDeleteChannel();
 
@@ -43,26 +41,25 @@ export function ChannelsDeleteDialog({ open, onOpenChange, currentRow }: Props) 
       disabled={value.trim() !== currentRow.name || deleteChannel.isPending}
       title={
         <span className='text-destructive'>
-          <IconAlertTriangle className='stroke-destructive mr-1 inline-block' size={18} /> {t('channels.dialogs.delete.title')}
+          <IconAlertTriangle className='stroke-destructive mr-1 inline-block' size={18} /> 删除 Channel
         </span>
       }
       desc={
         <div className='space-y-4'>
           <Alert variant='destructive'>
             <IconAlertTriangle className='h-4 w-4' />
-            <AlertTitle>{t('channels.dialogs.delete.warning')}</AlertTitle>
-            <AlertDescription>{t('channels.dialogs.delete.warningTitle')}</AlertDescription>
+            <AlertTitle>警告</AlertTitle>
+            <AlertDescription>此操作无法撤销。这将永久删除 Channel 及其所有相关数据。</AlertDescription>
           </Alert>
           <div className='space-y-2'>
             <Label htmlFor='channel-name'>
-              {t('channels.dialogs.delete.confirmLabel')} <strong>{currentRow.name}</strong> {t('channels.dialogs.delete.confirmLabelStrong')}
+              请输入 Channel 名称 <strong>{currentRow.name}</strong> 以确认删除：
             </Label>
             <Input id='channel-name' placeholder={currentRow.name} value={value} onChange={(e) => setValue(e.target.value)} />
           </div>
         </div>
       }
-      confirmText={deleteChannel.isPending ? t('channels.dialogs.delete.deletingButton') : t('channels.dialogs.delete.confirmButton')}
-      cancelBtnText={t('common.buttons.cancel')}
+      confirmText={deleteChannel.isPending ? '删除中...' : '删除 Channel'}
     />
   );
 }

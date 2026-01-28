@@ -30,6 +30,12 @@ const (
 	FieldDescription = "description"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldQuota holds the string denoting the quota field in the database.
+	FieldQuota = "quota"
+	// FieldUsedQuota holds the string denoting the used_quota field in the database.
+	FieldUsedQuota = "used_quota"
+	// FieldGroup holds the string denoting the group field in the database.
+	FieldGroup = "group"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
@@ -46,6 +52,10 @@ const (
 	EdgeTraces = "traces"
 	// EdgePrompts holds the string denoting the prompts edge name in mutations.
 	EdgePrompts = "prompts"
+	// EdgeConsumptionRecords holds the string denoting the consumption_records edge name in mutations.
+	EdgeConsumptionRecords = "consumption_records"
+	// EdgeRechargeRecords holds the string denoting the recharge_records edge name in mutations.
+	EdgeRechargeRecords = "recharge_records"
 	// EdgeProjectUsers holds the string denoting the project_users edge name in mutations.
 	EdgeProjectUsers = "project_users"
 	// Table holds the table name of the project in the database.
@@ -102,6 +112,20 @@ const (
 	// PromptsInverseTable is the table name for the Prompt entity.
 	// It exists in this package in order to avoid circular dependency with the "prompt" package.
 	PromptsInverseTable = "prompts"
+	// ConsumptionRecordsTable is the table that holds the consumption_records relation/edge.
+	ConsumptionRecordsTable = "consumption_records"
+	// ConsumptionRecordsInverseTable is the table name for the ConsumptionRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "consumptionrecord" package.
+	ConsumptionRecordsInverseTable = "consumption_records"
+	// ConsumptionRecordsColumn is the table column denoting the consumption_records relation/edge.
+	ConsumptionRecordsColumn = "project_id"
+	// RechargeRecordsTable is the table that holds the recharge_records relation/edge.
+	RechargeRecordsTable = "recharge_records"
+	// RechargeRecordsInverseTable is the table name for the RechargeRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "rechargerecord" package.
+	RechargeRecordsInverseTable = "recharge_records"
+	// RechargeRecordsColumn is the table column denoting the recharge_records relation/edge.
+	RechargeRecordsColumn = "project_id"
 	// ProjectUsersTable is the table that holds the project_users relation/edge.
 	ProjectUsersTable = "user_projects"
 	// ProjectUsersInverseTable is the table name for the UserProject entity.
@@ -120,6 +144,9 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldStatus,
+	FieldQuota,
+	FieldUsedQuota,
+	FieldGroup,
 }
 
 var (
@@ -160,6 +187,12 @@ var (
 	DefaultDeletedAt int
 	// DefaultDescription holds the default value on creation for the "description" field.
 	DefaultDescription string
+	// DefaultQuota holds the default value on creation for the "quota" field.
+	DefaultQuota int64
+	// DefaultUsedQuota holds the default value on creation for the "used_quota" field.
+	DefaultUsedQuota int64
+	// DefaultGroup holds the default value on creation for the "group" field.
+	DefaultGroup string
 )
 
 // Status defines the type for the "status" enum field.
@@ -224,6 +257,21 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByQuota orders the results by the quota field.
+func ByQuota(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQuota, opts...).ToFunc()
+}
+
+// ByUsedQuota orders the results by the used_quota field.
+func ByUsedQuota(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUsedQuota, opts...).ToFunc()
+}
+
+// ByGroup orders the results by the group field.
+func ByGroup(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGroup, opts...).ToFunc()
 }
 
 // ByUsersCount orders the results by users count.
@@ -338,6 +386,34 @@ func ByPrompts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByConsumptionRecordsCount orders the results by consumption_records count.
+func ByConsumptionRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConsumptionRecordsStep(), opts...)
+	}
+}
+
+// ByConsumptionRecords orders the results by consumption_records terms.
+func ByConsumptionRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConsumptionRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRechargeRecordsCount orders the results by recharge_records count.
+func ByRechargeRecordsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRechargeRecordsStep(), opts...)
+	}
+}
+
+// ByRechargeRecords orders the results by recharge_records terms.
+func ByRechargeRecords(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRechargeRecordsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByProjectUsersCount orders the results by project_users count.
 func ByProjectUsersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -405,6 +481,20 @@ func newPromptsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PromptsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, PromptsTable, PromptsPrimaryKey...),
+	)
+}
+func newConsumptionRecordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConsumptionRecordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConsumptionRecordsTable, ConsumptionRecordsColumn),
+	)
+}
+func newRechargeRecordsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RechargeRecordsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RechargeRecordsTable, RechargeRecordsColumn),
 	)
 }
 func newProjectUsersStep() *sqlgraph.Step {

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { graphqlRequest } from '@/gql/graphql';
-import { useTranslation } from 'react-i18next';
 import { useSelectedProjectId } from '@/stores/projectStore';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { useRequestPermissions } from '../../../hooks/useRequestPermissions';
@@ -50,29 +49,8 @@ function buildRequestsQuery(permissions: { canViewApiKeys: boolean; canViewChann
             modelID
             stream
             status
-            clientIP
             metricsLatencyMs
             metricsFirstTokenLatencyMs
-            executions(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
-              edges {
-                node {
-                  modelID
-                  status
-                  channel {
-                    id
-                    name
-                  }
-                }
-                cursor
-              }
-              pageInfo {
-                hasNextPage
-                hasPreviousPage
-                startCursor
-                endCursor
-              }
-              totalCount
-            }
             usageLogs(first: 1) {
               edges {
                 node {
@@ -82,7 +60,6 @@ function buildRequestsQuery(permissions: { canViewApiKeys: boolean; canViewChann
                   totalTokens
                   promptCachedTokens
                   promptWriteCachedTokens
-                  totalCost
                 }
               }
             }
@@ -128,9 +105,10 @@ function buildRequestDetailQuery(permissions: { canViewApiKeys: boolean; canView
           source
           modelID
           stream
-          clientIP
           projectID
-          dataStorageID
+          dataStorage {
+            id
+          }
           requestHeaders
           requestBody
           responseBody
@@ -139,14 +117,13 @@ function buildRequestDetailQuery(permissions: { canViewApiKeys: boolean; canView
           usageLogs(first: 1) {
             edges {
               node {
-                  id
-                  promptTokens
-                  completionTokens
-                  totalTokens
-                  promptCachedTokens
-                  promptWriteCachedTokens
-                  totalCost
-                }
+                id
+                promptTokens
+                completionTokens
+                totalTokens
+                promptCachedTokens
+                promptWriteCachedTokens
+              }
             }
           }
         }
@@ -183,14 +160,15 @@ function buildRequestExecutionsQuery(permissions: { canViewChannels: boolean }) 
                 requestID${channelFields}
                 modelID
                 projectID
-                dataStorageID
+                dataStorage {
+                  id
+                }
                 requestHeaders
                 requestBody
                 responseBody
                 responseChunks
                 errorMessage
                 status
-                stream
                 metricsFirstTokenLatencyMs
               }
               cursor
@@ -228,7 +206,6 @@ export function useRequests(variables?: {
   };
 }) {
   const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
   const permissions = useRequestPermissions();
   const selectedProjectId = useSelectedProjectId();
 
@@ -238,30 +215,19 @@ export function useRequests(variables?: {
       try {
         const query = buildRequestsQuery(permissions);
         const headers = selectedProjectId ? { 'X-Project-ID': selectedProjectId } : undefined;
-
-        // Add project filter if project is selected
-        const finalVariables = {
-          ...variables,
-          where: {
-            ...variables?.where,
-            ...(selectedProjectId && { projectID: selectedProjectId }),
-          },
-        };
-
-        const data = await graphqlRequest<{ requests: RequestConnection }>(query, finalVariables, headers);
+        const data = await graphqlRequest<{ requests: RequestConnection }>(query, variables, headers);
         return requestConnectionSchema.parse(data?.requests);
       } catch (error) {
-        handleError(error, t('requests.errors.loadRequestsFailed'));
+        handleError(error, '获取请求数据');
         throw error;
       }
     },
-    enabled: true, // Requests can be queried without project selection for admin users
+    enabled: !!selectedProjectId, // Only query when a project is selected
   });
 }
 
 export function useRequest(id: string) {
   const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
   const permissions = useRequestPermissions();
   const selectedProjectId = useSelectedProjectId();
 
@@ -277,7 +243,7 @@ export function useRequest(id: string) {
         }
         return requestSchema.parse(data.node);
       } catch (error) {
-        handleError(error, t('requests.errors.loadRequestDetailFailed'));
+        handleError(error, '获取请求详情');
         throw error;
       }
     },
@@ -302,11 +268,7 @@ export function useRequestExecutions(
     queryFn: async () => {
       const query = buildRequestExecutionsQuery(permissions);
       const headers = selectedProjectId ? { 'X-Project-ID': selectedProjectId } : undefined;
-      const finalVariables = {
-        requestID,
-        ...variables,
-      };
-      const data = await graphqlRequest<{ node: { executions: RequestExecutionConnection } }>(query, finalVariables, headers);
+      const data = await graphqlRequest<{ node: { executions: RequestExecutionConnection } }>(query, { requestID, ...variables }, headers);
       return requestExecutionConnectionSchema.parse(data?.node?.executions);
     },
     enabled: !!requestID,

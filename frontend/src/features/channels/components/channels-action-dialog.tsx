@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { X, RefreshCw, Search, ChevronLeft, ChevronRight, PanelLeft, Plus, Trash2, Eye, EyeOff, Copy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { useSelectedProjectId } from '@/stores/projectStore';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,7 +16,6 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TagsAutocompleteInput } from '@/components/ui/tags-autocomplete-input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -31,16 +29,7 @@ import {
   useAllChannelNames,
   useAllChannelTags,
 } from '../data/channels';
-import { claudecodeOAuthExchange, claudecodeOAuthStart } from '../data/claudecode';
-import { codexOAuthExchange, codexOAuthStart } from '../data/codex';
-import {
-  getDefaultBaseURL,
-  getDefaultModels,
-  CHANNEL_CONFIGS,
-  OPENAI_CHAT_COMPLETIONS,
-  OPENAI_RESPONSES,
-  ANTHROPIC_MESSAGES,
-} from '../data/config_channels';
+import { getDefaultBaseURL, getDefaultModels, CHANNEL_CONFIGS, OPENAI_CHAT_COMPLETIONS } from '../data/config_channels';
 import {
   PROVIDER_CONFIGS,
   getProviderFromChannelType,
@@ -48,7 +37,6 @@ import {
   getChannelTypeForApiFormat,
 } from '../data/config_providers';
 import { Channel, ChannelType, ApiFormat, createChannelInputSchema, updateChannelInputSchema } from '../data/schema';
-import { useOAuthFlow } from '../hooks/use-oauth-flow';
 
 interface Props {
   currentRow?: Channel;
@@ -93,14 +81,12 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
   const fetchModels = useFetchModels();
   const { data: allChannelNames = [], isSuccess: allChannelNamesLoaded } = useAllChannelNames({ enabled: open && isDuplicate });
   const { data: allTags = [], isLoading: isLoadingTags } = useAllChannelTags();
-  const selectedProjectId = useSelectedProjectId();
   const [supportedModels, setSupportedModels] = useState<string[]>(() => initialRow?.supportedModels || []);
   const [newModel, setNewModel] = useState('');
   const [selectedDefaultModels, setSelectedDefaultModels] = useState<string[]>([]);
   const [fetchedModels, setFetchedModels] = useState<string[]>([]);
   const [useFetchedModels, setUseFetchedModels] = useState(false);
   const providerRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const providerListRef = useRef<HTMLDivElement | null>(null);
 
   // Expandable panel states
   const [showFetchedModelsPanel, setShowFetchedModelsPanel] = useState(false);
@@ -114,27 +100,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
   const hasAutoSetDuplicateNameRef = useRef(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [showGcpJsonData, setShowGcpJsonData] = useState(false);
-  const [authMode, setAuthMode] = useState<'official' | 'third-party'>('official');
-  const dialogContentRef = useRef<HTMLDivElement>(null);
-
-  // OAuth flows using the reusable hook
-  const codexOAuth = useOAuthFlow({
-    startFn: codexOAuthStart,
-    exchangeFn: codexOAuthExchange,
-    projectId: selectedProjectId,
-    onSuccess: (credentials) => {
-      form.setValue('credentials.apiKey', credentials);
-    },
-  });
-
-  const claudecodeOAuth = useOAuthFlow({
-    startFn: claudecodeOAuthStart,
-    exchangeFn: claudecodeOAuthExchange,
-    projectId: selectedProjectId,
-    onSuccess: (credentials) => {
-      form.setValue('credentials.apiKey', credentials);
-    },
-  });
 
   // Provider-based selection state
   const [selectedProvider, setSelectedProvider] = useState<string>(() => {
@@ -163,75 +128,39 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
   });
 
   useEffect(() => {
-    if (!initialRow) return;
+    if (!isEdit || !currentRow) return;
 
-    const provider = getProviderFromChannelType(initialRow.type) || 'openai';
+    const provider = getProviderFromChannelType(currentRow.type) || 'openai';
     setSelectedProvider(provider);
-    const apiFormat = CHANNEL_CONFIGS[initialRow.type as ChannelType]?.apiFormat || OPENAI_CHAT_COMPLETIONS;
+    const apiFormat = CHANNEL_CONFIGS[currentRow.type]?.apiFormat || OPENAI_CHAT_COMPLETIONS;
     setSelectedApiFormat(apiFormat);
-    setUseGeminiVertex(initialRow.type === 'gemini_vertex');
-    setUseAnthropicAws(initialRow.type === 'anthropic_aws');
-
-    // Detect authMode for codex and claudecode
-    if (initialRow.type === 'codex') {
-      try {
-        const apiKey = initialRow.credentials?.apiKey || '';
-        const json = JSON.parse(apiKey);
-        if (json.access_token && json.refresh_token) {
-          setAuthMode('official');
-        } else {
-          setAuthMode('third-party');
-        }
-      } catch {
-        setAuthMode('third-party');
-      }
-    } else if (initialRow.type === 'claudecode') {
-      const apiKey = initialRow.credentials?.apiKey || '';
-      const defaultURL = getDefaultBaseURL('claudecode');
-      // For Claude Code, it's official if it's an official token (sk-ant-oat or sk-ant-api03) or uses the default base URL
-      if (apiKey.includes('sk-ant-oat') || apiKey.includes('sk-ant-api03') || initialRow.baseURL === defaultURL) {
-        setAuthMode('official');
-      } else {
-        setAuthMode('third-party');
-      }
-    }
-  }, [initialRow]);
+    setUseGeminiVertex(currentRow.type === 'gemini_vertex');
+    setUseAnthropicAws(currentRow.type === 'anthropic_aws');
+  }, [isEdit, currentRow]);
 
   useEffect(() => {
     if (!open) {
       hasAutoSetDuplicateNameRef.current = false;
-      codexOAuth.reset();
-      claudecodeOAuth.reset();
     }
-  }, [open, codexOAuth, claudecodeOAuth]);
+  }, [open]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !isEdit) return;
 
-    const timer = setTimeout(() => {
+    const frame = requestAnimationFrame(() => {
       const target = providerRefs.current[selectedProvider];
-      const container = providerListRef.current;
-      if (target && container) {
-        const containerHeight = container.clientHeight;
-        const targetOffsetTop = target.offsetTop;
-        const targetHeight = target.clientHeight;
+      target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
 
-        const targetCenter = targetOffsetTop + targetHeight / 2;
-        const scrollTop = targetCenter - containerHeight / 2;
-
-        container.scrollTop = Math.max(0, scrollTop);
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
+    return () => cancelAnimationFrame(frame);
   }, [open, isEdit, selectedProvider]);
 
   // Auto-open supported models panel when showModelsPanel is true
   useEffect(() => {
-    if (open && showModelsPanel && initialRow && initialRow.supportedModels.length > 0) {
+    if (open && showModelsPanel && isEdit && currentRow && currentRow.supportedModels.length > 0) {
       setShowSupportedModelsPanel(true);
     }
-  }, [open, showModelsPanel, initialRow]);
+  }, [open, showModelsPanel, isEdit, currentRow]);
 
   // Get available providers (excluding fake types)
   const availableProviders = useMemo(
@@ -274,9 +203,9 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
       return 'gemini_vertex';
     }
 
-    // If anthropic/messages is selected, check which variant is selected
-    if (selectedApiFormat === 'anthropic/messages') {
-      if (useAnthropicAws) return 'anthropic_aws';
+    // If anthropic/messages is selected and aws checkbox is checked, use anthropic_aws
+    if (selectedApiFormat === 'anthropic/messages' && useAnthropicAws) {
+      return 'anthropic_aws';
     }
 
     return getChannelTypeForApiFormat(selectedProvider, selectedApiFormat) || 'openai';
@@ -292,7 +221,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
             type: currentRow.type,
             baseURL: currentRow.baseURL,
             name: currentRow.name,
-            policies: currentRow.policies ?? { stream: 'unlimited' },
             supportedModels: currentRow.supportedModels,
             autoSyncSupportedModels: currentRow.autoSyncSupportedModels,
             defaultTestModel: currentRow.defaultTestModel,
@@ -317,7 +245,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
               type: duplicateFromRow.type,
               baseURL: duplicateFromRow.baseURL,
               name: duplicateFromRow.name,
-              policies: duplicateFromRow.policies ?? { stream: 'unlimited' },
               supportedModels: duplicateFromRow.supportedModels,
               autoSyncSupportedModels: duplicateFromRow.autoSyncSupportedModels,
               defaultTestModel: duplicateFromRow.defaultTestModel,
@@ -342,7 +269,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
               type: derivedChannelType,
               baseURL: getDefaultBaseURL(derivedChannelType),
               name: '',
-              policies: { stream: 'unlimited' },
               credentials: {
                 apiKey: '',
                 aws: {
@@ -381,32 +307,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
 
   const selectedType = form.watch('type') as ChannelType | undefined;
 
-  const isCodexType = (selectedType || derivedChannelType) === 'codex';
-  const isClaudeCodeType = (selectedType || derivedChannelType) === 'claudecode';
-
-  useEffect(() => {
-    if (isCodexType) {
-      form.setValue('policies.stream', 'require');
-    }
-  }, [isCodexType, form]);
-
-  const wrapUnsupported = useCallback(
-    (enabled: boolean, children: React.ReactNode, wrapperClassName: string) => {
-      if (!enabled) return children;
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className={wrapperClassName}>{children}</span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{t('channels.dialogs.fields.unsupported')}</p>
-          </TooltipContent>
-        </Tooltip>
-      );
-    },
-    [t]
-  );
-
   const baseURLPlaceholder = useMemo(() => {
     const currentType = selectedType || derivedChannelType;
     const defaultURL = getDefaultBaseURL(currentType);
@@ -421,7 +321,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
     (provider: string) => {
       if (isEdit) return;
       setSelectedProvider(provider);
-      setAuthMode('official');
 
       if (provider !== 'gemini') {
         setUseGeminiVertex(false);
@@ -429,24 +328,9 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
       if (provider !== 'anthropic') {
         setUseAnthropicAws(false);
       }
-
-      if (provider === 'codex') {
-        setSelectedApiFormat(OPENAI_RESPONSES);
-        form.setValue('type', 'codex');
-        form.setValue('policies.stream', 'require');
-        setFetchedModels([]);
-        setUseFetchedModels(false);
-        return;
-      }
-
       const formats = getApiFormatsForProvider(provider);
-      const currentFormat = selectedApiFormat;
-      let newFormat = currentFormat;
-
-      if (!formats.includes(currentFormat)) {
-        newFormat = formats[0] || 'openai/chat_completions';
-      }
-
+      // Default to first available format
+      const newFormat = formats[0] || 'openai/chat_completions';
       setSelectedApiFormat(newFormat);
       const newChannelType =
         provider === 'gemini' && newFormat === 'gemini/contents' && useGeminiVertex
@@ -456,31 +340,29 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
             : getChannelTypeForApiFormat(provider, newFormat);
       if (newChannelType) {
         form.setValue('type', newChannelType);
-        if (!isDuplicate) {
-          const baseURL = getDefaultBaseURL(newChannelType);
-          if (baseURL) {
-            form.resetField('baseURL', { defaultValue: baseURL });
-          }
+        const baseURL = getDefaultBaseURL(newChannelType);
+        if (baseURL) {
+          form.resetField('baseURL', { defaultValue: baseURL });
         }
+        // Reset models when provider changes
+        setSupportedModels([]);
         setFetchedModels([]);
         setUseFetchedModels(false);
       }
     },
-    [isEdit, form, useGeminiVertex, useAnthropicAws, isDuplicate, selectedApiFormat]
+    [isEdit, form, useGeminiVertex, useAnthropicAws]
   );
 
   const handleApiFormatChange = useCallback(
     (format: ApiFormat) => {
       if (isEdit) return;
-      if (selectedProvider === 'codex') return;
-
       setSelectedApiFormat(format);
 
       // Reset vertex checkbox if not gemini/contents
       if (format !== 'gemini/contents') {
         setUseGeminiVertex(false);
       }
-      // Reset anthropic checkboxes if not anthropic/messages
+      // Reset aws checkbox if not anthropic/messages
       if (format !== 'anthropic/messages') {
         setUseAnthropicAws(false);
       }
@@ -496,7 +378,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
         form.setValue('type', newChannelType);
 
         const baseURLFieldState = form.getFieldState('baseURL', form.formState);
-        if (!baseURLFieldState.isDirty && !isDuplicate) {
+        if (!baseURLFieldState.isDirty) {
           const baseURL = getDefaultBaseURL(newChannelType);
           if (baseURL) {
             form.resetField('baseURL', { defaultValue: baseURL });
@@ -504,7 +386,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
         }
       }
     },
-    [isEdit, selectedProvider, form, useGeminiVertex, useAnthropicAws, isDuplicate]
+    [isEdit, selectedProvider, form, useGeminiVertex, useAnthropicAws]
   );
 
   const handleGeminiVertexChange = useCallback(
@@ -517,7 +399,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
         form.setValue('type', newChannelType);
 
         const baseURLFieldState = form.getFieldState('baseURL', form.formState);
-        if (!baseURLFieldState.isDirty && !isDuplicate) {
+        if (!baseURLFieldState.isDirty) {
           const baseURL = getDefaultBaseURL(newChannelType);
           if (baseURL) {
             form.resetField('baseURL', { defaultValue: baseURL });
@@ -538,7 +420,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
         form.setValue('type', newChannelType);
 
         const baseURLFieldState = form.getFieldState('baseURL', form.formState);
-        if (!baseURLFieldState.isDirty && !isDuplicate) {
+        if (!baseURLFieldState.isDirty) {
           const baseURL = getDefaultBaseURL(newChannelType);
           if (baseURL) {
             form.resetField('baseURL', { defaultValue: baseURL });
@@ -551,83 +433,16 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
 
   useEffect(() => {
     if (isEdit) return;
-    if (!isCodexType) {
-      codexOAuth.reset();
-      return;
+    if (!availableApiFormats.includes(selectedApiFormat)) {
+      const fallbackFormat = availableApiFormats[0] || OPENAI_CHAT_COMPLETIONS;
+      handleApiFormatChange(fallbackFormat);
     }
-
-    const baseURL = getDefaultBaseURL('codex');
-    if (baseURL) {
-      form.resetField('baseURL', { defaultValue: baseURL });
-    }
-  }, [isEdit, isCodexType, form]);
-
-  useEffect(() => {
-    if (isEdit) return;
-    if (selectedProvider !== 'claudecode') {
-      claudecodeOAuth.reset();
-      return;
-    }
-
-    const baseURL = getDefaultBaseURL('claudecode');
-    if (baseURL) {
-      form.resetField('baseURL', { defaultValue: baseURL });
-    }
-  }, [isEdit, selectedProvider, form]);
-
-  const renderOAuthSection = useCallback(
-    (oauth: ReturnType<typeof useOAuthFlow>, description: string) => (
-      <div className='mt-3 space-y-2'>
-        <div className='rounded-md border p-3'>
-          <div className='flex flex-wrap items-center gap-2'>
-            <Button type='button' variant='secondary' onClick={oauth.start} disabled={oauth.isStarting}>
-              {oauth.isStarting ? t('channels.dialogs.oauth.buttons.starting') : t('channels.dialogs.oauth.buttons.startOAuth')}
-            </Button>
-            {oauth.authUrl && (
-              <Button type='button' variant='ghost' onClick={() => window.open(oauth.authUrl || '', '_blank', 'noopener,noreferrer')}>
-                {t('channels.dialogs.oauth.buttons.openOAuthLink')}
-              </Button>
-            )}
-          </div>
-
-          {oauth.authUrl && (
-            <div className='mt-3 space-y-2'>
-              <FormLabel className='text-sm font-medium'>{t('channels.dialogs.oauth.labels.authorizationUrl')}</FormLabel>
-              <Textarea
-                value={oauth.authUrl}
-                readOnly
-                className='min-h-[60px] resize-none font-mono text-xs'
-                placeholder={t('channels.dialogs.oauth.placeholders.authorizationUrl')}
-              />
-            </div>
-          )}
-
-          <div className='mt-3 space-y-2'>
-            <FormLabel className='text-sm font-medium'>{t('channels.dialogs.oauth.labels.callbackUrl')}</FormLabel>
-            <Textarea
-              value={oauth.callbackUrl}
-              onChange={(e) => oauth.setCallbackUrl(e.target.value)}
-              placeholder={t('channels.dialogs.oauth.placeholders.callbackUrl')}
-              className='min-h-[80px] resize-y font-mono text-xs'
-            />
-            <Button type='button' onClick={oauth.exchange} disabled={oauth.isExchanging || !oauth.sessionId}>
-              {oauth.isExchanging
-                ? t('channels.dialogs.oauth.buttons.exchanging')
-                : t('channels.dialogs.oauth.buttons.exchangeAndFillApiKey')}
-            </Button>
-          </div>
-
-          <p className='text-muted-foreground mt-2 text-xs'>{description}</p>
-        </div>
-      </div>
-    ),
-    [t]
-  );
+  }, [availableApiFormats, selectedApiFormat, handleApiFormatChange, isEdit]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     // Check if there are selected fetched models that haven't been confirmed
     if (selectedFetchedModels.length > 0) {
-      toast.error(t('channels.messages.modelsNotConfirmed'));
+      toast.error(t('channels.dialogs.messages.modelsNotConfirmed'));
       return;
     }
 
@@ -643,14 +458,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
         ...valuesForSubmit,
         supportedModels,
       };
-
-      if ((isCodexType || isClaudeCodeType) && authMode === 'official') {
-        const currentType = selectedType || derivedChannelType;
-        const baseURL = getDefaultBaseURL(currentType);
-        if (baseURL) {
-          dataWithModels.baseURL = baseURL;
-        }
-      }
 
       if (isEdit && currentRow) {
         // For edit mode, only include credentials if user actually entered new values
@@ -695,13 +502,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
             .filter((key) => key.length > 0) || [];
 
         if (apiKeys.length > 1) {
-          if (isCodexType) {
-            toast.error(t('channels.dialogs.codex.errors.bulkCreateUnsupported'));
-            return;
-          }
-
           const settings = values.settings ?? duplicateFromRow?.settings ?? undefined;
-          const policies = values.policies ?? duplicateFromRow?.policies ?? undefined;
           // Bulk create: use bulk mutation
           await bulkCreateChannels.mutateAsync({
             type: valuesForSubmit.type as string,
@@ -710,12 +511,8 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
             tags: valuesForSubmit.tags,
             apiKeys: apiKeys,
             supportedModels: supportedModels,
-            autoSyncSupportedModels: valuesForSubmit.autoSyncSupportedModels,
             defaultTestModel: valuesForSubmit.defaultTestModel as string,
             settings,
-            policies,
-            orderingWeight: valuesForSubmit.orderingWeight ?? undefined,
-            remark: valuesForSubmit.remark ?? undefined,
           });
         } else {
           // Single create: use existing mutation
@@ -767,7 +564,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
     setSupportedModels(supportedModels.filter((m) => m !== model));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addModel();
@@ -978,7 +775,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
         }}
       >
         <DialogContent
-          ref={dialogContentRef}
           className={`flex max-h-[90vh] flex-col transition-all duration-300 ${showFetchedModelsPanel || showSupportedModelsPanel ? 'sm:max-w-6xl' : 'sm:max-w-4xl'}`}
         >
           <DialogHeader className='flex-shrink-0 text-left'>
@@ -990,19 +786,16 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
           <div className='flex min-h-0 flex-1 gap-4 overflow-hidden'>
             {/* Main Form Section */}
             <div
-              className={`flex min-h-0 flex-1 flex-col overflow-hidden py-1 transition-all duration-300 ${showFetchedModelsPanel || showSupportedModelsPanel ? 'pr-2' : 'pr-0'}`}
+              className={`min-h-0 flex-1 overflow-y-auto py-1 pr-4 transition-all duration-300 ${showFetchedModelsPanel || showSupportedModelsPanel ? '-mr-2' : '-mr-4'}`}
             >
               <Form {...form}>
-                <form id='channel-form' onSubmit={form.handleSubmit(onSubmit)} className='flex min-h-0 flex-1 flex-col space-y-6 p-0.5'>
+                <form id='channel-form' onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 p-0.5'>
                   {/* Provider Selection - Left Side */}
-                  <div className='flex min-h-0 flex-1 gap-6 overflow-hidden'>
-                    <div className='flex min-h-0 w-60 flex-shrink-0 flex-col'>
-                      <FormItem className='flex min-h-0 flex-1 flex-col space-y-2'>
+                  <div className='flex gap-6'>
+                    <div className='w-80 flex-shrink-0'>
+                      <FormItem className='space-y-2'>
                         <FormLabel className='text-base font-semibold'>{t('channels.dialogs.fields.provider.label')}</FormLabel>
-                        <div
-                          ref={providerListRef}
-                          className={`flex-1 overflow-y-auto pr-2 ${isEdit ? 'cursor-not-allowed opacity-60' : ''}`}
-                        >
+                        <div className={`max-h-[600px] overflow-y-auto pr-2 ${isEdit ? 'cursor-not-allowed opacity-60' : ''}`}>
                           <RadioGroup value={selectedProvider} onValueChange={handleProviderChange} disabled={isEdit} className='space-y-2'>
                             {availableProviders.map((provider) => {
                               const Icon = provider.icon;
@@ -1042,8 +835,8 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                     </div>
 
                     {/* Right Side - Form Fields */}
-                    <div className='flex-1 space-y-6 overflow-y-auto pr-4'>
-                      {selectedProvider !== 'jina' && selectedProvider !== 'codex' && selectedProvider !== 'claudecode' && (
+                    <div className='flex-1 space-y-6'>
+                      {selectedProvider !== 'jina' && (
                         <FormItem className='grid grid-cols-8 items-start gap-x-6'>
                           <FormLabel className='col-span-2 pt-2 text-right font-medium'>
                             {t('channels.dialogs.fields.apiFormat.label')}
@@ -1067,7 +860,9 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                             {selectedApiFormat === 'gemini/contents' && (
                               <div className='mt-3'>
                                 <label
-                                  className={`flex items-center gap-2 text-sm ${isEdit ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                                  className={`flex items-center gap-2 text-sm ${
+                                    isEdit ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                                  }`}
                                 >
                                   <Checkbox
                                     checked={useGeminiVertex}
@@ -1079,9 +874,11 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                               </div>
                             )}
                             {selectedApiFormat === 'anthropic/messages' && selectedProvider === 'anthropic' && (
-                              <div className='mt-3 space-y-2'>
+                              <div className='mt-3'>
                                 <label
-                                  className={`flex items-center gap-2 text-sm ${isEdit ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                                  className={`flex items-center gap-2 text-sm ${
+                                    isEdit ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                                  }`}
                                 >
                                   <Checkbox
                                     checked={useAnthropicAws}
@@ -1092,29 +889,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                                 </label>
                               </div>
                             )}
-                          </div>
-                        </FormItem>
-                      )}
-                      {selectedProvider === 'codex' && (
-                        <FormItem className='grid grid-cols-8 items-start gap-x-6'>
-                          <FormLabel className='col-span-2 pt-2 text-right font-medium'>
-                            {t('channels.dialogs.fields.apiFormat.label')}
-                          </FormLabel>
-                          <div className='col-span-6 space-y-1'>
-                            <div className='text-sm'>{getApiFormatLabel(OPENAI_RESPONSES)}</div>
-                            <p className='text-muted-foreground mt-1 text-xs'>{t('channels.dialogs.fields.apiFormat.editDisabled')}</p>
-                          </div>
-                        </FormItem>
-                      )}
-
-                      {selectedProvider === 'claudecode' && (
-                        <FormItem className='grid grid-cols-8 items-start gap-x-6'>
-                          <FormLabel className='col-span-2 pt-2 text-right font-medium'>
-                            {t('channels.dialogs.fields.apiFormat.label')}
-                          </FormLabel>
-                          <div className='col-span-6 space-y-1'>
-                            <div className='text-sm'>{getApiFormatLabel(ANTHROPIC_MESSAGES)}</div>
-                            <p className='text-muted-foreground mt-1 text-xs'>{t('channels.dialogs.fields.apiFormat.editDisabled')}</p>
                           </div>
                         </FormItem>
                       )}
@@ -1141,46 +915,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                         )}
                       />
 
-                      {(isCodexType || isClaudeCodeType) && (
-                        <div className='grid grid-cols-8 items-start gap-x-6'>
-                          <div className='col-span-2' />
-                          <div className='col-span-6 space-y-4'>
-                            <Tabs
-                              value={authMode}
-                              onValueChange={(value) => {
-                                const mode = value as 'official' | 'third-party';
-                                setAuthMode(mode);
-                                if (mode === 'official') {
-                                  const currentType = selectedType || derivedChannelType;
-                                  const defaultURL = getDefaultBaseURL(currentType);
-                                  if (defaultURL) {
-                                    form.setValue('baseURL', defaultURL);
-                                  }
-                                }
-                              }}
-                              className='w-full'
-                            >
-                              <TabsList className='grid w-full grid-cols-2'>
-                                <TabsTrigger value='official' disabled={isEdit}>
-                                  {t('channels.dialogs.authMode.official')}
-                                </TabsTrigger>
-                                <TabsTrigger value='third-party' disabled={isEdit}>
-                                  {t('channels.dialogs.authMode.thirdParty')}
-                                </TabsTrigger>
-                              </TabsList>
-                            </Tabs>
-
-                            {authMode === 'official' && (
-                              <div className='space-y-2'>
-                                {isCodexType && renderOAuthSection(codexOAuth, t('channels.dialogs.fields.apiFormat.codex.description'))}
-                                {isClaudeCodeType &&
-                                  renderOAuthSection(claudecodeOAuth, t('channels.dialogs.fields.apiFormat.claudecode.description'))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
                       <FormField
                         control={form.control}
                         name='baseURL'
@@ -1192,11 +926,9 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                             <div className='col-span-6 space-y-1'>
                               <Input
                                 placeholder={baseURLPlaceholder}
-                                autoComplete='new-password'
-                                data-form-type='other'
+                                autoComplete='off'
                                 aria-invalid={!!fieldState.error}
                                 data-testid='channel-base-url-input'
-                                disabled={(isCodexType || isClaudeCodeType) && authMode === 'official'}
                                 {...field}
                               />
                               <FormMessage />
@@ -1205,7 +937,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                         )}
                       />
 
-                      {(!(isCodexType || isClaudeCodeType) || authMode === 'third-party') && selectedType !== 'anthropic_gcp' && (
+                      {selectedType !== 'anthropic_gcp' && (
                         <FormField
                           control={form.control}
                           name='credentials.apiKey'
@@ -1221,8 +953,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                                       type={showApiKey ? 'text' : 'password'}
                                       placeholder={t('channels.dialogs.fields.apiKey.editPlaceholder')}
                                       className='col-span-6 pr-20'
-                                      autoComplete='new-password'
-                                      data-form-type='other'
+                                      autoComplete='off'
                                       aria-invalid={!!fieldState.error}
                                       data-testid='channel-api-key-input'
                                       {...field}
@@ -1258,8 +989,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                                     <Textarea
                                       placeholder={t('channels.dialogs.fields.apiKey.placeholder')}
                                       className='col-span-6 min-h-[80px] resize-y font-mono text-sm'
-                                      autoComplete='new-password'
-                                      data-form-type='other'
+                                      autoComplete='off'
                                       aria-invalid={!!fieldState.error}
                                       data-testid='channel-api-key-input'
                                       {...field}
@@ -1384,38 +1114,6 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                         </>
                       )}
 
-                      <FormField
-                        control={form.control}
-                        name='policies.stream'
-                        render={({ field }) => (
-                          <FormItem className='grid grid-cols-8 items-start gap-x-6'>
-                            <FormLabel className='col-span-2 pt-2 text-right font-medium'>
-                              {t('channels.dialogs.fields.streamPolicy.label')}
-                            </FormLabel>
-                            <div className='col-span-6 space-y-1'>
-                              {wrapUnsupported(
-                                isCodexType,
-                                <SelectDropdown
-                                  defaultValue={(field.value as string) || 'unlimited'}
-                                  onValueChange={(value) => field.onChange(value)}
-                                  placeholder={t('channels.dialogs.fields.streamPolicy.placeholder')}
-                                  data-testid='channel-stream-policy-select'
-                                  isControlled={true}
-                                  disabled={isCodexType}
-                                  items={[
-                                    { value: 'unlimited', label: t('channels.dialogs.fields.streamPolicy.options.unlimited') },
-                                    { value: 'require', label: t('channels.dialogs.fields.streamPolicy.options.require') },
-                                    { value: 'forbid', label: t('channels.dialogs.fields.streamPolicy.options.forbid') },
-                                  ]}
-                                />,
-                                'w-full'
-                              )}
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-
                       <div className='grid grid-cols-8 items-start gap-x-6'>
                         <FormLabel className='col-span-2 pt-2 text-right font-medium'>
                           {t('channels.dialogs.fields.supportedModels.label')}
@@ -1428,14 +1126,13 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                                 selectedValue={newModel}
                                 onSelectedValueChange={setNewModel}
                                 placeholder={t('channels.dialogs.fields.supportedModels.description')}
-                                portalContainer={dialogContentRef.current}
                               />
                             ) : (
                               <Input
                                 placeholder={t('channels.dialogs.fields.supportedModels.description')}
                                 value={newModel}
                                 onChange={(e) => setNewModel(e.target.value)}
-                                onKeyDown={handleKeyDown}
+                                onKeyPress={handleKeyPress}
                                 className='flex-1'
                               />
                             )}
@@ -1490,18 +1187,12 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                               control={form.control}
                               name='autoSyncSupportedModels'
                               render={({ field }) => (
-                                <FormItem className={`flex items-center gap-2 ${isCodexType || isClaudeCodeType ? 'opacity-60' : ''}`}>
-                                  {wrapUnsupported(
-                                    isCodexType || isClaudeCodeType,
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                      data-testid='auto-sync-supported-models-checkbox'
-                                      disabled={isCodexType || isClaudeCodeType}
-                                      className={isCodexType || isClaudeCodeType ? 'pointer-events-none' : undefined}
-                                    />,
-                                    'inline-flex items-center'
-                                  )}
+                                <FormItem className='flex items-center gap-2'>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    data-testid='auto-sync-supported-models-checkbox'
+                                  />
                                   <div className='space-y-0.5'>
                                     <FormLabel className='cursor-pointer text-sm font-normal'>
                                       {t('channels.dialogs.fields.autoSyncSupportedModels.label')}
@@ -1640,7 +1331,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
             <div
               className='border-border flex min-h-0 flex-col overflow-hidden border-l pl-4 transition-all duration-300 ease-out'
               style={{
-                width: showFetchedModelsPanel || showSupportedModelsPanel ? '400px' : '0px',
+                width: showFetchedModelsPanel || showSupportedModelsPanel ? '320px' : '0px',
                 opacity: showFetchedModelsPanel || showSupportedModelsPanel ? 1 : 0,
                 paddingLeft: showFetchedModelsPanel || showSupportedModelsPanel ? '16px' : '0px',
               }}
@@ -1703,10 +1394,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                           <Checkbox checked={isSelected} onCheckedChange={() => toggleFetchedModelSelection(model)} />
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span
-                                className='max-w-[200px] flex-1 cursor-pointer truncate'
-                                onClick={() => toggleFetchedModelSelection(model)}
-                              >
+                              <span className='max-w-[200px] flex-1 cursor-pointer truncate' onClick={() => toggleFetchedModelSelection(model)}>
                                 {model}
                               </span>
                             </TooltipTrigger>

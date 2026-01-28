@@ -90,6 +90,16 @@ func Name(v string) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldName, v))
 }
 
+// IPWhitelist applies equality check predicate on the "ip_whitelist" field. It's identical to IPWhitelistEQ.
+func IPWhitelist(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldIPWhitelist, v))
+}
+
+// ContentSafetyInterceptEnabled applies equality check predicate on the "content_safety_intercept_enabled" field. It's identical to ContentSafetyInterceptEnabledEQ.
+func ContentSafetyInterceptEnabled(v bool) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldContentSafetyInterceptEnabled, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldCreatedAt, v))
@@ -440,6 +450,91 @@ func ProfilesNotNil() predicate.APIKey {
 	return predicate.APIKey(sql.FieldNotNull(FieldProfiles))
 }
 
+// IPWhitelistEQ applies the EQ predicate on the "ip_whitelist" field.
+func IPWhitelistEQ(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldIPWhitelist, v))
+}
+
+// IPWhitelistNEQ applies the NEQ predicate on the "ip_whitelist" field.
+func IPWhitelistNEQ(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNEQ(FieldIPWhitelist, v))
+}
+
+// IPWhitelistIn applies the In predicate on the "ip_whitelist" field.
+func IPWhitelistIn(vs ...string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldIn(FieldIPWhitelist, vs...))
+}
+
+// IPWhitelistNotIn applies the NotIn predicate on the "ip_whitelist" field.
+func IPWhitelistNotIn(vs ...string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNotIn(FieldIPWhitelist, vs...))
+}
+
+// IPWhitelistGT applies the GT predicate on the "ip_whitelist" field.
+func IPWhitelistGT(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGT(FieldIPWhitelist, v))
+}
+
+// IPWhitelistGTE applies the GTE predicate on the "ip_whitelist" field.
+func IPWhitelistGTE(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGTE(FieldIPWhitelist, v))
+}
+
+// IPWhitelistLT applies the LT predicate on the "ip_whitelist" field.
+func IPWhitelistLT(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLT(FieldIPWhitelist, v))
+}
+
+// IPWhitelistLTE applies the LTE predicate on the "ip_whitelist" field.
+func IPWhitelistLTE(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLTE(FieldIPWhitelist, v))
+}
+
+// IPWhitelistContains applies the Contains predicate on the "ip_whitelist" field.
+func IPWhitelistContains(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldContains(FieldIPWhitelist, v))
+}
+
+// IPWhitelistHasPrefix applies the HasPrefix predicate on the "ip_whitelist" field.
+func IPWhitelistHasPrefix(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldHasPrefix(FieldIPWhitelist, v))
+}
+
+// IPWhitelistHasSuffix applies the HasSuffix predicate on the "ip_whitelist" field.
+func IPWhitelistHasSuffix(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldHasSuffix(FieldIPWhitelist, v))
+}
+
+// IPWhitelistIsNil applies the IsNil predicate on the "ip_whitelist" field.
+func IPWhitelistIsNil() predicate.APIKey {
+	return predicate.APIKey(sql.FieldIsNull(FieldIPWhitelist))
+}
+
+// IPWhitelistNotNil applies the NotNil predicate on the "ip_whitelist" field.
+func IPWhitelistNotNil() predicate.APIKey {
+	return predicate.APIKey(sql.FieldNotNull(FieldIPWhitelist))
+}
+
+// IPWhitelistEqualFold applies the EqualFold predicate on the "ip_whitelist" field.
+func IPWhitelistEqualFold(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEqualFold(FieldIPWhitelist, v))
+}
+
+// IPWhitelistContainsFold applies the ContainsFold predicate on the "ip_whitelist" field.
+func IPWhitelistContainsFold(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldContainsFold(FieldIPWhitelist, v))
+}
+
+// ContentSafetyInterceptEnabledEQ applies the EQ predicate on the "content_safety_intercept_enabled" field.
+func ContentSafetyInterceptEnabledEQ(v bool) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldContentSafetyInterceptEnabled, v))
+}
+
+// ContentSafetyInterceptEnabledNEQ applies the NEQ predicate on the "content_safety_intercept_enabled" field.
+func ContentSafetyInterceptEnabledNEQ(v bool) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNEQ(FieldContentSafetyInterceptEnabled, v))
+}
+
 // HasUser applies the HasEdge predicate on the "user" edge.
 func HasUser() predicate.APIKey {
 	return predicate.APIKey(func(s *sql.Selector) {
@@ -501,6 +596,29 @@ func HasRequests() predicate.APIKey {
 func HasRequestsWith(preds ...predicate.Request) predicate.APIKey {
 	return predicate.APIKey(func(s *sql.Selector) {
 		step := newRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUsageLogs applies the HasEdge predicate on the "usage_logs" edge.
+func HasUsageLogs() predicate.APIKey {
+	return predicate.APIKey(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UsageLogsTable, UsageLogsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUsageLogsWith applies the HasEdge predicate on the "usage_logs" edge with a given conditions (other predicates).
+func HasUsageLogsWith(preds ...predicate.UsageLog) predicate.APIKey {
+	return predicate.APIKey(func(s *sql.Selector) {
+		step := newUsageLogsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

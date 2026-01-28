@@ -1,0 +1,12 @@
+{
+  "landing": {
+    "hero": {
+      "unified": "Unified AI Gateway for Enterprise",
+      "gateway": "Built for reliability, observability, and scale.",
+      "description": "Just replace your model base URL with:",
+      "getStarted": "Get API",
+      "viewModels": "View Models"
+    },
+    "supportedProviders": "Supported Model Providers"
+  }
+}

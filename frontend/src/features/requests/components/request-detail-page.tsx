@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { DashboardIcon } from '@radix-ui/react-icons';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { zhCN, enUS } from 'date-fns/locale';
-import { Copy, Clock, Key, Database, ArrowLeft, FileText, Layers, Download } from 'lucide-react';
+import { Copy, Clock, Key, Database, ArrowLeft, FileText, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { extractNumberID } from '@/lib/utils';
@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { JsonViewer } from '@/components/json-tree-view';
 import { Header } from '@/components/layout/header';
 import { Main } from '@/components/layout/main';
-import { useGeneralSettings } from '@/features/system/data/system';
 import { useUsageLogs } from '../../usage-logs/data/usage-logs';
 import { useRequest, useRequestExecutions } from '../data';
 import { ChunksDialog } from './chunks-dialog';
@@ -34,7 +33,6 @@ export default function RequestDetailPage() {
   const [selectedResponseChunks, setSelectedResponseChunks] = useState<any[]>([]);
   const [selectedExecutionChunks, setSelectedExecutionChunks] = useState<any[]>([]);
 
-  const { data: settings } = useGeneralSettings();
   const { data: request, isLoading } = useRequest(requestId);
   const { data: executions } = useRequestExecutions(requestId, {
     first: 10,
@@ -49,19 +47,6 @@ export default function RequestDetailPage() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success(t('requests.actions.copy'));
-  };
-
-  const downloadFile = (content: string, filename: string) => {
-    const blob = new Blob([content], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success(t('requests.actions.download'));
   };
 
   const showResponseChunksModal = useCallback(() => {
@@ -237,26 +222,6 @@ export default function RequestDetailPage() {
               const hasWriteCache = writeCachedTokens > 0;
               const cacheHitRate = hasReadCache ? ((cachedTokens / promptTokens) * 100).toFixed(1) : '0.0';
               const writeCacheRate = hasWriteCache ? ((writeCachedTokens / promptTokens) * 100).toFixed(1) : '0.0';
-              const cost = usage.totalCost ?? 0;
-
-              const promptCost = usage.costItems?.find((i: any) => i.itemCode === 'prompt_tokens')?.subtotal;
-              const completionCost = usage.costItems?.find((i: any) => i.itemCode === 'completion_tokens')?.subtotal;
-              const cacheReadCost = usage.costItems?.find((i: any) => i.itemCode === 'prompt_cached_tokens')?.subtotal;
-              const cacheWriteCost = usage.costItems?.find((i: any) => i.itemCode === 'prompt_write_cached_tokens')?.subtotal;
-
-              const formatCurrency = (val: number) =>
-                t('currencies.format', {
-                  val,
-                  currency: settings?.currencyCode,
-                  locale: i18n.language === 'zh' ? 'zh-CN' : 'en-US',
-                  minimumFractionDigits: 6,
-                });
-
-              const renderCost = (val: number | null | undefined) => {
-                if (cost <= 0) return '-';
-                if (val == null || val <= 0) return '-';
-                return formatCurrency(val);
-              };
 
               return (
                 <Card className='border-0 shadow-sm'>
@@ -274,55 +239,34 @@ export default function RequestDetailPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5'>
+                    <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
                       <div className='bg-muted/30 flex flex-col justify-center rounded-lg border px-2.5 py-2'>
                         <span className='text-muted-foreground text-xs font-medium'>{t('usageLogs.columns.inputLabel')}</span>
-                        <div className='mt-1'>
-                          <p className='text-sm font-semibold'>{usage.promptTokens.toLocaleString()}</p>
-                          <p className='text-muted-foreground text-xs'>{renderCost(promptCost)}</p>
-                        </div>
+                        <p className='text-base font-semibold'>{usage.promptTokens.toLocaleString()}</p>
                       </div>
                       <div className='bg-muted/30 flex flex-col justify-center rounded-lg border px-2.5 py-2'>
                         <span className='text-muted-foreground text-xs font-medium'>{t('usageLogs.columns.outputLabel')}</span>
-                        <div className='mt-1'>
-                          <p className='text-sm font-semibold'>{usage.completionTokens.toLocaleString()}</p>
-                          <p className='text-muted-foreground text-xs'>{renderCost(completionCost)}</p>
-                        </div>
-                      </div>
-
-                      <div className='bg-muted/30 flex flex-col justify-center rounded-lg border px-2.5 py-2'>
-                        <span className='text-muted-foreground text-xs font-medium'>{t('usageLogs.columns.promptCachedTokens')}</span>
-                        <div className='mt-1'>
-                          <div className='flex items-center justify-between'>
-                            <p className='text-sm font-semibold'>{cachedTokens.toLocaleString()}</p>
-                            {hasReadCache && (
-                              <Badge variant='outline' className='h-4 px-1 text-[10px] text-green-600 border-green-200 bg-green-50'>
-                                {cacheHitRate}%
-                              </Badge>
-                            )}
-                          </div>
-                          <p className='text-muted-foreground text-xs'>{renderCost(cacheReadCost)}</p>
-                        </div>
-                      </div>
-                      <div className='bg-muted/30 flex flex-col justify-center rounded-lg border px-2.5 py-2'>
-                        <span className='text-muted-foreground text-xs font-medium'>{t('usageLogs.columns.writeCacheTokens')}</span>
-                        <div className='mt-1'>
-                          <div className='flex items-center justify-between'>
-                            <p className='text-sm font-semibold'>{writeCachedTokens.toLocaleString()}</p>
-                            {hasWriteCache && (
-                              <Badge variant='outline' className='h-4 px-1 text-[10px] text-blue-600 border-blue-200 bg-blue-50'>
-                                {writeCacheRate}%
-                              </Badge>
-                            )}
-                          </div>
-                          <p className='text-muted-foreground text-xs'>{renderCost(cacheWriteCost)}</p>
-                        </div>
+                        <p className='text-base font-semibold'>{usage.completionTokens.toLocaleString()}</p>
                       </div>
                       <div className='bg-muted/30 flex flex-col justify-center rounded-lg border px-2.5 py-2'>
                         <span className='text-muted-foreground text-xs font-medium'>{t('usageLogs.columns.totalTokens')}</span>
-                        <div className='mt-1'>
-                          <p className='text-sm font-semibold'>{usage.totalTokens.toLocaleString()}</p>
-                          <p className='text-muted-foreground text-xs'>{renderCost(cost)}</p>
+                        <p className='text-base font-semibold'>{usage.totalTokens.toLocaleString()}</p>
+                      </div>
+                      <div className='bg-muted/30 flex flex-col justify-center rounded-lg border px-2.5 py-2'>
+                        <span className='text-muted-foreground text-xs font-medium'>{t('usageLogs.columns.cacheTokens')}</span>
+                        <div className='flex items-center gap-1.5 text-xs'>
+                          <span className='text-muted-foreground'>{t('usageLogs.columns.cacheReadLabel')}:</span>
+                          <span className='font-semibold'>{cachedTokens.toLocaleString()}</span>
+                          {hasReadCache && (
+                            <span className='text-muted-foreground'>({cacheHitRate}%)</span>
+                          )}
+                        </div>
+                        <div className='flex items-center gap-1.5 text-xs'>
+                          <span className='text-muted-foreground'>{t('usageLogs.columns.cacheWriteLabel')}:</span>
+                          <span className='font-semibold'>{writeCachedTokens.toLocaleString()}</span>
+                          {hasWriteCache && (
+                            <span className='text-muted-foreground'>({writeCacheRate}%)</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -357,26 +301,15 @@ export default function RequestDetailPage() {
                           <FileText className='text-primary h-4 w-4' />
                           {t('requests.columns.requestHeaders')}
                         </h4>
-                        <div className='flex gap-2'>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            onClick={() => copyToClipboard(formatJson(request.requestHeaders))}
-                            className='hover:bg-primary hover:text-primary-foreground'
-                          >
-                            <Copy className='mr-2 h-4 w-4' />
-                            {t('requests.dialogs.jsonViewer.copy')}
-                          </Button>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            onClick={() => downloadFile(formatJson(request.requestHeaders), `request-headers-${request.id}.json`)}
-                            className='hover:bg-primary hover:text-primary-foreground'
-                          >
-                            <Download className='mr-2 h-4 w-4' />
-                            {t('requests.dialogs.jsonViewer.download')}
-                          </Button>
-                        </div>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={() => copyToClipboard(formatJson(request.requestHeaders))}
+                          className='hover:bg-primary hover:text-primary-foreground'
+                        >
+                          <Copy className='mr-2 h-4 w-4' />
+                          {t('requests.dialogs.jsonViewer.copy')}
+                        </Button>
                       </div>
                       <div className='bg-muted/20 h-[300px] w-full overflow-auto rounded-lg border p-4'>
                         <JsonViewer data={request.requestHeaders} rootName='' defaultExpanded={true} className='text-sm' />
@@ -389,26 +322,15 @@ export default function RequestDetailPage() {
                         <FileText className='text-primary h-4 w-4' />
                         {t('requests.columns.requestBody')}
                       </h4>
-                      <div className='flex gap-2'>
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          onClick={() => copyToClipboard(formatJson(request.requestBody))}
-                          className='hover:bg-primary hover:text-primary-foreground'
-                        >
-                          <Copy className='mr-2 h-4 w-4' />
-                          {t('requests.dialogs.jsonViewer.copy')}
-                        </Button>
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          onClick={() => downloadFile(formatJson(request.requestBody), `request-body-${request.id}.json`)}
-                          className='hover:bg-primary hover:text-primary-foreground'
-                        >
-                          <Download className='mr-2 h-4 w-4' />
-                          {t('requests.dialogs.jsonViewer.download')}
-                        </Button>
-                      </div>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => copyToClipboard(formatJson(request.requestBody))}
+                        className='hover:bg-primary hover:text-primary-foreground'
+                      >
+                        <Copy className='mr-2 h-4 w-4' />
+                        {t('requests.dialogs.jsonViewer.copy')}
+                      </Button>
                     </div>
                     <div className='bg-muted/20 h-[500px] w-full overflow-auto rounded-lg border p-4'>
                       <JsonViewer data={request.requestBody} rootName='' defaultExpanded={true} className='text-sm' />
@@ -443,16 +365,6 @@ export default function RequestDetailPage() {
                         >
                           <Copy className='mr-2 h-4 w-4' />
                           {t('requests.dialogs.jsonViewer.copy')}
-                        </Button>
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          onClick={() => downloadFile(formatJson(request.responseBody), `response-body-${request.id}.json`)}
-                          disabled={!request.responseBody}
-                          className='hover:bg-primary hover:text-primary-foreground disabled:opacity-50'
-                        >
-                          <Download className='mr-2 h-4 w-4' />
-                          {t('requests.dialogs.jsonViewer.download')}
                         </Button>
                       </div>
                     </div>
@@ -577,15 +489,6 @@ export default function RequestDetailPage() {
                                         <Copy className='mr-2 h-4 w-4' />
                                         {t('requests.dialogs.jsonViewer.copy')}
                                       </Button>
-                                      <Button
-                                        variant='outline'
-                                        size='sm'
-                                        onClick={() => downloadFile(formatJson(execution.requestHeaders), `execution-${execution.id}-request-headers.json`)}
-                                        className='hover:bg-primary hover:text-primary-foreground'
-                                      >
-                                        <Download className='mr-2 h-4 w-4' />
-                                        {t('requests.dialogs.jsonViewer.download')}
-                                      </Button>
                                     </div>
                                   </div>
                                   <div className='bg-background h-64 w-full overflow-auto rounded-lg border p-3'>
@@ -610,15 +513,6 @@ export default function RequestDetailPage() {
                                       >
                                         <Copy className='mr-2 h-4 w-4' />
                                         {t('requests.dialogs.jsonViewer.copy')}
-                                      </Button>
-                                      <Button
-                                        variant='outline'
-                                        size='sm'
-                                        onClick={() => downloadFile(formatJson(execution.requestBody), `execution-${execution.id}-request-body.json`)}
-                                        className='hover:bg-primary hover:text-primary-foreground'
-                                      >
-                                        <Download className='mr-2 h-4 w-4' />
-                                        {t('requests.dialogs.jsonViewer.download')}
                                       </Button>
                                     </div>
                                   </div>
@@ -655,15 +549,6 @@ export default function RequestDetailPage() {
                                       >
                                         <Copy className='mr-2 h-4 w-4' />
                                         {t('requests.dialogs.jsonViewer.copy')}
-                                      </Button>
-                                      <Button
-                                        variant='outline'
-                                        size='sm'
-                                        onClick={() => downloadFile(formatJson(execution.responseBody), `execution-${execution.id}-response-body.json`)}
-                                        className='hover:bg-primary hover:text-primary-foreground'
-                                      >
-                                        <Download className='mr-2 h-4 w-4' />
-                                        {t('requests.dialogs.jsonViewer.download')}
                                       </Button>
                                     </div>
                                   </div>

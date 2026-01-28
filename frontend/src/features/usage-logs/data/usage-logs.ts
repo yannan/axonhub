@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
 import { graphqlRequest } from '@/gql/graphql';
 import { useSelectedProjectId } from '@/stores/projectStore';
 import { useErrorHandler } from '@/hooks/use-error-handler';
@@ -39,12 +38,6 @@ function buildUsageLogsQuery(permissions: { canViewChannels: boolean }) {
             completionRejectedPredictionTokens
             source
             format
-            totalCost
-            costItems {
-              itemCode
-              quantity
-              subtotal
-            }
           }
           cursor
         }
@@ -91,12 +84,6 @@ function buildUsageLogDetailQuery(permissions: { canViewChannels: boolean }) {
           completionRejectedPredictionTokens
           source
           format
-          totalCost
-          costItems {
-            itemCode
-            quantity
-            subtotal
-          }
         }
       }
     }
@@ -117,7 +104,6 @@ export function useUsageLogs(variables?: {
   };
 }) {
   const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
   const permissions = useUsageLogPermissions();
   const selectedProjectId = useSelectedProjectId();
 
@@ -130,7 +116,7 @@ export function useUsageLogs(variables?: {
         const data = await graphqlRequest<{ usageLogs: UsageLogConnection }>(query, variables, headers);
         return usageLogConnectionSchema.parse(data?.usageLogs);
       } catch (error) {
-        handleError(error, t('usageLogs.errors.loadUsageLogsFailed'));
+        handleError(error, '获取用量日志数据');
         throw error;
       }
     },
@@ -140,7 +126,6 @@ export function useUsageLogs(variables?: {
 
 export function useUsageLog(id: string) {
   const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
   const permissions = useUsageLogPermissions();
   const selectedProjectId = useSelectedProjectId();
 
@@ -156,7 +141,7 @@ export function useUsageLog(id: string) {
         }
         return usageLogSchema.parse(data.node);
       } catch (error) {
-        handleError(error, t('usageLogs.errors.loadUsageLogDetailFailed'));
+        handleError(error, '获取用量日志详情');
         throw error;
       }
     },

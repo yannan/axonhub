@@ -8,7 +8,6 @@ type ChannelsDialogType =
   | 'edit'
   | 'delete'
   | 'settings'
-  | 'channelSettings'
   | 'modelMapping'
   | 'overrides'
   | 'proxy'
@@ -25,7 +24,6 @@ type ChannelsDialogType =
   | 'errorResolved'
   | 'weight'
   | 'viewModels'
-  | 'price'
   | 'transformOptions';
 
 interface ChannelsContextType {

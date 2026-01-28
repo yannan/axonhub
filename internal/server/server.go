@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
@@ -84,20 +85,25 @@ func Run(opts ...fx.Option) {
 
 	app := fx.New(
 		append([]fx.Option{
-			fx.NopLogger,
 			fx.Provide(constructors...),
 			dependencies.Module,
 			biz.Module,
 			api.Module,
 			fx.Invoke(func(cfg log.Config) {
+				fmt.Println("[DEBUG] fx.Invoke: Setting up logging")
 				log.SetGlobalConfig(cfg)
 				tracing.SetupLogger(log.GetGlobalLogger())
 				slog.SetDefault(log.GetGlobalLogger().AsSlog())
+				fmt.Println("[DEBUG] fx.Invoke: Logging setup complete")
 			}),
 			fx.Invoke(func(lc fx.Lifecycle, worker *gc.Worker) {
+				fmt.Println("[DEBUG] fx.Invoke: Setting up GC worker lifecycle hooks")
 				lc.Append(fx.Hook{
 					OnStart: func(ctx context.Context) error {
-						return worker.Start(ctx)
+						fmt.Println("[DEBUG] GC Worker OnStart called")
+						err := worker.Start(ctx)
+						fmt.Printf("[DEBUG] GC Worker Start returned: %v\n", err)
+						return err
 					},
 					OnStop: func(ctx context.Context) error {
 						return worker.Stop(ctx)
@@ -107,5 +113,22 @@ func Run(opts ...fx.Option) {
 			fx.Invoke(SetupRoutes),
 		}, opts...)...,
 	)
-	app.Run()
+
+	fmt.Println("[DEBUG] fx.New() completed, about to call app.Start()")
+
+	if err := app.Start(context.Background()); err != nil {
+		fmt.Printf("[DEBUG] app.Start() failed with error: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("[DEBUG] app.Start() completed successfully, waiting for shutdown signal")
+	<-app.Wait()
+
+	fmt.Println("[DEBUG] Received shutdown signal, stopping app")
+	if err := app.Stop(context.Background()); err != nil {
+		fmt.Printf("[DEBUG] app.Stop() failed with error: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("[DEBUG] app.Stop() completed successfully")
 }

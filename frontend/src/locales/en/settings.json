@@ -1,4 +1,13 @@
 {
-  "settings.title": "Settings",
-  "settings.description": "Manage your account settings and set e-mail preferences."
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account settings and set e-mail preferences.",
+    "nav": {
+      "profile": "Profile",
+      "account": "Account",
+      "appearance": "Appearance",
+      "notifications": "Notifications",
+      "display": "Display"
+    }
+  }
 }

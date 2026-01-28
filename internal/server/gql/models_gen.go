@@ -97,6 +97,7 @@ type DailyRequestStats struct {
 }
 
 type DashboardOverview struct {
+	TotalUsers          int           `json:"totalUsers"`
 	TotalRequests       int           `json:"totalRequests"`
 	RequestStats        *RequestStats `json:"requestStats"`
 	FailedRequests      int           `json:"failedRequests"`

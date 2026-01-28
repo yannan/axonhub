@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/request"
@@ -28,7 +29,7 @@ type UsageLog struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Related request ID
 	RequestID int `json:"request_id,omitempty"`
-	// APIKeyID holds the value of the "api_key_id" field.
+	// API Key ID used for the request
 	APIKeyID int `json:"api_key_id,omitempty"`
 	// Project ID, default to 1 for backward compatibility
 	ProjectID int `json:"project_id,omitempty"`
@@ -80,15 +81,17 @@ type UsageLog struct {
 type UsageLogEdges struct {
 	// Request holds the value of the request edge.
 	Request *Request `json:"request,omitempty"`
+	// APIKey holds the value of the api_key edge.
+	APIKey *APIKey `json:"api_key,omitempty"`
 	// Project holds the value of the project edge.
 	Project *Project `json:"project,omitempty"`
 	// Channel holds the value of the channel edge.
 	Channel *Channel `json:"channel,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [4]map[string]int
 }
 
 // RequestOrErr returns the Request value or an error if the edge
@@ -102,12 +105,23 @@ func (e UsageLogEdges) RequestOrErr() (*Request, error) {
 	return nil, &NotLoadedError{edge: "request"}
 }
 
+// APIKeyOrErr returns the APIKey value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UsageLogEdges) APIKeyOrErr() (*APIKey, error) {
+	if e.APIKey != nil {
+		return e.APIKey, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: apikey.Label}
+	}
+	return nil, &NotLoadedError{edge: "api_key"}
+}
+
 // ProjectOrErr returns the Project value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e UsageLogEdges) ProjectOrErr() (*Project, error) {
 	if e.Project != nil {
 		return e.Project, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: project.Label}
 	}
 	return nil, &NotLoadedError{edge: "project"}
@@ -118,7 +132,7 @@ func (e UsageLogEdges) ProjectOrErr() (*Project, error) {
 func (e UsageLogEdges) ChannelOrErr() (*Channel, error) {
 	if e.Channel != nil {
 		return e.Channel, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: channel.Label}
 	}
 	return nil, &NotLoadedError{edge: "channel"}
@@ -323,6 +337,11 @@ func (_m *UsageLog) Value(name string) (ent.Value, error) {
 // QueryRequest queries the "request" edge of the UsageLog entity.
 func (_m *UsageLog) QueryRequest() *RequestQuery {
 	return NewUsageLogClient(_m.config).QueryRequest(_m)
+}
+
+// QueryAPIKey queries the "api_key" edge of the UsageLog entity.
+func (_m *UsageLog) QueryAPIKey() *APIKeyQuery {
+	return NewUsageLogClient(_m.config).QueryAPIKey(_m)
 }
 
 // QueryProject queries the "project" edge of the UsageLog entity.

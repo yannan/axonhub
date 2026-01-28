@@ -1,0 +1,35 @@
+{
+  "topup": {
+    "title": "额度中心",
+    "description": "管理您的项目账户额度和充值记录",
+    "balanceUsage": "额度使用情况 (已用/总额)",
+    "usage": {
+      "model": "模型",
+      "tokens": "Token数",
+      "cost": "消耗额度",
+      "time": "时间"
+    },
+    "redeem": {
+      "title": "兑换码充值",
+      "placeholder": "请输入兑换码",
+      "button": "兑换",
+      "success": "兑换成功",
+      "error": "兑换失败"
+    },
+    "history": {
+      "title": "充值记录",
+      "description": "查看您的所有充值和消费记录",
+      "time": "时间",
+      "amount": "金额",
+      "type": "方式",
+      "status": "状态"
+    },
+    "transfer": {
+      "title": "转账",
+      "button": "转账",
+      "recipient": "接收用户",
+      "amount": "金额",
+      "success": "转账成功"
+    }
+  }
+}

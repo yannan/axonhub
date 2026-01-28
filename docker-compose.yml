@@ -103,8 +103,71 @@ services:
   #     retries: 3
   #     start_period: 40s
 
-  # MySQL 配置示例 (取消注释以使用 MySQL)
-  # 注意: 此服务与上面的 'axonhub' 服务冲突。请只启用其中一个。
+  # AxonHub 主服务 (使用外部 MariaDB)
+  # 注意: 此服务连接到已存在的 MariaDB 实例
+  # 请修改下面的 AXONHUB_DB_DSN 环境变量，填入你的 MariaDB 连接信息
+  # axonhub:
+  #   image: looplj/axonhub:latest
+  #   container_name: axonhub-app
+  #   environment:
+  #     AXONHUB_DB_DIALECT: mysql
+  #     # DSN 格式: user:password@tcp(host:port)/database?charset=utf8mb4&parseTime=True&loc=Local
+  #     # 示例：
+  #     # - 本地 MariaDB (Docker 容器访问主机): axonhub:password@tcp(host.docker.internal:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+  #     # - Docker 网络中的 MariaDB: axonhub:password@tcp(mariadb:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+  #     # - 远程 MariaDB: axonhub:password@tcp(192.168.1.100:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
+  #     # 请修改下面的连接信息
+  #     # MariaDB 连接信息: anyshare:eisoo.com123@tcp(host:port)/axonhub
+  #     # 使用容器名连接（推荐）：flow-automation-mariadb:3306
+  #     # 或通过主机端口连接：host.docker.internal:3330
+  #     AXONHUB_DB_DSN: ${AXONHUB_DB_DSN:-anyshare:eisoo.com123@tcp(flow-automation-mariadb:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local}
+  #   ports:
+  #     - "8090:8090"
+  #   # 连接到 MariaDB 所在的网络
+  #   networks:
+  #     - flow-automation-network
+  #   # 如果 MariaDB 在主机上，添加 extra_hosts 以允许容器访问主机
+  #   # extra_hosts:
+  #   #   - "host.docker.internal:host-gateway"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD",
+  #         "wget",
+  #         "--no-verbose",
+  #         "--tries=1",
+  #         "--spider",
+  #         "http://localhost:8090/health",
+  #       ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
+
+  # 如果需要使用 Docker Compose 启动新的 MariaDB 实例，取消下面的注释
+  # mariadb:
+  #   image: mariadb:11.3
+  #   container_name: axonhub-mariadb
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-axonhub_root_password}
+  #     MYSQL_DATABASE: axonhub
+  #     MYSQL_USER: axonhub
+  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-axonhub_password}
+  #   volumes:
+  #     - mariadb_data:/var/lib/mysql
+  #   ports:
+  #     - "3306:3306"
+  #   networks:
+  #     - axonhub-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-axonhub_root_password}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # MySQL 数据库服务 (用于本地开发)
   # mysql:
   #   image: mysql:8.0
   #   container_name: axonhub-mysql
@@ -125,48 +188,12 @@ services:
   #     interval: 10s
   #     timeout: 5s
   #     retries: 5
-  #
-  # # AxonHub 主服务 (MySQL 版本)
-  # # 注意: 取消注释此服务时，请注释掉上面的 PostgreSQL 版本 axonhub 服务
-  # axonhub-mysql:
-  #   image: looplj/axonhub:latest
-  #   container_name: axonhub-mysql-app
-  #   environment:
-  #     AXONHUB_DB_DIALECT: mysql
-  #     # DSN 格式参考: ${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(mysql:3306)/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=True&loc=Local
-  #     AXONHUB_DB_DSN: axonhub:${MYSQL_PASSWORD:-axonhub_password}@tcp(mysql:3306)/axonhub?charset=utf8mb4&parseTime=True&loc=Local
-  #   ports:
-  #     - "8090:8090"
-  #   volumes:
-  #     # 配置文件挂载 - 用于复杂配置
-  #     # 参考: https://github.com/looplj/axonhub/blob/main/docs/deployment/configuration.md
-  #     - ./config.yml:/app/config.yml:ro
-  #     # - axonhub_data:/data
-  #   networks:
-  #     - axonhub-network
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test:
-  #       [
-  #         "CMD",
-  #         "wget",
-  #         "--no-verbose",
-  #         "--tries=1",
-  #         "--spider",
-  #         "http://localhost:8090/health",
-  #       ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 40s
 
 volumes:
-  postgres_data:
   mysql_data:
 
 networks:
   axonhub-network:
     driver: bridge
+  # flow-automation-network:
+  #   external: true

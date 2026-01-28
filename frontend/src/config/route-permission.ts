@@ -65,22 +65,22 @@ export const routeConfigs: RouteGroup[] = [
         path: '/permission-demo',
         // 权限演示页面所有用户都可以访问
       },
+      {
+        path: '/ratio-setting',
+        requiredScopes: ['read_system'],
+        mode: 'hidden',
+      },
+      {
+        path: '/redemptions',
+        requiredScopes: ['read_system'],
+        mode: 'hidden',
+      },
     ],
   },
   {
     title: 'Project',
     scopeLevel: 'any', // Project 路由组可以通过 system-level 或 project-level 权限访问
     routes: [
-      {
-        path: '/project/api-keys',
-        requiredScopes: ['read_api_keys'],
-        mode: 'hidden',
-      },
-      {
-        path: '/project/prompts',
-        requiredScopes: ['read_prompts'],
-        mode: 'hidden',
-      },
       {
         path: '/project/requests',
         requiredScopes: ['read_requests'],
@@ -92,13 +92,8 @@ export const routeConfigs: RouteGroup[] = [
         mode: 'hidden',
       },
       {
-        path: '/project/traces',
-        requiredScopes: ['read_requests'],
-        mode: 'hidden',
-      },
-      {
-        path: '/project/threads',
-        requiredScopes: ['read_requests'],
+        path: '/project/api-keys',
+        requiredScopes: ['read_api_keys'],
         mode: 'hidden',
       },
       {
@@ -114,6 +109,11 @@ export const routeConfigs: RouteGroup[] = [
       {
         path: '/project/playground',
         // Playground is accessible to all users
+      },
+      {
+        path: '/project/topup',
+        requiredScopes: ['read_topup'],
+        mode: 'hidden',
       },
     ],
   },

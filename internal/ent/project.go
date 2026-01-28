@@ -29,6 +29,12 @@ type Project struct {
 	Description string `json:"description,omitempty"`
 	// project status
 	Status project.Status `json:"status,omitempty"`
+	// 当前项目额度
+	Quota int64 `json:"quota,omitempty"`
+	// 已使用额度
+	UsedQuota int64 `json:"used_quota,omitempty"`
+	// Billing group: default/vip/svip
+	Group string `json:"group,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
 	Edges        ProjectEdges `json:"edges"`
@@ -53,23 +59,29 @@ type ProjectEdges struct {
 	Traces []*Trace `json:"traces,omitempty"`
 	// Prompts holds the value of the prompts edge.
 	Prompts []*Prompt `json:"prompts,omitempty"`
+	// ConsumptionRecords holds the value of the consumption_records edge.
+	ConsumptionRecords []*ConsumptionRecord `json:"consumption_records,omitempty"`
+	// RechargeRecords holds the value of the recharge_records edge.
+	RechargeRecords []*RechargeRecord `json:"recharge_records,omitempty"`
 	// ProjectUsers holds the value of the project_users edge.
 	ProjectUsers []*UserProject `json:"project_users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [11]bool
 	// totalCount holds the count of the edges above.
-	totalCount [9]map[string]int
+	totalCount [11]map[string]int
 
-	namedUsers        map[string][]*User
-	namedRoles        map[string][]*Role
-	namedAPIKeys      map[string][]*APIKey
-	namedRequests     map[string][]*Request
-	namedUsageLogs    map[string][]*UsageLog
-	namedThreads      map[string][]*Thread
-	namedTraces       map[string][]*Trace
-	namedPrompts      map[string][]*Prompt
-	namedProjectUsers map[string][]*UserProject
+	namedUsers              map[string][]*User
+	namedRoles              map[string][]*Role
+	namedAPIKeys            map[string][]*APIKey
+	namedRequests           map[string][]*Request
+	namedUsageLogs          map[string][]*UsageLog
+	namedThreads            map[string][]*Thread
+	namedTraces             map[string][]*Trace
+	namedPrompts            map[string][]*Prompt
+	namedConsumptionRecords map[string][]*ConsumptionRecord
+	namedRechargeRecords    map[string][]*RechargeRecord
+	namedProjectUsers       map[string][]*UserProject
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -144,10 +156,28 @@ func (e ProjectEdges) PromptsOrErr() ([]*Prompt, error) {
 	return nil, &NotLoadedError{edge: "prompts"}
 }
 
+// ConsumptionRecordsOrErr returns the ConsumptionRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) ConsumptionRecordsOrErr() ([]*ConsumptionRecord, error) {
+	if e.loadedTypes[8] {
+		return e.ConsumptionRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "consumption_records"}
+}
+
+// RechargeRecordsOrErr returns the RechargeRecords value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectEdges) RechargeRecordsOrErr() ([]*RechargeRecord, error) {
+	if e.loadedTypes[9] {
+		return e.RechargeRecords, nil
+	}
+	return nil, &NotLoadedError{edge: "recharge_records"}
+}
+
 // ProjectUsersOrErr returns the ProjectUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e ProjectEdges) ProjectUsersOrErr() ([]*UserProject, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[10] {
 		return e.ProjectUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "project_users"}
@@ -158,9 +188,9 @@ func (*Project) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case project.FieldID, project.FieldDeletedAt:
+		case project.FieldID, project.FieldDeletedAt, project.FieldQuota, project.FieldUsedQuota:
 			values[i] = new(sql.NullInt64)
-		case project.FieldName, project.FieldDescription, project.FieldStatus:
+		case project.FieldName, project.FieldDescription, project.FieldStatus, project.FieldGroup:
 			values[i] = new(sql.NullString)
 		case project.FieldCreatedAt, project.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -221,6 +251,24 @@ func (_m *Project) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Status = project.Status(value.String)
 			}
+		case project.FieldQuota:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field quota", values[i])
+			} else if value.Valid {
+				_m.Quota = value.Int64
+			}
+		case project.FieldUsedQuota:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field used_quota", values[i])
+			} else if value.Valid {
+				_m.UsedQuota = value.Int64
+			}
+		case project.FieldGroup:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field group", values[i])
+			} else if value.Valid {
+				_m.Group = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -274,6 +322,16 @@ func (_m *Project) QueryPrompts() *PromptQuery {
 	return NewProjectClient(_m.config).QueryPrompts(_m)
 }
 
+// QueryConsumptionRecords queries the "consumption_records" edge of the Project entity.
+func (_m *Project) QueryConsumptionRecords() *ConsumptionRecordQuery {
+	return NewProjectClient(_m.config).QueryConsumptionRecords(_m)
+}
+
+// QueryRechargeRecords queries the "recharge_records" edge of the Project entity.
+func (_m *Project) QueryRechargeRecords() *RechargeRecordQuery {
+	return NewProjectClient(_m.config).QueryRechargeRecords(_m)
+}
+
 // QueryProjectUsers queries the "project_users" edge of the Project entity.
 func (_m *Project) QueryProjectUsers() *UserProjectQuery {
 	return NewProjectClient(_m.config).QueryProjectUsers(_m)
@@ -319,6 +377,15 @@ func (_m *Project) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("quota=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Quota))
+	builder.WriteString(", ")
+	builder.WriteString("used_quota=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UsedQuota))
+	builder.WriteString(", ")
+	builder.WriteString("group=")
+	builder.WriteString(_m.Group)
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -512,6 +579,54 @@ func (_m *Project) appendNamedPrompts(name string, edges ...*Prompt) {
 		_m.Edges.namedPrompts[name] = []*Prompt{}
 	} else {
 		_m.Edges.namedPrompts[name] = append(_m.Edges.namedPrompts[name], edges...)
+	}
+}
+
+// NamedConsumptionRecords returns the ConsumptionRecords named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *Project) NamedConsumptionRecords(name string) ([]*ConsumptionRecord, error) {
+	if _m.Edges.namedConsumptionRecords == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedConsumptionRecords[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *Project) appendNamedConsumptionRecords(name string, edges ...*ConsumptionRecord) {
+	if _m.Edges.namedConsumptionRecords == nil {
+		_m.Edges.namedConsumptionRecords = make(map[string][]*ConsumptionRecord)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedConsumptionRecords[name] = []*ConsumptionRecord{}
+	} else {
+		_m.Edges.namedConsumptionRecords[name] = append(_m.Edges.namedConsumptionRecords[name], edges...)
+	}
+}
+
+// NamedRechargeRecords returns the RechargeRecords named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *Project) NamedRechargeRecords(name string) ([]*RechargeRecord, error) {
+	if _m.Edges.namedRechargeRecords == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedRechargeRecords[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *Project) appendNamedRechargeRecords(name string, edges ...*RechargeRecord) {
+	if _m.Edges.namedRechargeRecords == nil {
+		_m.Edges.namedRechargeRecords = make(map[string][]*RechargeRecord)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedRechargeRecords[name] = []*RechargeRecord{}
+	} else {
+		_m.Edges.namedRechargeRecords[name] = append(_m.Edges.namedRechargeRecords[name], edges...)
 	}
 }
 

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GetRequests / GetTraces GraphQL Operations</title>
+    <style>
+      :root {
+        --bg: #f6f1ea;
+        --paper: #fffaf3;
+        --ink: #1f1a15;
+        --muted: #6b5f54;
+        --accent: #0f6b5b;
+        --border: #e3d7c9;
+        --code-bg: #efe3d6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Noto Serif SC", "Source Han Serif SC", "STSong", "Songti SC", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 20% 20%, rgba(15, 107, 91, 0.12), transparent 45%),
+          radial-gradient(circle at 80% 10%, rgba(203, 96, 64, 0.12), transparent 40%),
+          var(--bg);
+      }
+
+      header {
+        padding: 48px 20px 24px;
+        text-align: center;
+      }
+
+      header h1 {
+        margin: 0 0 12px;
+        font-size: clamp(28px, 4vw, 40px);
+        letter-spacing: 0.04em;
+      }
+
+      header p {
+        margin: 0 auto;
+        max-width: 720px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 0 20px 64px;
+      }
+
+      .card {
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 18px 40px rgba(31, 26, 21, 0.08);
+      }
+
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        color: var(--accent);
+      }
+
+      .meta {
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: 14px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .section-title {
+        margin: 20px 0 8px;
+        font-size: 16px;
+        letter-spacing: 0.06em;
+        color: var(--ink);
+      }
+
+      ul {
+        margin: 0 0 16px 18px;
+        padding: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      code,
+      pre {
+        font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", "Consolas", monospace;
+      }
+
+      pre {
+        background: var(--code-bg);
+        padding: 16px;
+        border-radius: 12px;
+        overflow-x: auto;
+        border: 1px solid rgba(31, 26, 21, 0.08);
+        margin: 0;
+      }
+
+      .note {
+        padding: 12px 16px;
+        border-left: 4px solid var(--accent);
+        background: rgba(15, 107, 91, 0.08);
+        border-radius: 10px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+        margin-top: 16px;
+      }
+
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        padding: 24px 20px 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>GraphQL Operations 快照</h1>
+      <p>该页面用于展示 AxonHub 的 GetRequests 与 GetTraces 操作定义，便于快速复制并在 GraphQL 控制台或前端调用中使用。</p>
+    </header>
+    <main>
+      <section class="card">
+        <div class="meta">Query Operation</div>
+        <h2>GetRequests</h2>
+        <p>分页获取请求列表，并带回成本字段。</p>
+        <div class="section-title">Variables</div>
+        <ul>
+          <li><code>first</code>, <code>after</code>, <code>last</code>, <code>before</code></li>
+          <li><code>orderBy</code>, <code>where</code></li>
+        </ul>
+        <div class="section-title">Query</div>
+        <pre><code>query GetRequests(
+  $first: Int
+  $after: Cursor
+  $last: Int
+  $before: Cursor
+  $orderBy: RequestOrder
+  $where: RequestWhereInput
+) {
+  requests(first: $first, after: $after, last: $last, before: $before, orderBy: $orderBy, where: $where) {
+    edges {
+      node {
+        id
+        createdAt
+        updatedAt
+        source
+        modelID
+        stream
+        status
+        cost
+        metricsLatencyMs
+        metricsFirstTokenLatencyMs
+        trace {
+          id
+          traceID
+          cost
+        }
+        usageLogs(first: 1) {
+          edges {
+            node {
+              id
+              promptTokens
+              completionTokens
+              totalTokens
+              promptCachedTokens
+              promptWriteCachedTokens
+            }
+          }
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    totalCount
+  }
+}</code></pre>
+        <div class="note">提示：如果后端已支持 <code>Request.cost</code>，可以直接使用根字段；如需回退，也可读取 <code>trace.cost</code>。</div>
+      </section>
+
+      <section class="card">
+        <div class="meta">Query Operation</div>
+        <h2>GetTraces</h2>
+        <p>分页获取 Trace 列表，并带回 cost 与请求统计。</p>
+        <div class="section-title">Variables</div>
+        <ul>
+          <li><code>first</code>, <code>after</code></li>
+          <li><code>orderBy</code>, <code>where</code></li>
+        </ul>
+        <div class="section-title">Query</div>
+        <pre><code>query GetTraces(
+  $first: Int
+  $after: Cursor
+  $orderBy: TraceOrder
+  $where: TraceWhereInput
+) {
+  traces(first: $first, after: $after, orderBy: $orderBy, where: $where) {
+    edges {
+      node {
+        id
+        traceID
+        cost
+        firstUserQuery
+        createdAt
+        updatedAt
+        thread {
+          id
+          threadID
+        }
+        requests(where: { status: completed }) {
+          totalCount
+        }
+        blockedRequests: requests(where: { status: blocked }) {
+          totalCount
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    totalCount
+  }
+}</code></pre>
+      </section>
+    </main>
+    <footer>AxonHub GraphQL Operations · Static HTML</footer>
+  </body>
+</html>

@@ -11,21 +11,17 @@ import { ChannelsBulkOrderingDialog } from './channels-bulk-ordering-dialog';
 import { ChannelsDeleteDialog } from './channels-delete-dialog';
 import { ChannelsErrorResolvedDialog } from './channels-error-resolved-dialog';
 import { ChannelsModelMappingDialog } from './channels-model-mapping-dialog';
-import { ChannelsModelPriceDialog } from './channels-model-price-dialog';
 import { ChannelsOverrideDialog } from './channels-override-dialog';
 import { ChannelsProxyDialog } from './channels-proxy-dialog';
 import { ChannelsStatusDialog } from './channels-status-dialog';
 import { ChannelsTestDialog } from './channels-test-dialog';
 import { ChannelsTransformOptionsDialog } from './channels-transform-options-dialog';
 import { ChannelsWeightDialog } from './channels-weight-dialog';
-import { ChannelsSystemSettingsDialog } from './channels-system-settings-dialog';
 
 export function ChannelsDialogs() {
   const { open, setOpen, currentRow, setCurrentRow, selectedChannels } = useChannels();
   return (
     <>
-      <ChannelsSystemSettingsDialog />
-
       <ChannelsActionDialog key='channel-add' open={open === 'add'} onOpenChange={(isOpen) => setOpen(isOpen ? 'add' : null)} />
 
       <ChannelsBulkArchiveDialog />
@@ -138,8 +134,6 @@ export function ChannelsDialogs() {
             }}
             currentRow={currentRow}
           />
-
-          <ChannelsModelPriceDialog />
 
           <ChannelsOverrideDialog
             key={`channel-overrides-${currentRow.id}`}

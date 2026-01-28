@@ -78,12 +78,15 @@ func startServer() {
 			})
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
+					log.Info(context.Background(), "Starting server goroutine")
 					go func() {
+						log.Info(context.Background(), "About to call server.Run()")
 						err := server.Run()
 						if err != nil {
 							log.Error(context.Background(), "server run error:", log.Cause(err))
 							os.Exit(1)
 						}
+						log.Info(context.Background(), "server.Run() completed without error")
 					}()
 
 					return nil

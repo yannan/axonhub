@@ -5,13 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AboutSettings } from './about-settings';
 import { BrandSettings } from './brand-settings';
-import { GeneralSettings } from './general-settings';
 import { RetrySettings } from './retry-settings';
 import { StorageSettings } from './storage-settings';
-import { BackupSettings } from './backup-settings';
-import { usePermissions } from '@/hooks/usePermissions';
 
-type SystemTabKey = 'general' | 'brand' | 'storage' | 'retry' | 'backup' | 'about';
+type SystemTabKey = 'brand' | 'storage' | 'retry' | 'about';
 
 interface SystemSettingsTabsProps {
   initialTab?: SystemTabKey;
@@ -19,8 +16,7 @@ interface SystemSettingsTabsProps {
 
 export function SystemSettingsTabs({ initialTab }: SystemSettingsTabsProps) {
   const { t } = useTranslation();
-  const { isOwner } = usePermissions();
-  const [activeTab, setActiveTab] = useState<SystemTabKey>('general');
+  const [activeTab, setActiveTab] = useState<SystemTabKey>('brand');
 
   useEffect(() => {
     if (initialTab) {
@@ -30,10 +26,7 @@ export function SystemSettingsTabs({ initialTab }: SystemSettingsTabsProps) {
 
   return (
     <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as SystemTabKey)} className='w-full'>
-      <TabsList className={`shadow-soft border-border bg-background grid w-full rounded-2xl border ${isOwner ? 'grid-cols-6' : 'grid-cols-5'}`}>
-        <TabsTrigger value='general' data-value='general'>
-          {t('system.tabs.general')}
-        </TabsTrigger>
+      <TabsList className='shadow-soft border-border bg-background grid w-full grid-cols-4 rounded-2xl border'>
         <TabsTrigger value='brand' data-value='brand'>
           {t('system.tabs.brand')}
         </TabsTrigger>
@@ -43,19 +36,11 @@ export function SystemSettingsTabs({ initialTab }: SystemSettingsTabsProps) {
         <TabsTrigger value='storage' data-value='storage'>
           {t('system.tabs.storage')}
         </TabsTrigger>
-        {isOwner && (
-          <TabsTrigger value='backup' data-value='backup'>
-            {t('system.tabs.backup')}
-          </TabsTrigger>
-        )}
         <TabsTrigger value='about' data-value='about'>
           {t('system.tabs.about')}
         </TabsTrigger>
       </TabsList>
       <div className='shadow-soft border-border bg-card mt-6 rounded-2xl border p-6'>
-        <TabsContent value='general' className='mt-0 p-0'>
-          <GeneralSettings />
-        </TabsContent>
         <TabsContent value='brand' className='mt-0 p-0'>
           <BrandSettings />
         </TabsContent>
@@ -65,11 +50,6 @@ export function SystemSettingsTabs({ initialTab }: SystemSettingsTabsProps) {
         <TabsContent value='retry' className='mt-0 p-0'>
           <RetrySettings />
         </TabsContent>
-        {isOwner && (
-          <TabsContent value='backup' className='mt-0 p-0'>
-            <BackupSettings />
-          </TabsContent>
-        )}
         <TabsContent value='about' className='mt-0 p-0'>
           <AboutSettings />
         </TabsContent>

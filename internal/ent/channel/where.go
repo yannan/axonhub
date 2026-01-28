@@ -105,6 +105,11 @@ func Remark(v string) predicate.Channel {
 	return predicate.Channel(sql.FieldEQ(FieldRemark, v))
 }
 
+// Group applies equality check predicate on the "group" field. It's identical to GroupEQ.
+func Group(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldEQ(FieldGroup, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Channel {
 	return predicate.Channel(sql.FieldEQ(FieldCreatedAt, v))
@@ -698,6 +703,71 @@ func RemarkEqualFold(v string) predicate.Channel {
 // RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
 func RemarkContainsFold(v string) predicate.Channel {
 	return predicate.Channel(sql.FieldContainsFold(FieldRemark, v))
+}
+
+// GroupEQ applies the EQ predicate on the "group" field.
+func GroupEQ(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldEQ(FieldGroup, v))
+}
+
+// GroupNEQ applies the NEQ predicate on the "group" field.
+func GroupNEQ(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldNEQ(FieldGroup, v))
+}
+
+// GroupIn applies the In predicate on the "group" field.
+func GroupIn(vs ...string) predicate.Channel {
+	return predicate.Channel(sql.FieldIn(FieldGroup, vs...))
+}
+
+// GroupNotIn applies the NotIn predicate on the "group" field.
+func GroupNotIn(vs ...string) predicate.Channel {
+	return predicate.Channel(sql.FieldNotIn(FieldGroup, vs...))
+}
+
+// GroupGT applies the GT predicate on the "group" field.
+func GroupGT(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldGT(FieldGroup, v))
+}
+
+// GroupGTE applies the GTE predicate on the "group" field.
+func GroupGTE(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldGTE(FieldGroup, v))
+}
+
+// GroupLT applies the LT predicate on the "group" field.
+func GroupLT(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldLT(FieldGroup, v))
+}
+
+// GroupLTE applies the LTE predicate on the "group" field.
+func GroupLTE(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldLTE(FieldGroup, v))
+}
+
+// GroupContains applies the Contains predicate on the "group" field.
+func GroupContains(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldContains(FieldGroup, v))
+}
+
+// GroupHasPrefix applies the HasPrefix predicate on the "group" field.
+func GroupHasPrefix(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldHasPrefix(FieldGroup, v))
+}
+
+// GroupHasSuffix applies the HasSuffix predicate on the "group" field.
+func GroupHasSuffix(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldHasSuffix(FieldGroup, v))
+}
+
+// GroupEqualFold applies the EqualFold predicate on the "group" field.
+func GroupEqualFold(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldEqualFold(FieldGroup, v))
+}
+
+// GroupContainsFold applies the ContainsFold predicate on the "group" field.
+func GroupContainsFold(v string) predicate.Channel {
+	return predicate.Channel(sql.FieldContainsFold(FieldGroup, v))
 }
 
 // HasRequests applies the HasEdge predicate on the "requests" edge.

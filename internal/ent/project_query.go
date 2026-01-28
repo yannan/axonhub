@@ -14,9 +14,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/looplj/axonhub/internal/ent/apikey"
+	"github.com/looplj/axonhub/internal/ent/consumptionrecord"
 	"github.com/looplj/axonhub/internal/ent/predicate"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/prompt"
+	"github.com/looplj/axonhub/internal/ent/rechargerecord"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/thread"
@@ -29,30 +31,34 @@ import (
 // ProjectQuery is the builder for querying Project entities.
 type ProjectQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []project.OrderOption
-	inters                []Interceptor
-	predicates            []predicate.Project
-	withUsers             *UserQuery
-	withRoles             *RoleQuery
-	withAPIKeys           *APIKeyQuery
-	withRequests          *RequestQuery
-	withUsageLogs         *UsageLogQuery
-	withThreads           *ThreadQuery
-	withTraces            *TraceQuery
-	withPrompts           *PromptQuery
-	withProjectUsers      *UserProjectQuery
-	loadTotal             []func(context.Context, []*Project) error
-	modifiers             []func(*sql.Selector)
-	withNamedUsers        map[string]*UserQuery
-	withNamedRoles        map[string]*RoleQuery
-	withNamedAPIKeys      map[string]*APIKeyQuery
-	withNamedRequests     map[string]*RequestQuery
-	withNamedUsageLogs    map[string]*UsageLogQuery
-	withNamedThreads      map[string]*ThreadQuery
-	withNamedTraces       map[string]*TraceQuery
-	withNamedPrompts      map[string]*PromptQuery
-	withNamedProjectUsers map[string]*UserProjectQuery
+	ctx                         *QueryContext
+	order                       []project.OrderOption
+	inters                      []Interceptor
+	predicates                  []predicate.Project
+	withUsers                   *UserQuery
+	withRoles                   *RoleQuery
+	withAPIKeys                 *APIKeyQuery
+	withRequests                *RequestQuery
+	withUsageLogs               *UsageLogQuery
+	withThreads                 *ThreadQuery
+	withTraces                  *TraceQuery
+	withPrompts                 *PromptQuery
+	withConsumptionRecords      *ConsumptionRecordQuery
+	withRechargeRecords         *RechargeRecordQuery
+	withProjectUsers            *UserProjectQuery
+	loadTotal                   []func(context.Context, []*Project) error
+	modifiers                   []func(*sql.Selector)
+	withNamedUsers              map[string]*UserQuery
+	withNamedRoles              map[string]*RoleQuery
+	withNamedAPIKeys            map[string]*APIKeyQuery
+	withNamedRequests           map[string]*RequestQuery
+	withNamedUsageLogs          map[string]*UsageLogQuery
+	withNamedThreads            map[string]*ThreadQuery
+	withNamedTraces             map[string]*TraceQuery
+	withNamedPrompts            map[string]*PromptQuery
+	withNamedConsumptionRecords map[string]*ConsumptionRecordQuery
+	withNamedRechargeRecords    map[string]*RechargeRecordQuery
+	withNamedProjectUsers       map[string]*UserProjectQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -258,6 +264,50 @@ func (_q *ProjectQuery) QueryPrompts() *PromptQuery {
 			sqlgraph.From(project.Table, project.FieldID, selector),
 			sqlgraph.To(prompt.Table, prompt.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, project.PromptsTable, project.PromptsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConsumptionRecords chains the current query on the "consumption_records" edge.
+func (_q *ProjectQuery) QueryConsumptionRecords() *ConsumptionRecordQuery {
+	query := (&ConsumptionRecordClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(consumptionrecord.Table, consumptionrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.ConsumptionRecordsTable, project.ConsumptionRecordsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRechargeRecords chains the current query on the "recharge_records" edge.
+func (_q *ProjectQuery) QueryRechargeRecords() *RechargeRecordQuery {
+	query := (&RechargeRecordClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, selector),
+			sqlgraph.To(rechargerecord.Table, rechargerecord.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, project.RechargeRecordsTable, project.RechargeRecordsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -474,20 +524,22 @@ func (_q *ProjectQuery) Clone() *ProjectQuery {
 		return nil
 	}
 	return &ProjectQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]project.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.Project{}, _q.predicates...),
-		withUsers:        _q.withUsers.Clone(),
-		withRoles:        _q.withRoles.Clone(),
-		withAPIKeys:      _q.withAPIKeys.Clone(),
-		withRequests:     _q.withRequests.Clone(),
-		withUsageLogs:    _q.withUsageLogs.Clone(),
-		withThreads:      _q.withThreads.Clone(),
-		withTraces:       _q.withTraces.Clone(),
-		withPrompts:      _q.withPrompts.Clone(),
-		withProjectUsers: _q.withProjectUsers.Clone(),
+		config:                 _q.config,
+		ctx:                    _q.ctx.Clone(),
+		order:                  append([]project.OrderOption{}, _q.order...),
+		inters:                 append([]Interceptor{}, _q.inters...),
+		predicates:             append([]predicate.Project{}, _q.predicates...),
+		withUsers:              _q.withUsers.Clone(),
+		withRoles:              _q.withRoles.Clone(),
+		withAPIKeys:            _q.withAPIKeys.Clone(),
+		withRequests:           _q.withRequests.Clone(),
+		withUsageLogs:          _q.withUsageLogs.Clone(),
+		withThreads:            _q.withThreads.Clone(),
+		withTraces:             _q.withTraces.Clone(),
+		withPrompts:            _q.withPrompts.Clone(),
+		withConsumptionRecords: _q.withConsumptionRecords.Clone(),
+		withRechargeRecords:    _q.withRechargeRecords.Clone(),
+		withProjectUsers:       _q.withProjectUsers.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
 		path:      _q.path,
@@ -580,6 +632,28 @@ func (_q *ProjectQuery) WithPrompts(opts ...func(*PromptQuery)) *ProjectQuery {
 		opt(query)
 	}
 	_q.withPrompts = query
+	return _q
+}
+
+// WithConsumptionRecords tells the query-builder to eager-load the nodes that are connected to
+// the "consumption_records" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ProjectQuery) WithConsumptionRecords(opts ...func(*ConsumptionRecordQuery)) *ProjectQuery {
+	query := (&ConsumptionRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withConsumptionRecords = query
+	return _q
+}
+
+// WithRechargeRecords tells the query-builder to eager-load the nodes that are connected to
+// the "recharge_records" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ProjectQuery) WithRechargeRecords(opts ...func(*RechargeRecordQuery)) *ProjectQuery {
+	query := (&RechargeRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRechargeRecords = query
 	return _q
 }
 
@@ -678,7 +752,7 @@ func (_q *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 	var (
 		nodes       = []*Project{}
 		_spec       = _q.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [11]bool{
 			_q.withUsers != nil,
 			_q.withRoles != nil,
 			_q.withAPIKeys != nil,
@@ -687,6 +761,8 @@ func (_q *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			_q.withThreads != nil,
 			_q.withTraces != nil,
 			_q.withPrompts != nil,
+			_q.withConsumptionRecords != nil,
+			_q.withRechargeRecords != nil,
 			_q.withProjectUsers != nil,
 		}
 	)
@@ -767,6 +843,22 @@ func (_q *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 			return nil, err
 		}
 	}
+	if query := _q.withConsumptionRecords; query != nil {
+		if err := _q.loadConsumptionRecords(ctx, query, nodes,
+			func(n *Project) { n.Edges.ConsumptionRecords = []*ConsumptionRecord{} },
+			func(n *Project, e *ConsumptionRecord) {
+				n.Edges.ConsumptionRecords = append(n.Edges.ConsumptionRecords, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRechargeRecords; query != nil {
+		if err := _q.loadRechargeRecords(ctx, query, nodes,
+			func(n *Project) { n.Edges.RechargeRecords = []*RechargeRecord{} },
+			func(n *Project, e *RechargeRecord) { n.Edges.RechargeRecords = append(n.Edges.RechargeRecords, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withProjectUsers; query != nil {
 		if err := _q.loadProjectUsers(ctx, query, nodes,
 			func(n *Project) { n.Edges.ProjectUsers = []*UserProject{} },
@@ -827,6 +919,20 @@ func (_q *ProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Proj
 		if err := _q.loadPrompts(ctx, query, nodes,
 			func(n *Project) { n.appendNamedPrompts(name) },
 			func(n *Project, e *Prompt) { n.appendNamedPrompts(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedConsumptionRecords {
+		if err := _q.loadConsumptionRecords(ctx, query, nodes,
+			func(n *Project) { n.appendNamedConsumptionRecords(name) },
+			func(n *Project, e *ConsumptionRecord) { n.appendNamedConsumptionRecords(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedRechargeRecords {
+		if err := _q.loadRechargeRecords(ctx, query, nodes,
+			func(n *Project) { n.appendNamedRechargeRecords(name) },
+			func(n *Project, e *RechargeRecord) { n.appendNamedRechargeRecords(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1150,6 +1256,66 @@ func (_q *ProjectQuery) loadPrompts(ctx context.Context, query *PromptQuery, nod
 	}
 	return nil
 }
+func (_q *ProjectQuery) loadConsumptionRecords(ctx context.Context, query *ConsumptionRecordQuery, nodes []*Project, init func(*Project), assign func(*Project, *ConsumptionRecord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(consumptionrecord.FieldProjectID)
+	}
+	query.Where(predicate.ConsumptionRecord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.ConsumptionRecordsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "project_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *ProjectQuery) loadRechargeRecords(ctx context.Context, query *RechargeRecordQuery, nodes []*Project, init func(*Project), assign func(*Project, *RechargeRecord)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Project)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(rechargerecord.FieldProjectID)
+	}
+	query.Where(predicate.RechargeRecord(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(project.RechargeRecordsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "project_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 func (_q *ProjectQuery) loadProjectUsers(ctx context.Context, query *UserProjectQuery, nodes []*Project, init func(*Project), assign func(*Project, *UserProject)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Project)
@@ -1383,6 +1549,34 @@ func (_q *ProjectQuery) WithNamedPrompts(name string, opts ...func(*PromptQuery)
 		_q.withNamedPrompts = make(map[string]*PromptQuery)
 	}
 	_q.withNamedPrompts[name] = query
+	return _q
+}
+
+// WithNamedConsumptionRecords tells the query-builder to eager-load the nodes that are connected to the "consumption_records"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *ProjectQuery) WithNamedConsumptionRecords(name string, opts ...func(*ConsumptionRecordQuery)) *ProjectQuery {
+	query := (&ConsumptionRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedConsumptionRecords == nil {
+		_q.withNamedConsumptionRecords = make(map[string]*ConsumptionRecordQuery)
+	}
+	_q.withNamedConsumptionRecords[name] = query
+	return _q
+}
+
+// WithNamedRechargeRecords tells the query-builder to eager-load the nodes that are connected to the "recharge_records"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *ProjectQuery) WithNamedRechargeRecords(name string, opts ...func(*RechargeRecordQuery)) *ProjectQuery {
+	query := (&RechargeRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedRechargeRecords == nil {
+		_q.withNamedRechargeRecords = make(map[string]*RechargeRecordQuery)
+	}
+	_q.withNamedRechargeRecords[name] = query
 	return _q
 }
 

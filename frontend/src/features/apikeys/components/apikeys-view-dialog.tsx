@@ -18,8 +18,6 @@ export function ApiKeysViewDialog() {
   const apiKey = selectedApiKey?.key || '';
   const maskedApiKey = selectedApiKey?.key ? 'sk-...' + selectedApiKey.key.slice(-4) : '';
 
-  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8090';
-
   const codeExamples = useMemo(() => {
     if (!selectedApiKey?.key) return {};
 
@@ -34,7 +32,7 @@ model_provider = "axonhub-responses"
 
 [model_providers.axonhub-responses]
 name = "AxonHub using Chat Completions"
-base_url = "${currentOrigin}/v1"
+base_url = "http://127.0.0.1:8090/v1"
 env_key = "AXONHUB_API_KEY"
 wire_api = "responses"
 query_params = {}
@@ -49,7 +47,7 @@ model_provider = "axonhub-responses"
 
 [model_providers.axonhub-responses]
 name = "AxonHub using Chat Completions"
-base_url = "${currentOrigin}/v1"
+base_url = "http://127.0.0.1:8090/v1"
 env_key = "AXONHUB_API_KEY"
 wire_api = "responses"
 query_params = {}
@@ -59,37 +57,37 @@ query_params = {}
       claudeCode: {
         display: `# In your terminal, set the API key
 export ANTHROPIC_AUTH_TOKEN="${maskedApiKey}"
-export ANTHROPIC_BASE_URL="${currentOrigin}/anthropic"
+export ANTHROPIC_BASE_URL="http://localhost:8090/anthropic"
 
 # Then launch Claude Code
 claude
 
 # Or use the --api-key flag with the base URL
-claude --api-key "${maskedApiKey}" --base-url "${currentOrigin}/anthropic" "Hello, Claude!"
+claude --api-key "${maskedApiKey}" --base-url "http://localhost:8090/anthropic" "Hello, Claude!"
 
 # The configuration will be stored in ~/.config/claude/config.json`,
         real: `# In your terminal, set the API key
 export ANTHROPIC_AUTH_TOKEN="${apiKey}"
-export ANTHROPIC_BASE_URL="${currentOrigin}/anthropic"
+export ANTHROPIC_BASE_URL="http://localhost:8090/anthropic"
 
 # Then launch Claude Code
 claude
 
 # Or use the --api-key flag with the base URL
-claude --api-key "${apiKey}" --base-url "${currentOrigin}/anthropic" "Hello, Claude!"
+claude --api-key "${apiKey}" --base-url "http://localhost:8090/anthropic" "Hello, Claude!"
 
 # The configuration will be stored in ~/.config/claude/config.json`
       },
       anthropicSDK: {
-        display: `from anthropic import Anthropic
+        display: `import anthropic
 
-client = Anthropic(
+client = anthropic.Anthropic(
     api_key="${maskedApiKey}",
-    base_url="${currentOrigin}/anthropic"
+    base_url="http://localhost:8090/anthropic"
 )
 
 message = client.messages.create(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-3-5-sonnet-20241022",
     max_tokens=1024,
     messages=[
         {
@@ -99,16 +97,16 @@ message = client.messages.create(
     ]
 )
 
-print(message.content)`,
-        real: `from anthropic import Anthropic
+print(message.content[0].text)`,
+        real: `import anthropic
 
-client = Anthropic(
+client = anthropic.Anthropic(
     api_key="${apiKey}",
-    base_url="${currentOrigin}/anthropic"
+    base_url="http://localhost:8090/anthropic"
 )
 
 message = client.messages.create(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-3-5-sonnet-20241022",
     max_tokens=1024,
     messages=[
         {
@@ -118,71 +116,69 @@ message = client.messages.create(
     ]
 )
 
-print(message.content)`
+print(message.content[0].text)`
       },
       openAISDK: {
         display: `from openai import OpenAI
 
 client = OpenAI(
     api_key="${maskedApiKey}",
-    base_url="${currentOrigin}/v1"
+    base_url="http://localhost:8090/v1"
 )
 
-response = client.responses.create(
+response = client.chat.completions.create(
     model="gpt-4o",
-    input="Hello, Claude!"
+    messages=[
+        {"role": "user", "content": "Hello, Claude!"}
+    ]
 )
 
-print(response.output_text)`,
+print(response.choices[0].message.content)`,
         real: `from openai import OpenAI
 
 client = OpenAI(
     api_key="${apiKey}",
-    base_url="${currentOrigin}/v1"
+    base_url="http://localhost:8090/v1"
 )
 
-response = client.responses.create(
+response = client.chat.completions.create(
     model="gpt-4o",
-    input="Hello, Claude!"
+    messages=[
+        {"role": "user", "content": "Hello, Claude!"}
+    ]
 )
 
-print(response.output_text)`
+print(response.choices[0].message.content)`
       },
       geminiSDK: {
-        display: `from google import genai
-from google.genai import types
+        display: `import google.generativeai as genai
 
-client = genai.Client(
-    api_key="${maskedApiKey}",
-    base_url="${currentOrigin}/gemini"
-)
+genai.configure(api_key="${maskedApiKey}")
 
-response = client.models.generate_content(
-    model='gemini-2.5-flash',
-    contents=types.Part.from_text(text='Hello!'),
-    config=types.GenerateContentConfig(
+model = genai.GenerativeModel(
+    'gemini-pro',
+    generation_config=genai.GenerationConfig(
         temperature=0.7,
         max_output_tokens=1024,
-    ),
+    )
 )
+
+response = model.generate_content("Hello!")
 
 print(response.text)`,
-        real: `from google import genai
-from google.genai import types
+        real: `import google.generativeai as genai
 
-client = genai.Client(
-    api_key="${apiKey}",
-    base_url="${currentOrigin}/gemini"
-)
+genai.configure(api_key="${apiKey}")
 
-response = client.models.generate_content(
-    model='gemini-2.5-flash',
-    contents=types.Part.from_text(text='Hello!'),
-    config=types.GenerateContentConfig(
+model = genai.GenerativeModel(
+    'gemini-pro',
+    generation_config=genai.GenerationConfig(
         temperature=0.7,
         max_output_tokens=1024,
-    ),
+    )
 )
+
+response = model.generate_content("Hello!")
 
 print(response.text)`
       }
@@ -240,7 +236,7 @@ print(response.text)`
 
         <div className='space-y-4 shrink-0'>
           <div>
-            <label className='text-sm font-medium'>{t('common.columns.name')}</label>
+            <label className='text-sm font-medium'>{t('apikeys.columns.name')}</label>
             <div className='bg-muted mt-1 rounded-md p-3'>{selectedApiKey?.name}</div>
           </div>
 
@@ -256,6 +252,28 @@ print(response.text)`
               <Button variant='outline' size='sm' onClick={copyToClipboard} className='flex-shrink-0'>
                 <Copy className='h-4 w-4' />
               </Button>
+            </div>
+          </div>
+
+          {selectedApiKey?.ipWhitelist && (
+            <div>
+              <label className='text-sm font-medium'>{t('apikeys.dialogs.fields.ipWhitelist.label')}</label>
+              <div className='bg-muted mt-1 rounded-md p-3 font-mono text-sm whitespace-pre-wrap break-all'>
+                {selectedApiKey.ipWhitelist}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className='text-sm font-medium'>{t('apikeys.dialogs.fields.contentSafetyInterceptEnabled.label')}</label>
+            <div className='bg-muted mt-1 rounded-md p-3'>
+              {selectedApiKey?.contentSafetyInterceptEnabled === true ? (
+                <span className='text-green-600'>{t('common.enabled')}</span>
+              ) : selectedApiKey?.contentSafetyInterceptEnabled === false ? (
+                <span className='text-red-600'>{t('common.disabled')}</span>
+              ) : (
+                <span className='text-muted-foreground'>{t('common.unknown')}</span>
+              )}
             </div>
           </div>
         </div>

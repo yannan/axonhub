@@ -26,24 +26,36 @@ type Tx struct {
 	ChannelPerformance *ChannelPerformanceClient
 	// ChannelProbe is the client for interacting with the ChannelProbe builders.
 	ChannelProbe *ChannelProbeClient
+	// ConsumptionRecord is the client for interacting with the ConsumptionRecord builders.
+	ConsumptionRecord *ConsumptionRecordClient
 	// DataStorage is the client for interacting with the DataStorage builders.
 	DataStorage *DataStorageClient
 	// Model is the client for interacting with the Model builders.
 	Model *ModelClient
+	// ModelPricing is the client for interacting with the ModelPricing builders.
+	ModelPricing *ModelPricingClient
 	// Project is the client for interacting with the Project builders.
 	Project *ProjectClient
 	// Prompt is the client for interacting with the Prompt builders.
 	Prompt *PromptClient
 	// ProviderQuotaStatus is the client for interacting with the ProviderQuotaStatus builders.
 	ProviderQuotaStatus *ProviderQuotaStatusClient
+	// RechargeRecord is the client for interacting with the RechargeRecord builders.
+	RechargeRecord *RechargeRecordClient
+	// RedemptionCode is the client for interacting with the RedemptionCode builders.
+	RedemptionCode *RedemptionCodeClient
 	// Request is the client for interacting with the Request builders.
 	Request *RequestClient
 	// RequestExecution is the client for interacting with the RequestExecution builders.
 	RequestExecution *RequestExecutionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
+	// SensitiveWord is the client for interacting with the SensitiveWord builders.
+	SensitiveWord *SensitiveWordClient
 	// System is the client for interacting with the System builders.
 	System *SystemClient
+	// SystemSettings is the client for interacting with the SystemSettings builders.
+	SystemSettings *SystemSettingsClient
 	// Thread is the client for interacting with the Thread builders.
 	Thread *ThreadClient
 	// Trace is the client for interacting with the Trace builders.
@@ -194,15 +206,21 @@ func (tx *Tx) init() {
 	tx.ChannelOverrideTemplate = NewChannelOverrideTemplateClient(tx.config)
 	tx.ChannelPerformance = NewChannelPerformanceClient(tx.config)
 	tx.ChannelProbe = NewChannelProbeClient(tx.config)
+	tx.ConsumptionRecord = NewConsumptionRecordClient(tx.config)
 	tx.DataStorage = NewDataStorageClient(tx.config)
 	tx.Model = NewModelClient(tx.config)
+	tx.ModelPricing = NewModelPricingClient(tx.config)
 	tx.Project = NewProjectClient(tx.config)
 	tx.Prompt = NewPromptClient(tx.config)
 	tx.ProviderQuotaStatus = NewProviderQuotaStatusClient(tx.config)
+	tx.RechargeRecord = NewRechargeRecordClient(tx.config)
+	tx.RedemptionCode = NewRedemptionCodeClient(tx.config)
 	tx.Request = NewRequestClient(tx.config)
 	tx.RequestExecution = NewRequestExecutionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
+	tx.SensitiveWord = NewSensitiveWordClient(tx.config)
 	tx.System = NewSystemClient(tx.config)
+	tx.SystemSettings = NewSystemSettingsClient(tx.config)
 	tx.Thread = NewThreadClient(tx.config)
 	tx.Trace = NewTraceClient(tx.config)
 	tx.UsageLog = NewUsageLogClient(tx.config)

@@ -80,6 +80,11 @@ func ThreadID(v int) predicate.Trace {
 	return predicate.Trace(sql.FieldEQ(FieldThreadID, v))
 }
 
+// Cost applies equality check predicate on the "cost" field. It's identical to CostEQ.
+func Cost(v int64) predicate.Trace {
+	return predicate.Trace(sql.FieldEQ(FieldCost, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Trace {
 	return predicate.Trace(sql.FieldEQ(FieldCreatedAt, v))
@@ -273,6 +278,46 @@ func ThreadIDIsNil() predicate.Trace {
 // ThreadIDNotNil applies the NotNil predicate on the "thread_id" field.
 func ThreadIDNotNil() predicate.Trace {
 	return predicate.Trace(sql.FieldNotNull(FieldThreadID))
+}
+
+// CostEQ applies the EQ predicate on the "cost" field.
+func CostEQ(v int64) predicate.Trace {
+	return predicate.Trace(sql.FieldEQ(FieldCost, v))
+}
+
+// CostNEQ applies the NEQ predicate on the "cost" field.
+func CostNEQ(v int64) predicate.Trace {
+	return predicate.Trace(sql.FieldNEQ(FieldCost, v))
+}
+
+// CostIn applies the In predicate on the "cost" field.
+func CostIn(vs ...int64) predicate.Trace {
+	return predicate.Trace(sql.FieldIn(FieldCost, vs...))
+}
+
+// CostNotIn applies the NotIn predicate on the "cost" field.
+func CostNotIn(vs ...int64) predicate.Trace {
+	return predicate.Trace(sql.FieldNotIn(FieldCost, vs...))
+}
+
+// CostGT applies the GT predicate on the "cost" field.
+func CostGT(v int64) predicate.Trace {
+	return predicate.Trace(sql.FieldGT(FieldCost, v))
+}
+
+// CostGTE applies the GTE predicate on the "cost" field.
+func CostGTE(v int64) predicate.Trace {
+	return predicate.Trace(sql.FieldGTE(FieldCost, v))
+}
+
+// CostLT applies the LT predicate on the "cost" field.
+func CostLT(v int64) predicate.Trace {
+	return predicate.Trace(sql.FieldLT(FieldCost, v))
+}
+
+// CostLTE applies the LTE predicate on the "cost" field.
+func CostLTE(v int64) predicate.Trace {
+	return predicate.Trace(sql.FieldLTE(FieldCost, v))
 }
 
 // HasProject applies the HasEdge predicate on the "project" edge.

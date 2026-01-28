@@ -76,8 +76,7 @@ function UsageLogsContent() {
       setSourceFilter(filters);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   const handleChannelFilterChange = useCallback(
@@ -85,8 +84,7 @@ function UsageLogsContent() {
       setChannelFilter(filters);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   const handleDateRangeChange = useCallback(
@@ -94,8 +92,7 @@ function UsageLogsContent() {
       setDateRange(range);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [resetCursor]
   );
 
   if (error) {
@@ -150,16 +147,15 @@ export default function UsageLogsManagement() {
 
   return (
     <UsageLogsProvider>
-      <Header fixed>
-        <div className='flex flex-1 items-center justify-between'>
-          <div>
-            <h2 className='text-xl font-bold tracking-tight'>{t('usageLogs.title')}</h2>
-            <p className='text-sm text-muted-foreground'>{t('usageLogs.description')}</p>
-          </div>
-        </div>
-      </Header>
+      <Header fixed></Header>
 
       <Main fixed>
+        <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
+          <div>
+            <h2 className='text-2xl font-bold tracking-tight'>{t('usageLogs.title')}</h2>
+            <p className='text-muted-foreground'>{t('usageLogs.description')}</p>
+          </div>
+        </div>
         <UsageLogsContent />
       </Main>
       <UsageLogsDialogs />

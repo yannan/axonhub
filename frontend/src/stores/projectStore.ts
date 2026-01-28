@@ -9,7 +9,7 @@ interface ProjectState {
 }
 
 // Helper functions for localStorage
-export const getProjectIdFromStorage = (): string | null => {
+const getProjectIdFromStorage = (): string | null => {
   try {
     return localStorage.getItem(PROJECT_STORAGE_KEY);
   } catch (error) {

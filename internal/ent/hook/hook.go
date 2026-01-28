@@ -93,6 +93,18 @@ func (f ChannelProbeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ChannelProbeMutation", m)
 }
 
+// The ConsumptionRecordFunc type is an adapter to allow the use of ordinary
+// function as ConsumptionRecord mutator.
+type ConsumptionRecordFunc func(context.Context, *ent.ConsumptionRecordMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ConsumptionRecordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ConsumptionRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ConsumptionRecordMutation", m)
+}
+
 // The DataStorageFunc type is an adapter to allow the use of ordinary
 // function as DataStorage mutator.
 type DataStorageFunc func(context.Context, *ent.DataStorageMutation) (ent.Value, error)
@@ -115,6 +127,18 @@ func (f ModelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModelMutation", m)
+}
+
+// The ModelPricingFunc type is an adapter to allow the use of ordinary
+// function as ModelPricing mutator.
+type ModelPricingFunc func(context.Context, *ent.ModelPricingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ModelPricingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ModelPricingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ModelPricingMutation", m)
 }
 
 // The ProjectFunc type is an adapter to allow the use of ordinary
@@ -153,6 +177,30 @@ func (f ProviderQuotaStatusFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProviderQuotaStatusMutation", m)
 }
 
+// The RechargeRecordFunc type is an adapter to allow the use of ordinary
+// function as RechargeRecord mutator.
+type RechargeRecordFunc func(context.Context, *ent.RechargeRecordMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RechargeRecordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RechargeRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RechargeRecordMutation", m)
+}
+
+// The RedemptionCodeFunc type is an adapter to allow the use of ordinary
+// function as RedemptionCode mutator.
+type RedemptionCodeFunc func(context.Context, *ent.RedemptionCodeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RedemptionCodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RedemptionCodeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RedemptionCodeMutation", m)
+}
+
 // The RequestFunc type is an adapter to allow the use of ordinary
 // function as Request mutator.
 type RequestFunc func(context.Context, *ent.RequestMutation) (ent.Value, error)
@@ -189,6 +237,18 @@ func (f RoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleMutation", m)
 }
 
+// The SensitiveWordFunc type is an adapter to allow the use of ordinary
+// function as SensitiveWord mutator.
+type SensitiveWordFunc func(context.Context, *ent.SensitiveWordMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SensitiveWordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SensitiveWordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SensitiveWordMutation", m)
+}
+
 // The SystemFunc type is an adapter to allow the use of ordinary
 // function as System mutator.
 type SystemFunc func(context.Context, *ent.SystemMutation) (ent.Value, error)
@@ -199,6 +259,18 @@ func (f SystemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemMutation", m)
+}
+
+// The SystemSettingsFunc type is an adapter to allow the use of ordinary
+// function as SystemSettings mutator.
+type SystemSettingsFunc func(context.Context, *ent.SystemSettingsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SystemSettingsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemSettingsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemSettingsMutation", m)
 }
 
 // The ThreadFunc type is an adapter to allow the use of ordinary

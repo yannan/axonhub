@@ -1,0 +1,141 @@
+# Publish Docker image (no frontend)
+# Builds image without frontend assets using Dockerfile.nofrontend
+
+name: Publish Docker image (no frontend)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build_single_arch:
+    name: Build & push (${{ matrix.arch }}) [native, no frontend]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Check out (shallow)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Resolve version & write VERSION
+        run: |
+          git fetch --tags --force --depth=1
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Tag build
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "Building tag: $VERSION for ${{ matrix.arch }} (no frontend)"
+          else
+            # Branch build
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            SHORT_SHA=$(git rev-parse --short=8 HEAD)
+            VERSION="${BRANCH_NAME}-${SHORT_SHA}"
+            echo "Building branch: $BRANCH_NAME (commit: $SHORT_SHA) for ${{ matrix.arch }} (no frontend)"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "$VERSION" > internal/build/VERSION
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Huawei Cloud SWR
+        uses: docker/login-action@v3
+        with:
+          registry: swr.cn-east-3.myhuaweicloud.com
+          username: ${{ secrets.HUAWEI_SWR_USERNAME }}
+          password: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+
+      - name: Prepare image tags
+        id: tags
+        run: |
+          TAGS="swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub-nofrontend:${{ env.VERSION }}-${{ matrix.arch }}"
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAGS="$TAGS"$'\n'"swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub-nofrontend:latest-${{ matrix.arch }}"
+          fi
+          echo "tags<<EOF" >> $GITHUB_OUTPUT
+          echo "$TAGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Extract metadata (labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub-nofrontend
+
+      - name: Build & push single-arch
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.nofrontend
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+  create_manifests:
+    name: Create multi-arch manifests (Huawei Cloud SWR, no frontend)
+    needs: [build_single_arch]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Check out (shallow)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Extract version
+        run: |
+          git fetch --tags --force --depth=1
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            SHORT_SHA=$(git rev-parse --short=8 HEAD)
+            VERSION="${BRANCH_NAME}-${SHORT_SHA}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Huawei Cloud SWR
+        uses: docker/login-action@v3
+        with:
+          registry: swr.cn-east-3.myhuaweicloud.com
+          username: ${{ secrets.HUAWEI_SWR_USERNAME }}
+          password: ${{ secrets.HUAWEI_SWR_PASSWORD }}
+
+      - name: Create & push manifest (SWR - version)
+        run: |
+          docker buildx imagetools create \
+            -t swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub-nofrontend:${VERSION} \
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub-nofrontend:${VERSION}-amd64 \
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub-nofrontend:${VERSION}-arm64
+
+      - name: Create & push manifest (SWR - latest)
+        run: |
+          docker buildx imagetools create \
+            -t swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub-nofrontend:latest \
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub-nofrontend:latest-amd64 \
+            swr.cn-east-3.myhuaweicloud.com/${{ secrets.HUAWEI_SWR_ORG }}/axonhub-nofrontend:latest-arm64

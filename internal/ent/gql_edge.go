@@ -45,6 +45,27 @@ func (_m *APIKey) Requests(
 	return _m.QueryRequests().Paginate(ctx, after, first, before, last, opts...)
 }
 
+func (_m *APIKey) UsageLogs(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UsageLogOrder, where *UsageLogWhereInput,
+) (*UsageLogConnection, error) {
+	opts := []UsageLogPaginateOption{
+		WithUsageLogOrder(orderBy),
+		WithUsageLogFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := _m.Edges.totalCount[3][alias]
+	if nodes, err := _m.NamedUsageLogs(alias); err == nil || hasTotalCount {
+		pager, err := newUsageLogPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &UsageLogConnection{Edges: []*UsageLogEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return _m.QueryUsageLogs().Paginate(ctx, after, first, before, last, opts...)
+}
+
 func (_m *Channel) Requests(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *RequestOrder, where *RequestWhereInput,
 ) (*RequestConnection, error) {
@@ -196,6 +217,22 @@ func (_m *ChannelProbe) Channel(ctx context.Context) (*Channel, error) {
 	result, err := _m.Edges.ChannelOrErr()
 	if IsNotLoaded(err) {
 		result, err = _m.QueryChannel().Only(ctx)
+	}
+	return result, err
+}
+
+func (_m *ConsumptionRecord) User(ctx context.Context) (*User, error) {
+	result, err := _m.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = _m.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
+func (_m *ConsumptionRecord) Project(ctx context.Context) (*Project, error) {
+	result, err := _m.Edges.ProjectOrErr()
+	if IsNotLoaded(err) {
+		result, err = _m.QueryProject().Only(ctx)
 	}
 	return result, err
 }
@@ -410,6 +447,48 @@ func (_m *Project) Prompts(
 	return _m.QueryPrompts().Paginate(ctx, after, first, before, last, opts...)
 }
 
+func (_m *Project) ConsumptionRecords(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *ConsumptionRecordOrder, where *ConsumptionRecordWhereInput,
+) (*ConsumptionRecordConnection, error) {
+	opts := []ConsumptionRecordPaginateOption{
+		WithConsumptionRecordOrder(orderBy),
+		WithConsumptionRecordFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := _m.Edges.totalCount[8][alias]
+	if nodes, err := _m.NamedConsumptionRecords(alias); err == nil || hasTotalCount {
+		pager, err := newConsumptionRecordPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &ConsumptionRecordConnection{Edges: []*ConsumptionRecordEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return _m.QueryConsumptionRecords().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (_m *Project) RechargeRecords(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *RechargeRecordOrder, where *RechargeRecordWhereInput,
+) (*RechargeRecordConnection, error) {
+	opts := []RechargeRecordPaginateOption{
+		WithRechargeRecordOrder(orderBy),
+		WithRechargeRecordFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := _m.Edges.totalCount[9][alias]
+	if nodes, err := _m.NamedRechargeRecords(alias); err == nil || hasTotalCount {
+		pager, err := newRechargeRecordPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &RechargeRecordConnection{Edges: []*RechargeRecordEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return _m.QueryRechargeRecords().Paginate(ctx, after, first, before, last, opts...)
+}
+
 func (_m *Project) ProjectUsers(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserProjectOrder, where *UserProjectWhereInput,
 ) (*UserProjectConnection, error) {
@@ -418,7 +497,7 @@ func (_m *Project) ProjectUsers(
 		WithUserProjectFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := _m.Edges.totalCount[8][alias]
+	totalCount, hasTotalCount := _m.Edges.totalCount[10][alias]
 	if nodes, err := _m.NamedProjectUsers(alias); err == nil || hasTotalCount {
 		pager, err := newUserProjectPager(opts, last != nil)
 		if err != nil {
@@ -456,6 +535,50 @@ func (_m *ProviderQuotaStatus) Channel(ctx context.Context) (*Channel, error) {
 	result, err := _m.Edges.ChannelOrErr()
 	if IsNotLoaded(err) {
 		result, err = _m.QueryChannel().Only(ctx)
+	}
+	return result, err
+}
+
+func (_m *RechargeRecord) User(ctx context.Context) (*User, error) {
+	result, err := _m.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = _m.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
+func (_m *RechargeRecord) Project(ctx context.Context) (*Project, error) {
+	result, err := _m.Edges.ProjectOrErr()
+	if IsNotLoaded(err) {
+		result, err = _m.QueryProject().Only(ctx)
+	}
+	return result, err
+}
+
+func (_m *RechargeRecord) RedemptionCode(ctx context.Context) (*RedemptionCode, error) {
+	result, err := _m.Edges.RedemptionCodeOrErr()
+	if IsNotLoaded(err) {
+		result, err = _m.QueryRedemptionCode().Only(ctx)
+	}
+	return result, err
+}
+
+func (_m *RedemptionCode) User(ctx context.Context) (*User, error) {
+	result, err := _m.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = _m.QueryUser().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (_m *RedemptionCode) RechargeRecords(ctx context.Context) (result []*RechargeRecord, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = _m.NamedRechargeRecords(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = _m.Edges.RechargeRecordsOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = _m.QueryRechargeRecords().All(ctx)
 	}
 	return result, err
 }
@@ -690,6 +813,14 @@ func (_m *UsageLog) Request(ctx context.Context) (*Request, error) {
 	return result, err
 }
 
+func (_m *UsageLog) APIKey(ctx context.Context) (*APIKey, error) {
+	result, err := _m.Edges.APIKeyOrErr()
+	if IsNotLoaded(err) {
+		result, err = _m.QueryAPIKey().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (_m *UsageLog) Project(ctx context.Context) (*Project, error) {
 	result, err := _m.Edges.ProjectOrErr()
 	if IsNotLoaded(err) {
@@ -790,6 +921,69 @@ func (_m *User) ChannelOverrideTemplates(
 	return _m.QueryChannelOverrideTemplates().Paginate(ctx, after, first, before, last, opts...)
 }
 
+func (_m *User) ConsumptionRecords(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *ConsumptionRecordOrder, where *ConsumptionRecordWhereInput,
+) (*ConsumptionRecordConnection, error) {
+	opts := []ConsumptionRecordPaginateOption{
+		WithConsumptionRecordOrder(orderBy),
+		WithConsumptionRecordFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := _m.Edges.totalCount[4][alias]
+	if nodes, err := _m.NamedConsumptionRecords(alias); err == nil || hasTotalCount {
+		pager, err := newConsumptionRecordPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &ConsumptionRecordConnection{Edges: []*ConsumptionRecordEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return _m.QueryConsumptionRecords().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (_m *User) RedemptionCodes(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *RedemptionCodeOrder, where *RedemptionCodeWhereInput,
+) (*RedemptionCodeConnection, error) {
+	opts := []RedemptionCodePaginateOption{
+		WithRedemptionCodeOrder(orderBy),
+		WithRedemptionCodeFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := _m.Edges.totalCount[5][alias]
+	if nodes, err := _m.NamedRedemptionCodes(alias); err == nil || hasTotalCount {
+		pager, err := newRedemptionCodePager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &RedemptionCodeConnection{Edges: []*RedemptionCodeEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return _m.QueryRedemptionCodes().Paginate(ctx, after, first, before, last, opts...)
+}
+
+func (_m *User) RechargeRecords(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *RechargeRecordOrder, where *RechargeRecordWhereInput,
+) (*RechargeRecordConnection, error) {
+	opts := []RechargeRecordPaginateOption{
+		WithRechargeRecordOrder(orderBy),
+		WithRechargeRecordFilter(where.Filter),
+	}
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := _m.Edges.totalCount[6][alias]
+	if nodes, err := _m.NamedRechargeRecords(alias); err == nil || hasTotalCount {
+		pager, err := newRechargeRecordPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &RechargeRecordConnection{Edges: []*RechargeRecordEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
+	}
+	return _m.QueryRechargeRecords().Paginate(ctx, after, first, before, last, opts...)
+}
+
 func (_m *User) ProjectUsers(
 	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *UserProjectOrder, where *UserProjectWhereInput,
 ) (*UserProjectConnection, error) {
@@ -798,7 +992,7 @@ func (_m *User) ProjectUsers(
 		WithUserProjectFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := _m.Edges.totalCount[4][alias]
+	totalCount, hasTotalCount := _m.Edges.totalCount[7][alias]
 	if nodes, err := _m.NamedProjectUsers(alias); err == nil || hasTotalCount {
 		pager, err := newUserProjectPager(opts, last != nil)
 		if err != nil {
@@ -819,7 +1013,7 @@ func (_m *User) UserRoles(
 		WithUserRoleFilter(where.Filter),
 	}
 	alias := graphql.GetFieldContext(ctx).Field.Alias
-	totalCount, hasTotalCount := _m.Edges.totalCount[5][alias]
+	totalCount, hasTotalCount := _m.Edges.totalCount[8][alias]
 	if nodes, err := _m.NamedUserRoles(alias); err == nil || hasTotalCount {
 		pager, err := newUserRolePager(opts, last != nil)
 		if err != nil {

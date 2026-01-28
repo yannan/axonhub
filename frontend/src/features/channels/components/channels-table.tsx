@@ -14,7 +14,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { motion, AnimatePresence } from 'framer-motion';
 import { IconArchive, IconBan, IconCheck, IconTrash, IconTemplate, IconX } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -25,9 +24,6 @@ import { ChannelExpandedRow } from './channel-expanded-row';
 import { useChannels } from '../context/channels-context';
 import { Channel, ChannelConnection } from '../data/schema';
 import { DataTableToolbar } from './data-table-toolbar';
-
-const MotionTableRow = motion.create(TableRow);
-const MotionExpandedRow = motion.create(TableRow);
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -62,7 +58,6 @@ interface DataTableProps {
   onStatusFilterChange: (filters: string[]) => void;
   onTagFilterChange: (filter: string) => void;
   onModelFilterChange: (filter: string) => void;
-  onHealthColumnVisibilityChange?: (visible: boolean) => void;
   canWrite?: boolean;
 }
 
@@ -92,7 +87,6 @@ export function ChannelsTable({
   onStatusFilterChange,
   onTagFilterChange,
   onModelFilterChange,
-  onHealthColumnVisibilityChange,
   canWrite = true,
 }: DataTableProps) {
   const { t } = useTranslation();
@@ -140,13 +134,7 @@ export function ChannelsTable({
   // Save column visibility to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('channels-table-column-visibility', JSON.stringify(columnVisibility));
-    
-    // Notify parent about health column visibility changes
-    if (onHealthColumnVisibilityChange) {
-      const isHealthVisible = columnVisibility.health !== false;
-      onHealthColumnVisibilityChange(isHealthVisible);
-    }
-  }, [columnVisibility, onHealthColumnVisibilityChange]);
+  }, [columnVisibility]);
 
   // Handle column filter changes and sync with server
   const handleColumnFiltersChange = useCallback(
@@ -289,8 +277,7 @@ export function ChannelsTable({
         showErrorOnly={showErrorOnly}
         onExitErrorOnlyMode={onExitErrorOnlyMode}
       />
-      <div className='shadow-soft relative mt-4 flex-1 overflow-auto rounded-2xl border border-[var(--table-border)]'>
-        <div className='min-w-max'>
+      <div className='shadow-soft relative mt-4 flex-1 overflow-auto overflow-x-hidden rounded-2xl border border-[var(--table-border)]'>
         <Table data-testid='channels-table' className='border-separate border-spacing-0 rounded-2xl bg-[var(--table-background)]'>
           <TableHeader className='sticky top-0 z-20 bg-[var(--table-header)] shadow-sm'>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -309,7 +296,7 @@ export function ChannelsTable({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody className='!bg-[var(--table-background)]'>
+          <TableBody className='space-y-1 !bg-[var(--table-background)] p-2'>
             {loading ? (
               <TableSkeleton rows={pageSize} columns={columns.length} />
             ) : table.getRowModel().rows?.length ? (
@@ -317,40 +304,20 @@ export function ChannelsTable({
                 const channel = row.original;
                 return (
                   <React.Fragment key={row.id}>
-                    <MotionTableRow
+                    <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && 'selected'}
-                      className='group/row table-row-hover rounded-xl border-0 !bg-[var(--table-background)]'
+                      className='group/row table-row-hover rounded-xl border-0 !bg-[var(--table-background)] transition-all duration-200 ease-in-out'
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className={`${cell.column.columnDef.meta?.className ?? ''} border-0 bg-inherit px-4 py-3 transition-colors duration-200`}>
+                        <TableCell key={cell.id} className={`${cell.column.columnDef.meta?.className ?? ''} border-0 bg-inherit px-4 py-3`}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       ))}
-                    </MotionTableRow>
-                    <AnimatePresence initial={false}>
-                      {row.getIsExpanded() && (
-                        <MotionExpandedRow
-                          key={`${row.id}-expanded`}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className='border-0'
-                        >
-                          <TableCell colSpan={columns.length} className='p-0 border-0'>
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2, ease: 'easeInOut' }}
-                              className='overflow-hidden'
-                            >
-                              <ChannelExpandedRow channel={channel} columnsLength={columns.length} getApiFormatLabel={getApiFormatLabel} />
-                            </motion.div>
-                          </TableCell>
-                        </MotionExpandedRow>
-                      )}
-                    </AnimatePresence>
+                    </TableRow>
+                    {row.getIsExpanded() && (
+                      <ChannelExpandedRow channel={channel} columnsLength={columns.length} getApiFormatLabel={getApiFormatLabel} />
+                    )}
                   </React.Fragment>
                 );
               })
@@ -363,7 +330,6 @@ export function ChannelsTable({
             )}
           </TableBody>
         </Table>
-        </div>
       </div>
       <div className='mt-4 flex-shrink-0'>
         <ServerSidePagination

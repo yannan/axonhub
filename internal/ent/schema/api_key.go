@@ -73,6 +73,13 @@ func (APIKey) Fields() []ent.Field {
 			Annotations(
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
 			),
+		field.String("ip_whitelist").
+			Default("").
+			Optional().
+			Comment("Allowed IPs, one per line; empty means allow all"),
+		field.Bool("content_safety_intercept_enabled").
+			Default(true).
+			Comment("Whether content safety interception is enabled for this API key"),
 	}
 }
 
@@ -95,6 +102,11 @@ func (APIKey) Edges() []ent.Edge {
 			).
 			Ref("api_keys").Field("project_id"),
 		edge.To("requests", Request.Type).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.RelayConnection(),
+			),
+		edge.To("usage_logs", UsageLog.Type).
 			Annotations(
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
 				entgql.RelayConnection(),

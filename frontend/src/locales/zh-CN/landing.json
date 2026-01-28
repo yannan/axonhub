@@ -1,0 +1,12 @@
+{
+  "landing": {
+    "hero": {
+      "unified": "企业级聚合 AI 网关",
+      "gateway": "专为可靠性、可观测性和大规模应用构建。",
+      "description": "只需将您的模型基础 URL 替换为：",
+      "getStarted": "获取 API",
+      "viewModels": "查看模型"
+    },
+    "supportedProviders": "支持众多的大模型供应商"
+  }
+}

@@ -22,7 +22,6 @@ import { useQueryModelChannelConnections, ModelAssociationInput, ModelChannelCon
 import { useUpdateModel } from '../data/models';
 import { ModelAssociation } from '../data/schema';
 import { toast } from 'sonner';
-import { ChannelModelsList } from './channel-models-list';
 
 const associationFormSchema = z.object({
   associations: z
@@ -440,15 +439,9 @@ export function ModelsAssociationDialog() {
 
   const handleAddAssociation = useCallback(() => {
     if (fields.length >= 10) return;
-
-    // Get the priority of the last rule (highest priority)
-    const currentAssociations = form.getValues('associations') || [];
-    const lastPriority =
-      currentAssociations.length > 0 ? Math.max(...currentAssociations.map((a) => a.priority ?? 0)) : 0;
-
     append({
       type: 'channel_model',
-      priority: lastPriority,
+      priority: 0,
       channelId: undefined,
       channelTags: [],
       modelId: '',
@@ -457,7 +450,31 @@ export function ModelsAssociationDialog() {
       excludeChannelIds: [],
       excludeChannelTags: [],
     });
-  }, [append, fields.length, form]);
+  }, [append, fields.length]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'enabled':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800';
+      case 'disabled':
+        return 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-700';
+      case 'archived':
+        return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800';
+      default:
+        return 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-700';
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    const colors = {
+      openai: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400',
+      anthropic: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400',
+      deepseek: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-400',
+      doubao: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-400',
+      kimi: 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-950 dark:text-pink-400',
+    };
+    return colors[type as keyof typeof colors] || 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900 dark:text-gray-400';
+  };
 
   // Filter connections by channel name
   const filteredConnections = useMemo(() => {
@@ -483,15 +500,6 @@ export function ModelsAssociationDialog() {
                 <form id='association-form' onSubmit={form.handleSubmit(onSubmit)} className='space-y-3'>
                   {fields.length === 0 && (
                     <p className='text-muted-foreground py-8 text-center text-sm'>{t('models.dialogs.association.noRules')}</p>
-                  )}
-
-                  {fields.length > 0 && (
-                    <div className='grid grid-cols-[3rem_14rem_1fr_2.25rem] items-center gap-2 border-b px-[13px] pb-2'>
-                      <div className='text-muted-foreground text-center text-xs font-medium'>{t('models.dialogs.association.priority')}</div>
-                      <div className='text-muted-foreground text-center text-xs font-medium'>{t('models.dialogs.association.type')}</div>
-                      <div className='text-muted-foreground text-center text-xs font-medium'>{t('models.dialogs.association.rule')}</div>
-                      <div />
-                    </div>
                   )}
 
                   {fields
@@ -539,14 +547,41 @@ export function ModelsAssociationDialog() {
               />
             </div>
             <div className='flex-1 overflow-y-auto'>
-              <ChannelModelsList
-                channels={filteredConnections}
-                emptyMessage={
-                  channelFilter.trim()
+              {filteredConnections.length === 0 ? (
+                <p className='text-muted-foreground py-8 text-center text-sm'>
+                  {channelFilter.trim()
                     ? t('models.dialogs.association.noFilteredConnections')
-                    : t('models.dialogs.association.noConnections')
-                }
-              />
+                    : t('models.dialogs.association.noConnections')}
+                </p>
+              ) : (
+                <div className='space-y-3'>
+                  {filteredConnections.map((conn) => (
+                    <div key={conn.channel.id} className='rounded-lg border p-3'>
+                      <div className='mb-2 flex items-start justify-between gap-2'>
+                        <div className='flex items-center gap-1.5 flex-wrap'>
+                          <span className='text-sm font-medium'>{conn.channel.name}</span>
+                          <Badge variant='outline' className={`h-5 px-1.5 text-[10px] font-normal ${getTypeColor(conn.channel.type)}`}>
+                            {t(`channels.types.${conn.channel.type}`, conn.channel.type)}
+                          </Badge>
+                          <Badge
+                            variant='outline'
+                            className={`h-5 px-1.5 text-[10px] font-normal ${getStatusColor(conn.channel.status)}`}
+                          >
+                            {t(`channels.status.${conn.channel.status}`)}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className='space-y-1'>
+                        {conn.models.map((model) => (
+                          <div key={model.requestModel} className='bg-muted rounded px-2 py-1 text-xs'>
+                            {model.requestModel}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -638,9 +673,22 @@ function AssociationRow({ index, form, channelOptions, allModelOptions, allTags,
     }));
   }, [channelId, channelOptions, allModelOptions, showModel, type]);
 
+  // Filter models based on search
+  const filteredModelOptions = useMemo(() => {
+    return modelOptions.filter((option) => option.label.toLowerCase().includes(modelSearch.toLowerCase()));
+  }, [modelOptions, modelSearch]);
+
   return (
     <div className='flex flex-col gap-2 rounded-lg border p-3'>
-      <div className='grid grid-cols-[3rem_14rem_1fr_2.25rem] items-center gap-2'>
+      <div
+        className={`grid items-center gap-2 ${
+          showChannel
+            ? 'grid-cols-[3rem_14rem_1fr_2.25rem]'
+            : showModel && showPattern
+            ? 'grid-cols-[3rem_14rem_1fr_1fr_2.25rem]'
+            : 'grid-cols-[3rem_14rem_1fr_2.25rem]'
+        }`}
+      >
         {/* Priority Input */}
         <FormField
           control={form.control}
@@ -728,10 +776,10 @@ function AssociationRow({ index, form, channelOptions, allModelOptions, allTags,
                     }}
                     searchValue={modelSearch}
                     onSearchValueChange={setModelSearch}
-                    items={modelOptions}
+                    items={filteredModelOptions}
                     placeholder={t('models.dialogs.association.selectModel')}
                     emptyMessage={
-                      modelOptions.length === 0 && channelId
+                      filteredModelOptions.length === 0 && channelId
                         ? t('models.dialogs.association.noChannelModelsAvailable')
                         : t('models.dialogs.association.selectChannelFirst')
                     }
@@ -789,10 +837,10 @@ function AssociationRow({ index, form, channelOptions, allModelOptions, allTags,
                       }}
                       searchValue={modelSearch}
                       onSearchValueChange={setModelSearch}
-                      items={modelOptions}
+                      items={filteredModelOptions}
                       placeholder={t('models.dialogs.association.selectModel')}
                       emptyMessage={
-                        modelOptions.length === 0 && channelId
+                        filteredModelOptions.length === 0 && channelId
                           ? t('models.dialogs.association.noChannelModelsAvailable')
                           : t('models.dialogs.association.selectChannelFirst')
                       }

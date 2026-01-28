@@ -20,10 +20,6 @@ import {
   bulkUpdateChannelOrderingResultSchema,
   channelOrderingConnectionSchema,
   ChannelSettings,
-  ChannelPolicies,
-  ChannelModelPrice,
-  SaveChannelModelPriceInput,
-  channelModelPriceSchema,
 } from './schema';
 
 // GraphQL queries and mutations
@@ -56,7 +52,6 @@ const CHANNELS_QUERY = `
             }
             autoTrimedModelPrefixes
             hideOriginalModels
-            hideMappedModels
             overrideParameters
             proxy {
               type
@@ -67,7 +62,6 @@ const CHANNELS_QUERY = `
             transformOptions {
               forceArrayInstructions
               forceArrayInputs
-              replaceDeveloperRoleWithSystem
             }
           }
           orderingWeight
@@ -136,9 +130,6 @@ const CREATE_CHANNEL_MUTATION = `
       baseURL
       name
       status
-      policies {
-        stream
-      }
       supportedModels
       autoSyncSupportedModels
       tags
@@ -151,7 +142,6 @@ const CREATE_CHANNEL_MUTATION = `
         }
         autoTrimedModelPrefixes
         hideOriginalModels
-        hideMappedModels
         overrideParameters
         proxy {
           type
@@ -162,7 +152,6 @@ const CREATE_CHANNEL_MUTATION = `
         transformOptions {
           forceArrayInstructions
           forceArrayInputs
-          replaceDeveloperRoleWithSystem
         }
       }
       orderingWeight
@@ -181,9 +170,6 @@ const BULK_CREATE_CHANNELS_MUTATION = `
       baseURL
       name
       status
-      policies {
-        stream
-      }
       supportedModels
       autoSyncSupportedModels
       tags
@@ -196,7 +182,6 @@ const BULK_CREATE_CHANNELS_MUTATION = `
         }
         autoTrimedModelPrefixes
         hideOriginalModels
-        hideMappedModels
         overrideParameters
         proxy {
           type
@@ -207,7 +192,6 @@ const BULK_CREATE_CHANNELS_MUTATION = `
         transformOptions {
           forceArrayInstructions
           forceArrayInputs
-          replaceDeveloperRoleWithSystem
         }
       }
       orderingWeight
@@ -226,9 +210,6 @@ const UPDATE_CHANNEL_MUTATION = `
       baseURL
       name
       status
-      policies {
-        stream
-      }
       supportedModels
       autoSyncSupportedModels
       tags
@@ -241,7 +222,6 @@ const UPDATE_CHANNEL_MUTATION = `
         }
         autoTrimedModelPrefixes
         hideOriginalModels
-        hideMappedModels
         overrideParameters
         proxy {
           type
@@ -252,7 +232,6 @@ const UPDATE_CHANNEL_MUTATION = `
         transformOptions {
           forceArrayInstructions
           forceArrayInputs
-          replaceDeveloperRoleWithSystem
         }
       }
       orderingWeight
@@ -339,95 +318,10 @@ const BULK_IMPORT_CHANNELS_MUTATION = `
           }
           autoTrimedModelPrefixes
           hideOriginalModels
-          hideMappedModels
           overrideParameters
           transformOptions {
             forceArrayInstructions
             forceArrayInputs
-            replaceDeveloperRoleWithSystem
-          }
-        }
-      }
-    }
-  }
-`;
-
-const GET_CHANNEL_MODEL_PRICES_QUERY = `
-  query GetChannelModelPrices($id: ID!) {
-    node(id: $id) {
-    ... on Channel {
-      id
-      channelModelPrices {
-        id
-        modelID
-        price {
-          items {
-            itemCode
-            pricing {
-              mode
-              flatFee
-              usagePerUnit
-              usageTiered {
-                tiers {
-                  upTo
-                  pricePerUnit
-                }
-              }
-            }
-            promptWriteCacheVariants {
-              variantCode
-              pricing {
-                mode
-                flatFee
-                usagePerUnit
-                usageTiered {
-                  tiers {
-                    upTo
-                    pricePerUnit
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-`;
-
-const SAVE_CHANNEL_MODEL_PRICES_MUTATION = `
-  mutation SaveChannelModelPrices($channelId: ID!, $input: [SaveChannelModelPriceInput!]!) {
-    saveChannelModelPrices(channelId: $channelId, input: $input) {
-      id
-      modelID
-      price {
-        items {
-          itemCode
-          pricing {
-            mode
-            flatFee
-            usagePerUnit
-            usageTiered {
-              tiers {
-                upTo
-                pricePerUnit
-              }
-            }
-          }
-          promptWriteCacheVariants {
-            variantCode
-            pricing {
-              mode
-              flatFee
-              usagePerUnit
-              usageTiered {
-                tiers {
-                  upTo
-                  pricePerUnit
-                }
-              }
-            }
           }
         }
       }
@@ -460,11 +354,9 @@ const BULK_UPDATE_CHANNEL_ORDERING_MUTATION = `
           }
           autoTrimedModelPrefixes
           hideOriginalModels
-          hideMappedModels
           transformOptions {
             forceArrayInstructions
             forceArrayInputs
-            replaceDeveloperRoleWithSystem
           }
         }
       }
@@ -486,9 +378,6 @@ const ALL_CHANNELS_QUERY = `
           name
           type
           status
-          policies {
-            stream
-          }
           baseURL
           orderingWeight
           tags
@@ -543,9 +432,6 @@ const QUERY_CHANNELS_QUERY = `
           baseURL
           name
           status
-          policies {
-            stream
-          }
           credentials {
             apiKey
             aws {
@@ -571,7 +457,6 @@ const QUERY_CHANNELS_QUERY = `
             }
             autoTrimedModelPrefixes
             hideOriginalModels
-            hideMappedModels
             overrideParameters
             overrideHeaders{
               key
@@ -586,7 +471,6 @@ const QUERY_CHANNELS_QUERY = `
             transformOptions {
               forceArrayInstructions
               forceArrayInputs
-              replaceDeveloperRoleWithSystem
             }
           }
           orderingWeight
@@ -642,56 +526,8 @@ export function useChannels(
   });
 }
 
-export function useChannelModelPrices(channelId: string) {
-  const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
-
-  return useQuery({
-    queryKey: ['channelModelPrices', channelId],
-    queryFn: async () => {
-      try {
-        const data = await graphqlRequest<{ node: { channelModelPrices: ChannelModelPrice[] } }>(
-          GET_CHANNEL_MODEL_PRICES_QUERY,
-          { id: channelId }
-        );
-        const node = data.node as { channelModelPrices: ChannelModelPrice[] };
-        return (node?.channelModelPrices || []).map((p) => channelModelPriceSchema.parse(p));
-      } catch (error) {
-        handleError(error, t('channels.errors.fetchPrices'));
-        throw error;
-      }
-    },
-    enabled: !!channelId,
-  });
-}
-
-export function useSaveChannelModelPrices() {
-  const queryClient = useQueryClient();
-  const { t } = useTranslation();
-
-  return useMutation({
-    mutationFn: async ({ channelId, input }: { channelId: string; input: SaveChannelModelPriceInput[] }) => {
-      const data = await graphqlRequest<{ saveChannelModelPrices: ChannelModelPrice[] }>(
-        SAVE_CHANNEL_MODEL_PRICES_MUTATION,
-        {
-          channelId,
-          input,
-        }
-      );
-      return data.saveChannelModelPrices.map((p) => channelModelPriceSchema.parse(p));
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['channelModelPrices', variables.channelId] });
-      toast.success(t('channels.messages.savePricesSuccess'));
-    },
-    onError: (error) => {
-      toast.error(t('channels.messages.savePricesError', { error: error.message }));
-    },
-  });
-}
-
 // Use this hook to query channels with pagination and filtering
-export type ChannelOrderField = 'CREATED_AT' | 'UPDATED_AT' | 'ORDERING_WEIGHT' | 'NAME' | 'STATUS' | 'TYPE';
+export type ChannelOrderField = 'CREATED_AT' | 'UPDATED_AT' | 'ORDERING_WEIGHT' | 'NAME' | 'STATUS';
 
 export function useQueryChannels(
   variables?: {
@@ -833,12 +669,8 @@ export interface BulkCreateChannelsInput {
   tags?: string[];
   apiKeys: string[];
   supportedModels: string[];
-  autoSyncSupportedModels?: boolean;
   defaultTestModel: string;
   settings?: ChannelSettings;
-  policies?: ChannelPolicies;
-  orderingWeight?: number;
-  remark?: string;
 }
 
 export function useBulkCreateChannels() {
@@ -1254,40 +1086,5 @@ export function useAllChannelTags() {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-const CHANNEL_PROBE_DATA_QUERY = `
-  query GetChannelProbeData($input: GetChannelProbeDataInput!) {
-    channelProbeData(input: $input) {
-      channelID
-      points {
-        timestamp
-        totalRequestCount
-        successRequestCount
-      }
-    }
-  }
-`;
-
-export function useChannelProbeData(channelIDs: string[], options?: { enabled?: boolean }) {
-  const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
-
-  return useQuery({
-    queryKey: ['channelProbeData', channelIDs],
-    queryFn: async () => {
-      try {
-        const data = await graphqlRequest<{ channelProbeData: any[] }>(CHANNEL_PROBE_DATA_QUERY, {
-          input: { channelIDs },
-        });
-        return data.channelProbeData || [];
-      } catch (error) {
-        handleError(error, t('channels.errors.fetchProbeData'));
-        return [];
-      }
-    },
-    enabled: channelIDs.length > 0 && (options?.enabled !== false),
-    staleTime: 1 * 60 * 1000, // 1 minute
   });
 }

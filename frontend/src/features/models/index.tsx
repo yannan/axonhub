@@ -16,10 +16,8 @@ import { ModelsOnboardingFlow } from './components/models-onboarding-flow';
 import { ModelsTable } from './components/models-table';
 import ModelsProvider, { useModels } from './context/models-context';
 import { useQueryModels } from './data/models';
-import { useDevelopersData } from './data/providers';
 
 function ModelsContent() {
-  useDevelopersData();
   const { t } = useTranslation();
   const { modelPermissions } = usePermissions();
   const { pageSize, setCursors, setPageSize, resetCursor, paginationArgs } = usePaginationSearch({
@@ -46,12 +44,11 @@ function ModelsContent() {
   const debouncedNameFilter = useDebounce(nameFilter, 300);
 
   const whereClause = (() => {
+    const where: Record<string, string | string[]> = {};
     if (debouncedNameFilter) {
-      return {
-        or: [{ nameContainsFold: debouncedNameFilter }, { modelIDContainsFold: debouncedNameFilter }],
-      };
+      where.nameContainsFold = debouncedNameFilter;
     }
-    return undefined;
+    return Object.keys(where).length > 0 ? where : undefined;
   })();
 
   const currentOrderBy = (() => {
@@ -101,8 +98,7 @@ function ModelsContent() {
       setNameFilter(filter);
       resetCursor();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setNameFilter]
+    [resetCursor, setNameFilter]
   );
 
   const columns = useMemo(() => createColumns(t, modelPermissions.canWrite), [t, modelPermissions.canWrite]);
@@ -181,12 +177,16 @@ function ActionButtons() {
   return (
     <div className='flex gap-2'>
       <PermissionGuard requiredScope='write_channels'>
-        <>
-          <DetectUnassociatedButton />
-          <SettingsButton />
-          <BulkAddButton />
-          <CreateButton />
-        </>
+        <DetectUnassociatedButton />
+      </PermissionGuard>
+      <PermissionGuard requiredScope='write_channels'>
+        <SettingsButton />
+      </PermissionGuard>
+      <PermissionGuard requiredScope='write_channels'>
+        <BulkAddButton />
+      </PermissionGuard>
+      <PermissionGuard requiredScope='write_channels'>
+        <CreateButton />
       </PermissionGuard>
     </div>
   );
@@ -211,17 +211,16 @@ export default function ModelsManagement() {
 
   return (
     <ModelsProvider>
-      <Header fixed>
-        <div className='flex flex-1 items-center justify-between'>
+      <Header fixed />
+
+      <Main fixed>
+        <div className='mb-2 flex flex-wrap items-center justify-between space-y-2'>
           <div>
-            <h2 className='text-xl font-bold tracking-tight'>{t('models.title')}</h2>
-            <p className='text-muted-foreground text-sm'>{t('models.description')}</p>
+            <h2 className='text-2xl font-bold tracking-tight'>{t('models.title')}</h2>
+            <p className='text-muted-foreground'>{t('models.description')}</p>
           </div>
           <ActionButtons />
         </div>
-      </Header>
-
-      <Main fixed>
         <ModelsContent />
       </Main>
       <ModelsDialogs />

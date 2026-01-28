@@ -1,6 +1,33 @@
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
+import { startOfDay, endOfDay, startOfWeek, startOfMonth, format } from 'date-fns';
 import { graphqlRequest } from '@/gql/graphql';
+import { projectApi } from '@/lib/api-client';
+import { useSelectedProjectId } from '@/stores/projectStore';
+
+function getRangeDates(range: 'thisDay' | 'thisWeek' | 'thisMonth') {
+  const now = new Date();
+  let start: Date;
+  const end: Date = endOfDay(now);
+
+  switch (range) {
+    case 'thisDay':
+      start = startOfDay(now);
+      break;
+    case 'thisWeek':
+      start = startOfWeek(now, { weekStartsOn: 1 });
+      break;
+    case 'thisMonth':
+      start = startOfMonth(now);
+      break;
+  }
+
+  const fmt = 'yyyy-MM-dd';
+  return {
+    start_date: format(start, fmt),
+    end_date: format(end, fmt),
+  };
+}
 
 // Schema definitions
 export const requestStatsSchema = z.object({
@@ -11,6 +38,7 @@ export const requestStatsSchema = z.object({
 });
 
 export const dashboardStatsSchema = z.object({
+  totalUsers: z.number(),
   totalRequests: z.number(),
   requestStats: requestStatsSchema,
   failedRequests: z.number(),
@@ -19,6 +47,7 @@ export const dashboardStatsSchema = z.object({
 
 export const requestsByChannelSchema = z.object({
   channelName: z.string(),
+  channelType: z.string(),
   count: z.number(),
 });
 
@@ -27,27 +56,9 @@ export const requestsByModelSchema = z.object({
   count: z.number(),
 });
 
-export const requestsByAPIKeySchema = z.object({
-  apiKeyId: z.string(),
-  apiKeyName: z.string(),
-  count: z.number(),
-});
-
-export const tokensByAPIKeySchema = z.object({
-  apiKeyId: z.string(),
-  apiKeyName: z.string(),
-  inputTokens: z.number(),
-  outputTokens: z.number(),
-  cachedTokens: z.number(),
-  reasoningTokens: z.number(),
-  totalTokens: z.number(),
-});
-
 export const dailyRequestStatsSchema = z.object({
   date: z.string(),
   count: z.number(),
-  tokens: z.number(),
-  cost: z.number(),
 });
 
 export const hourlyRequestStatsSchema = z.object({
@@ -76,8 +87,6 @@ export type RequestStats = z.infer<typeof requestStatsSchema>;
 export type DashboardStats = z.infer<typeof dashboardStatsSchema>;
 export type RequestsByChannel = z.infer<typeof requestsByChannelSchema>;
 export type RequestsByModel = z.infer<typeof requestsByModelSchema>;
-export type RequestsByAPIKey = z.infer<typeof requestsByAPIKeySchema>;
-export type TokensByAPIKey = z.infer<typeof tokensByAPIKeySchema>;
 export type DailyRequestStats = z.infer<typeof dailyRequestStatsSchema>;
 export type HourlyRequestStats = z.infer<typeof hourlyRequestStatsSchema>;
 export type TopProjects = z.infer<typeof topProjectsSchema>;
@@ -101,6 +110,7 @@ export type TokenStats = z.infer<typeof tokenStatsSchema>;
 const DASHBOARD_STATS_QUERY = `
   query GetDashboardStats {
     dashboardOverview {
+      totalUsers
       totalRequests
       requestStats {
         requestsToday
@@ -118,6 +128,7 @@ const REQUESTS_BY_CHANNEL_QUERY = `
   query GetRequestsByChannel {
     requestStatsByChannel {
       channelName
+      channelType
       count
     }
   }
@@ -132,37 +143,11 @@ const REQUESTS_BY_MODEL_QUERY = `
   }
 `;
 
-const REQUESTS_BY_API_KEY_QUERY = `
-  query GetRequestsByAPIKey {
-    requestStatsByAPIKey {
-      apiKeyId
-      apiKeyName
-      count
-    }
-  }
-`;
-
-const TOKENS_BY_API_KEY_QUERY = `
-  query GetTokensByAPIKey {
-    tokenStatsByAPIKey {
-      apiKeyId
-      apiKeyName
-      inputTokens
-      outputTokens
-      cachedTokens
-      reasoningTokens
-      totalTokens
-    }
-  }
-`;
-
 const DAILY_REQUEST_STATS_QUERY = `
   query GetDailyRequestStats {
     dailyRequestStats {
       date
       count
-      tokens
-      cost
     }
   }
 `;
@@ -254,28 +239,6 @@ export function useRequestsByModel() {
   });
 }
 
-export function useRequestsByAPIKey() {
-  return useQuery({
-    queryKey: ['requestStatsByAPIKey'],
-    queryFn: async () => {
-      const data = await graphqlRequest<{ requestStatsByAPIKey: RequestsByAPIKey[] }>(REQUESTS_BY_API_KEY_QUERY);
-      return data.requestStatsByAPIKey.map((item) => requestsByAPIKeySchema.parse(item));
-    },
-    refetchInterval: 60000,
-  });
-}
-
-export function useTokensByAPIKey() {
-  return useQuery({
-    queryKey: ['tokenStatsByAPIKey'],
-    queryFn: async () => {
-      const data = await graphqlRequest<{ tokenStatsByAPIKey: TokensByAPIKey[] }>(TOKENS_BY_API_KEY_QUERY);
-      return data.tokenStatsByAPIKey.map((item) => tokensByAPIKeySchema.parse(item));
-    },
-    refetchInterval: 60000, // Auto-refresh every 60 seconds
-  });
-}
-
 export function useDailyRequestStats() {
   return useQuery({
     queryKey: ['dailyRequestStats'],
@@ -310,6 +273,40 @@ export function useTopProjects() {
 }
 
 export function useTokenStats() {
+  const projectId = useSelectedProjectId();
+  return useQuery({
+    queryKey: ['tokenStats', projectId],
+    queryFn: async () => {
+      if (projectId) {
+        const [dayStats, weekStats, monthStats] = await Promise.all([
+          projectApi.getDashboardStats(projectId, getRangeDates('thisDay')),
+          projectApi.getDashboardStats(projectId, getRangeDates('thisWeek')),
+          projectApi.getDashboardStats(projectId, getRangeDates('thisMonth')),
+        ]);
+
+        if (dayStats.success && weekStats.success && monthStats.success) {
+          return {
+            totalInputTokensToday: dayStats.data.prompt_tokens,
+            totalOutputTokensToday: dayStats.data.completion_tokens,
+            totalCachedTokensToday: dayStats.data.total_tokens,
+            totalInputTokensThisWeek: weekStats.data.prompt_tokens,
+            totalOutputTokensThisWeek: weekStats.data.completion_tokens,
+            totalCachedTokensThisWeek: weekStats.data.total_tokens,
+            totalInputTokensThisMonth: monthStats.data.prompt_tokens,
+            totalOutputTokensThisMonth: monthStats.data.completion_tokens,
+            totalCachedTokensThisMonth: monthStats.data.total_tokens,
+          };
+        }
+        throw new Error('Failed to fetch dashboard stats');
+      }
+      const data = await graphqlRequest<{ tokenStats: TokenStats }>(TOKEN_STATS_AGGR_QUERY);
+      return tokenStatsSchema.parse(data.tokenStats);
+    },
+    refetchInterval: 300000,
+  });
+}
+
+export function useTokenStatsCOPY() {
   return useQuery({
     queryKey: ['tokenStats'],
     queryFn: async () => {

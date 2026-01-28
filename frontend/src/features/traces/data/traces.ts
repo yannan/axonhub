@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
 import { graphqlRequest } from '@/gql/graphql';
 import { useSelectedProjectId } from '@/stores/projectStore';
 import { useErrorHandler } from '@/hooks/use-error-handler';
@@ -54,14 +53,6 @@ function buildTraceDetailQuery() {
           traceID
           createdAt
           updatedAt
-          usageMetadata {
-            totalInputTokens
-            totalOutputTokens
-            totalTokens
-            totalCost
-            totalCachedTokens
-            totalCachedWriteTokens
-          }
           project {
             id
             name
@@ -88,14 +79,6 @@ function buildTraceWithRequestTracesQuery() {
           traceID
           createdAt
           updatedAt
-          usageMetadata {
-            totalInputTokens
-            totalOutputTokens
-            totalTokens
-            totalCost
-            totalCachedTokens
-            totalCachedWriteTokens
-          }
           project {
             id
             name
@@ -127,7 +110,6 @@ export function useTraces(variables?: {
   };
 }) {
   const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
   const selectedProjectId = useSelectedProjectId();
 
   return useQuery({
@@ -149,7 +131,7 @@ export function useTraces(variables?: {
         const data = await graphqlRequest<{ traces: TraceConnection }>(query, finalVariables, headers);
         return traceConnectionSchema.parse(data?.traces);
       } catch (error) {
-        handleError(error, t('traces.errors.loadTracesFailed'));
+        handleError(error, '获取追踪数据');
         throw error;
       }
     },
@@ -159,7 +141,6 @@ export function useTraces(variables?: {
 
 export function useTrace(id: string) {
   const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
   const selectedProjectId = useSelectedProjectId();
 
   return useQuery({
@@ -174,7 +155,7 @@ export function useTrace(id: string) {
         }
         return traceDetailSchema.parse(data.node);
       } catch (error) {
-        handleError(error, t('traces.errors.loadTraceDetailFailed'));
+        handleError(error, '获取追踪详情');
         throw error;
       }
     },
@@ -184,7 +165,6 @@ export function useTrace(id: string) {
 
 export function useTraceWithSegments(id: string) {
   const { handleError } = useErrorHandler();
-  const { t } = useTranslation();
   const selectedProjectId = useSelectedProjectId();
 
   return useQuery({
@@ -199,7 +179,7 @@ export function useTraceWithSegments(id: string) {
         }
         return traceDetailSchema.parse(data.node);
       } catch (error) {
-        handleError(error, t('traces.errors.loadTraceDetailFailed'));
+        handleError(error, '获取追踪详情');
         throw error;
       }
     },

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { pageInfoSchema } from '@/gql/pagination';
 
-export const apiFormatSchema = z.enum(['openai/chat_completions', 'openai/responses', 'anthropic/messages', 'gemini/contents']);
+const apiFormatSchema = z.enum(['openai/chat_completions', 'openai/responses', 'anthropic/messages', 'gemini/contents']);
 
 export type ApiFormat = z.infer<typeof apiFormatSchema>;
 
@@ -9,7 +9,6 @@ export type ApiFormat = z.infer<typeof apiFormatSchema>;
 export const channelTypeSchema = z.enum([
   'openai',
   'openai_responses',
-  'codex',
   'anthropic',
   'anthropic_aws',
   'anthropic_gcp',
@@ -44,23 +43,12 @@ export const channelTypeSchema = z.enum([
   'modelscope',
   'bailian',
   'jina',
-  'github',
-  'claudecode',
-  'cerebras',
 ]);
 export type ChannelType = z.infer<typeof channelTypeSchema>;
 
 // Channel Status
 export const channelStatusSchema = z.enum(['enabled', 'disabled', 'archived']);
 export type ChannelStatus = z.infer<typeof channelStatusSchema>;
-
-export const capabilityPolicySchema = z.enum(['unlimited', 'require', 'forbid']);
-export type CapabilityPolicy = z.infer<typeof capabilityPolicySchema>;
-
-export const channelPoliciesSchema = z.object({
-  stream: capabilityPolicySchema.optional(),
-});
-export type ChannelPolicies = z.infer<typeof channelPoliciesSchema>;
 
 // Model Mapping
 export const modelMappingSchema = z.object({
@@ -93,7 +81,6 @@ export type ProxyConfig = z.infer<typeof proxyConfigSchema>;
 export const transformOptionsSchema = z.object({
   forceArrayInstructions: z.boolean().optional(),
   forceArrayInputs: z.boolean().optional(),
-  replaceDeveloperRoleWithSystem: z.boolean().optional(),
 });
 export type TransformOptions = z.infer<typeof transformOptionsSchema>;
 
@@ -106,27 +93,12 @@ export const channelPerformanceSchema = z.object({
 });
 export type ChannelPerformance = z.infer<typeof channelPerformanceSchema>;
 
-// Channel Probe
-export const channelProbePointSchema = z.object({
-  timestamp: z.number(),
-  totalRequestCount: z.number(),
-  successRequestCount: z.number(),
-});
-export type ChannelProbePoint = z.infer<typeof channelProbePointSchema>;
-
-export const channelProbeDataSchema = z.object({
-  channelID: z.string(),
-  points: z.array(channelProbePointSchema),
-});
-export type ChannelProbeData = z.infer<typeof channelProbeDataSchema>;
-
 // Channel Settings
 export const channelSettingsSchema = z.object({
   extraModelPrefix: z.string().optional(),
   modelMappings: z.array(modelMappingSchema).nullable(),
   autoTrimedModelPrefixes: z.array(z.string()).optional().nullable(),
   hideOriginalModels: z.boolean().optional(),
-  hideMappedModels: z.boolean().optional(),
   overrideParameters: z.string().optional(),
   overrideHeaders: z.array(headerEntrySchema).optional().nullable(),
   proxy: proxyConfigSchema.optional().nullable(),
@@ -145,18 +117,6 @@ export type ChannelModelEntry = z.infer<typeof channelModelEntrySchema>;
 // Channel Credentials
 export const channelCredentialsSchema = z.object({
   apiKey: z.string().optional().nullable(),
-  oauth: z
-    .object({
-      accessToken: z.string().optional().nullable(),
-      refreshToken: z.string().optional().nullable(),
-      clientID: z.string().optional().nullable(),
-      accountID: z.string().optional().nullable(),
-      expiresAt: z.string().optional().nullable(),
-      tokenType: z.string().optional().nullable(),
-      scopes: z.array(z.string()).optional().nullable(),
-    })
-    .optional()
-    .nullable(),
   aws: z
     .object({
       accessKeyID: z.string(),
@@ -185,7 +145,6 @@ export const channelSchema = z.object({
   baseURL: z.string(),
   name: z.string(),
   status: channelStatusSchema,
-  policies: channelPoliciesSchema.optional().nullable(),
   credentials: channelCredentialsSchema.optional().nullable(),
   supportedModels: z.array(z.string()),
   autoSyncSupportedModels: z.boolean().default(false),
@@ -200,76 +159,17 @@ export const channelSchema = z.object({
 });
 export type Channel = z.infer<typeof channelSchema>;
 
-// Pricing Schemas
-export const pricingModeSchema = z.enum(['flat_fee', 'usage_per_unit', 'usage_tiered']);
-export type PricingMode = z.infer<typeof pricingModeSchema>;
-
-export const priceItemCodeSchema = z.enum(['prompt_tokens', 'completion_tokens', 'prompt_cached_tokens', 'prompt_write_cached_tokens']);
-export type PriceItemCode = z.infer<typeof priceItemCodeSchema>;
-
-export const priceTierSchema = z.object({
-  upTo: z.number().nullable().optional(),
-  pricePerUnit: z.union([z.string(), z.number()]),
-});
-export type PriceTier = z.infer<typeof priceTierSchema>;
-
-export const tieredPricingSchema = z.object({
-  tiers: z.array(priceTierSchema),
-});
-export type TieredPricing = z.infer<typeof tieredPricingSchema>;
-
-export const pricingSchema = z.object({
-  mode: pricingModeSchema,
-  flatFee: z.union([z.string(), z.number()]).nullable().optional(),
-  usagePerUnit: z.union([z.string(), z.number()]).nullable().optional(),
-  usageTiered: tieredPricingSchema.nullable().optional(),
-});
-export type Pricing = z.infer<typeof pricingSchema>;
-
-export const promptWriteCacheVariantSchema = z.object({
-  variantCode: z.enum(['five_min', 'one_hour']),
-  pricing: pricingSchema,
-});
-export type PromptWriteCacheVariant = z.infer<typeof promptWriteCacheVariantSchema>;
-
-export const modelPriceItemSchema = z.object({
-  itemCode: priceItemCodeSchema,
-  pricing: pricingSchema,
-  promptWriteCacheVariants: z.array(promptWriteCacheVariantSchema).nullable().optional(),
-});
-export type ModelPriceItem = z.infer<typeof modelPriceItemSchema>;
-
-export const modelPriceSchema = z.object({
-  items: z.array(modelPriceItemSchema),
-});
-export type ModelPrice = z.infer<typeof modelPriceSchema>;
-
-export const channelModelPriceSchema = z.object({
-  id: z.string(),
-  modelID: z.string(),
-  price: modelPriceSchema,
-});
-export type ChannelModelPrice = z.infer<typeof channelModelPriceSchema>;
-
-export const saveChannelModelPriceInputSchema = z.object({
-  modelId: z.string(),
-  price: modelPriceSchema,
-});
-export type SaveChannelModelPriceInput = z.infer<typeof saveChannelModelPriceInputSchema>;
-
 // Create Channel Input
 export const createChannelInputSchema = z
   .object({
     type: channelTypeSchema,
-    baseURL: z.url('Please enter a valid URL'),
+    baseURL: z.string().url('Please enter a valid URL'),
     name: z.string().min(1, 'Name is required'),
-    policies: channelPoliciesSchema.optional(),
     supportedModels: z.array(z.string()).min(0, 'At least one supported model is required'),
     autoSyncSupportedModels: z.boolean().optional().default(false),
     tags: z.array(z.string()).optional().default([]),
     defaultTestModel: z.string().min(1, 'Please select a default test model'),
     remark: z.string().optional(),
-    orderingWeight: z.number().int().optional(),
     settings: channelSettingsSchema.optional(),
     credentials: z.object({
       apiKey: z.string().min(1, 'API Key is required'),
@@ -290,37 +190,6 @@ export const createChannelInputSchema = z
     }),
   })
   .superRefine((data, ctx) => {
-    if (data.type === 'codex') {
-      const apiKey = data.credentials.apiKey;
-      // Only enforce JSON validation if it looks like JSON (starts with '{')
-      if (apiKey && apiKey.trim().startsWith('{')) {
-        const issue = {
-          code: 'custom' as const,
-          message: 'channels.dialogs.fields.supportedModels.codexOAuthCredentialsRequired',
-          path: ['credentials', 'apiKey'],
-        };
-
-        let json: unknown;
-        try {
-          json = JSON.parse(apiKey);
-        } catch {
-          ctx.addIssue(issue);
-          return;
-        }
-
-        const parsed = z
-          .object({
-            access_token: z.string().min(1),
-            refresh_token: z.string().min(1),
-          })
-          .safeParse(json);
-
-        if (!parsed.success) {
-          ctx.addIssue(issue);
-        }
-      }
-    }
-
     // 如果是 anthropic_gcp 类型，GCP 字段必填（精确到字段级报错）
     if (data.type === 'anthropic_gcp') {
       const gcp = data.credentials?.gcp;
@@ -355,7 +224,6 @@ export const updateChannelInputSchema = z
     type: channelTypeSchema.optional(),
     baseURL: z.string().url('Please enter a valid URL').optional(),
     name: z.string().min(1, 'Name is required').optional(),
-    policies: channelPoliciesSchema.optional(),
     supportedModels: z.array(z.string()).min(1, 'At least one supported model is required').optional(),
     autoSyncSupportedModels: z.boolean().optional(),
     tags: z.array(z.string()).optional(),
@@ -385,39 +253,6 @@ export const updateChannelInputSchema = z
     orderingWeight: z.number().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.type === 'codex') {
-      if (!data.credentials) return;
-
-      const apiKey = data.credentials.apiKey;
-      // Only enforce JSON validation if it looks like JSON (starts with '{')
-      if (apiKey && apiKey.trim().startsWith('{')) {
-        const issue = {
-          code: 'custom' as const,
-          message: 'channels.dialogs.fields.supportedModels.codexOAuthCredentialsRequired',
-          path: ['credentials', 'apiKey'],
-        };
-
-        let json: unknown;
-        try {
-          json = JSON.parse(apiKey);
-        } catch {
-          ctx.addIssue(issue);
-          return;
-        }
-
-        const parsed = z
-          .object({
-            access_token: z.string().min(1),
-            refresh_token: z.string().min(1),
-          })
-          .safeParse(json);
-
-        if (!parsed.success) {
-          ctx.addIssue(issue);
-        }
-      }
-    }
-
     // 如果是 anthropic_gcp 类型且提供了 credentials，GCP 字段必填（字段级报错）
     if (data.type === 'anthropic_gcp' && data.credentials) {
       const gcp = data.credentials.gcp;

@@ -2,12 +2,17 @@ package orchestrator
 
 import (
 	"context"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/looplj/axonhub/internal/contexts"
+	entrequest "github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/log"
+	"github.com/looplj/axonhub/internal/pkg/filter"
 	"github.com/looplj/axonhub/internal/pkg/xcontext"
 	"github.com/looplj/axonhub/internal/server/biz"
+	"github.com/looplj/axonhub/llm"
 	"github.com/looplj/axonhub/llm/httpclient"
 	"github.com/looplj/axonhub/llm/pipeline"
 	"github.com/looplj/axonhub/llm/pipeline/stream"
@@ -25,6 +30,7 @@ func NewChatCompletionOrchestrator(
 	usageLogService *biz.UsageLogService,
 	promptService *biz.PromptService,
 	quotaService *biz.QuotaService,
+	validationEngine *filter.ValidationEngine,
 ) *ChatCompletionOrchestrator {
 	connectionTracker := NewDefaultConnectionTracker(256)
 
@@ -65,20 +71,23 @@ func NewChatCompletionOrchestrator(
 		circuitBreakerLoadBalancer: circuitBreakerLoadBalancer,
 		modelCircuitBreaker:        modelCircuitBreaker,
 		proxy:                      nil,
+		ValidationEngine:           validationEngine,
 	}
 }
 
 type ChatCompletionOrchestrator struct {
-	Inbound         transformer.Inbound
-	RequestService  *biz.RequestService
-	ChannelService  *biz.ChannelService
-	SystemService   *biz.SystemService
-	UsageLogService *biz.UsageLogService
-	QuotaService    *biz.QuotaService
-	PromptProvider  PromptProvider
-	Middlewares     []pipeline.Middleware
-	PipelineFactory *pipeline.Factory
-	ModelMapper     *ModelMapper
+	Inbound          transformer.Inbound
+	RequestService   *biz.RequestService
+	ChannelService   *biz.ChannelService
+	SystemService    *biz.SystemService
+	UsageLogService  *biz.UsageLogService
+	QuotaService     *biz.QuotaService
+	PromptProvider   PromptProvider
+	Middlewares      []pipeline.Middleware
+	PipelineFactory  *pipeline.Factory
+	ModelMapper      *ModelMapper
+	Internal         func(*gin.Context)
+	ValidationEngine *filter.ValidationEngine
 
 	// The runtime fields.
 
@@ -196,6 +205,7 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 		selectCandidates(inbound),
 		injectPrompts(inbound),
 		persistRequest(inbound),
+		validateContent(inbound, processor.ValidationEngine),
 	)
 
 	// Add outbound middlewares (executed after outbound.TransformRequest)
@@ -267,4 +277,32 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 		ChatCompletion:       result.Response,
 		ChatCompletionStream: nil,
 	}, nil
+}
+
+func validateContent(inbound transformer.Inbound, engine *filter.ValidationEngine) pipeline.Middleware {
+	return pipeline.OnRawRequest("validate-content", func(ctx context.Context, request *httpclient.Request) (*httpclient.Request, error) {
+		if source := contexts.GetSourceOrDefault(ctx, entrequest.SourceAPI); source == entrequest.SourcePlayground {
+			return request, nil
+		}
+
+		if apiKey, ok := contexts.GetAPIKey(ctx); ok && apiKey != nil && !apiKey.ContentSafetyInterceptEnabled {
+			return request, nil
+		}
+
+		// Skip body check for now or ensure stream bodies are handled.
+		// Assuming prompt is in body and body is string-ish.
+		if engine != nil {
+			if valid, word := engine.Validate(string(request.Body)); !valid {
+				return nil, &llm.ResponseError{
+					StatusCode: http.StatusBadRequest,
+					Detail: llm.ErrorDetail{
+						Message: "Request contains sensitive word: " + word,
+						Type:    "content_policy_violation",
+						Code:    "sensitive_content",
+					},
+				}
+			}
+		}
+		return request, nil
+	})
 }

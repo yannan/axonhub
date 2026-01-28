@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import useInterval from './useInterval';
 
 const MAX_ITEMS = 50;
-const parsedInterval = parseInt(import.meta.env.VITE_REQUESTS_ANIMATION_INTERVAL, 10);
-const ANIMATION_INTERVAL = !isNaN(parsedInterval) && parsedInterval > 0 ? parsedInterval : 500;
+const ANIMATION_INTERVAL = 500;
 
 export function useAnimatedList<T extends { id: string; createdAt: Date | string }>(data: T[], autoRefresh: boolean) {
   const [displayedData, setDisplayedData] = useState<T[]>(data);

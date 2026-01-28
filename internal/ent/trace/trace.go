@@ -25,6 +25,8 @@ const (
 	FieldTraceID = "trace_id"
 	// FieldThreadID holds the string denoting the thread_id field in the database.
 	FieldThreadID = "thread_id"
+	// FieldCost holds the string denoting the cost field in the database.
+	FieldCost = "cost"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
 	// EdgeThread holds the string denoting the thread edge name in mutations.
@@ -64,6 +66,7 @@ var Columns = []string{
 	FieldProjectID,
 	FieldTraceID,
 	FieldThreadID,
+	FieldCost,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -90,6 +93,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultCost holds the default value on creation for the "cost" field.
+	DefaultCost int64
 )
 
 // OrderOption defines the ordering options for the Trace queries.
@@ -123,6 +128,11 @@ func ByTraceID(opts ...sql.OrderTermOption) OrderOption {
 // ByThreadID orders the results by the thread_id field.
 func ByThreadID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldThreadID, opts...).ToFunc()
+}
+
+// ByCost orders the results by the cost field.
+func ByCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCost, opts...).ToFunc()
 }
 
 // ByProjectField orders the results by project field.

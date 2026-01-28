@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/request"
@@ -343,6 +344,11 @@ func (_c *UsageLogCreate) SetRequest(v *Request) *UsageLogCreate {
 	return _c.SetRequestID(v.ID)
 }
 
+// SetAPIKey sets the "api_key" edge to the APIKey entity.
+func (_c *UsageLogCreate) SetAPIKey(v *APIKey) *UsageLogCreate {
+	return _c.SetAPIKeyID(v.ID)
+}
+
 // SetProject sets the "project" edge to the Project entity.
 func (_c *UsageLogCreate) SetProject(v *Project) *UsageLogCreate {
 	return _c.SetProjectID(v.ID)
@@ -549,10 +555,6 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 		_spec.SetField(usagelog.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if value, ok := _c.mutation.APIKeyID(); ok {
-		_spec.SetField(usagelog.FieldAPIKeyID, field.TypeInt, value)
-		_node.APIKeyID = value
-	}
 	if value, ok := _c.mutation.ModelID(); ok {
 		_spec.SetField(usagelog.FieldModelID, field.TypeString, value)
 		_node.ModelID = value
@@ -640,6 +642,23 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.RequestID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.APIKeyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   usagelog.APIKeyTable,
+			Columns: []string{usagelog.APIKeyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(apikey.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.APIKeyID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.ProjectIDs(); len(nodes) > 0 {

@@ -21,7 +21,8 @@ export const apiKeySchema = z.object({
   type: apiKeyTypeSchema,
   status: apiKeyStatusSchema,
   scopes: z.array(z.string()).optional().nullable(),
-  // Optional profiles for detailed view (may be omitted in list queries)
+  ipWhitelist: z.string().optional().nullable(),
+  contentSafetyInterceptEnabled: z.boolean().optional(),
   profiles: z
     .object({
       activeProfile: z.string(),
@@ -38,31 +39,6 @@ export const apiKeySchema = z.object({
             channelIDs: z.array(z.number()).optional().nullable(),
             channelTags: z.array(z.string()).optional().nullable(),
             modelIDs: z.array(z.string()).optional().nullable(),
-            loadBalanceStrategy: z.string().optional().nullable(),
-            quota: z
-              .object({
-                requests: z.number().optional().nullable(),
-                totalTokens: z.number().optional().nullable(),
-                cost: z.number().optional().nullable(),
-                period: z.object({
-                  type: z.enum(['all_time', 'past_duration', 'calendar_duration']),
-                  pastDuration: z
-                    .object({
-                      value: z.number(),
-                      unit: z.enum(['hour', 'day']),
-                    })
-                    .optional()
-                    .nullable(),
-                  calendarDuration: z
-                    .object({
-                      unit: z.enum(['day', 'month']),
-                    })
-                    .optional()
-                    .nullable(),
-                }),
-              })
-              .optional()
-              .nullable(),
           })
         )
         .nullable(),
@@ -91,14 +67,17 @@ export const createApiKeyInputSchemaFactory = (t: (key: string) => string) =>
     name: z.string().min(1, t('apikeys.validation.nameRequired')),
     type: apiKeyTypeSchema.optional(),
     scopes: z.array(z.string()).optional(),
+    ipWhitelist: z.string().optional(),
+    contentSafetyInterceptEnabled: z.boolean().optional(),
     projectID: z.number().optional(),
   });
 
-// Default schema for backward compatibility
 export const createApiKeyInputSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   type: apiKeyTypeSchema.optional(),
   scopes: z.array(z.string()).optional(),
+  ipWhitelist: z.string().optional(),
+  contentSafetyInterceptEnabled: z.boolean().optional(),
   projectID: z.number().optional(),
 });
 export type CreateApiKeyInput = z.infer<typeof createApiKeyInputSchema>;
@@ -108,12 +87,17 @@ export const updateApiKeyInputSchemaFactory = (t: (key: string) => string) =>
   z.object({
     name: z.string().min(1, t('apikeys.validation.nameRequired')).optional(),
     scopes: z.array(z.string()).optional(),
+    ipWhitelist: z.string().optional(),
+    clearIPWhitelist: z.boolean().optional(),
+    contentSafetyInterceptEnabled: z.boolean().optional(),
   });
 
-// Default schema for backward compatibility
 export const updateApiKeyInputSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   scopes: z.array(z.string()).optional(),
+  ipWhitelist: z.string().optional(),
+  clearIPWhitelist: z.boolean().optional(),
+  contentSafetyInterceptEnabled: z.boolean().optional(),
 });
 export type UpdateApiKeyInput = z.infer<typeof updateApiKeyInputSchema>;
 
@@ -131,31 +115,6 @@ export const apiKeyProfileSchema = z.object({
   channelIDs: z.array(z.number()).optional().nullable(),
   channelTags: z.array(z.string()).optional().nullable(),
   modelIDs: z.array(z.string()).optional().nullable(),
-  loadBalanceStrategy: z.string().optional().nullable(),
-  quota: z
-    .object({
-      requests: z.number().optional().nullable(),
-      totalTokens: z.number().optional().nullable(),
-      cost: z.number().optional().nullable(),
-      period: z.object({
-        type: z.enum(['all_time', 'past_duration', 'calendar_duration']),
-        pastDuration: z
-          .object({
-            value: z.number().int().positive(),
-            unit: z.enum(['hour', 'day']),
-          })
-          .optional()
-          .nullable(),
-        calendarDuration: z
-          .object({
-            unit: z.enum(['day', 'month']),
-          })
-          .optional()
-          .nullable(),
-      }),
-    })
-    .optional()
-    .nullable(),
 });
 export type ApiKeyProfile = z.infer<typeof apiKeyProfileSchema>;
 
@@ -184,31 +143,6 @@ export const updateApiKeyProfilesInputSchemaFactory = (t: (key: string) => strin
             channelIDs: z.array(z.number()).optional().nullable(),
             channelTags: z.array(z.string()).optional().nullable(),
             modelIDs: z.array(z.string()).optional().nullable(),
-            loadBalanceStrategy: z.string().optional().nullable(),
-            quota: z
-              .object({
-                requests: z.number().int().positive().optional().nullable(),
-                totalTokens: z.number().int().positive().optional().nullable(),
-                cost: z.number().optional().nullable(),
-                period: z.object({
-                  type: z.enum(['all_time', 'past_duration', 'calendar_duration']),
-                  pastDuration: z
-                    .object({
-                      value: z.number().int().positive(),
-                      unit: z.enum(['hour', 'day']),
-                    })
-                    .optional()
-                    .nullable(),
-                  calendarDuration: z
-                    .object({
-                      unit: z.enum(['day', 'month']),
-                    })
-                    .optional()
-                    .nullable(),
-                }),
-              })
-              .optional()
-              .nullable(),
           })
         )
         .min(1, t('apikeys.validation.atLeastOneProfile')),
@@ -226,47 +160,7 @@ export const updateApiKeyProfilesInputSchemaFactory = (t: (key: string) => strin
         message: t('apikeys.validation.duplicateProfileName'),
         path: ['profiles'],
       }
-    )
-    .superRefine((data, ctx) => {
-      data.profiles.forEach((profile, index) => {
-        const quota = profile.quota;
-        if (!quota) {
-          return;
-        }
-
-        const requests = quota.requests ?? undefined;
-        const totalTokens = quota.totalTokens ?? undefined;
-        const cost = quota.cost ?? undefined;
-
-        if (requests == null && totalTokens == null && cost == null) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: t('apikeys.validation.quotaAtLeastOneLimit'),
-            path: ['profiles', index, 'quota'],
-          });
-        }
-
-        if (quota.period.type === 'past_duration') {
-          if (!quota.period.pastDuration) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: t('apikeys.validation.quotaPastDurationRequired'),
-              path: ['profiles', index, 'quota', 'period', 'pastDuration'],
-            });
-          }
-        }
-
-        if (quota.period.type === 'calendar_duration') {
-          if (!quota.period.calendarDuration) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: t('apikeys.validation.quotaCalendarDurationRequired'),
-              path: ['profiles', index, 'quota', 'period', 'calendarDuration'],
-            });
-          }
-        }
-      });
-    });
+    );
 
 // Default schema for backward compatibility
 export const updateApiKeyProfilesInputSchema = z.object({
@@ -283,31 +177,6 @@ export const updateApiKeyProfilesInputSchema = z.object({
       channelIDs: z.array(z.number()).optional().nullable(),
       channelTags: z.array(z.string()).optional().nullable(),
       modelIDs: z.array(z.string()).optional().nullable(),
-      loadBalanceStrategy: z.string().optional().nullable(),
-      quota: z
-        .object({
-          requests: z.number().int().positive().optional().nullable(),
-          totalTokens: z.number().optional().nullable(),
-          cost: z.number().optional().nullable(),
-          period: z.object({
-            type: z.enum(['all_time', 'past_duration', 'calendar_duration']),
-            pastDuration: z
-              .object({
-                value: z.number(),
-                unit: z.enum(['hour', 'day']),
-              })
-              .optional()
-              .nullable(),
-            calendarDuration: z
-              .object({
-                unit: z.enum(['day', 'month']),
-              })
-              .optional()
-              .nullable(),
-          }),
-        })
-        .optional()
-        .nullable(),
     })
   ),
 });

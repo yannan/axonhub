@@ -45,6 +45,11 @@ func (Project) Fields() []ent.Field {
 			Values("active", "archived").
 			Default("active").
 			Comment("project status"),
+		field.Int64("quota").Default(0).Comment("当前项目额度"),
+		field.Int64("used_quota").Default(0).Comment("已使用额度"),
+		field.String("group").
+			Default("default").
+			Comment("Billing group: default/vip/svip"),
 	}
 }
 
@@ -88,6 +93,16 @@ func (Project) Edges() []ent.Edge {
 				entgql.RelayConnection(),
 			),
 		edge.To("prompts", Prompt.Type).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.RelayConnection(),
+			),
+		edge.To("consumption_records", ConsumptionRecord.Type).
+			Annotations(
+				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.RelayConnection(),
+			),
+		edge.To("recharge_records", RechargeRecord.Type).
 			Annotations(
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
 				entgql.RelayConnection(),

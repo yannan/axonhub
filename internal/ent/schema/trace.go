@@ -47,6 +47,9 @@ func (Trace) Fields() []ent.Field {
 			Optional().
 			Immutable().
 			Comment("Thread ID that this trace belongs to"),
+		field.Int64("cost").
+			Default(0).
+			Comment("Total cost (quota) consumed by this trace"),
 	}
 }
 

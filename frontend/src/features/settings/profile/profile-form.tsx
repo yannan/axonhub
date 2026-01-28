@@ -74,6 +74,7 @@ export default function ProfileForm() {
     mutationFn: async (data: ProfileFormValues) => {
       const response = (await graphqlRequest(UPDATE_ME_MUTATION, {
         input: {
+          email: data.email,
           firstName: data.firstName,
           lastName: data.lastName,
           preferLanguage: data.preferLanguage,
@@ -88,6 +89,7 @@ export default function ProfileForm() {
         ...auth.user!,
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
+        email: updatedUser.email,
         preferLanguage: updatedUser.preferLanguage,
         avatar: updatedUser.avatar,
       });
@@ -196,9 +198,9 @@ export default function ProfileForm() {
             <FormItem>
               <FormLabel>{t('profile.form.fields.email.label')}</FormLabel>
               <FormControl>
-                <Input type='email' placeholder={t('profile.form.fields.email.placeholder')} {...field} disabled />
+                <Input type='email' placeholder={t('profile.form.fields.email.placeholder')} {...field} />
               </FormControl>
-              <FormDescription>{t('profile.form.fields.email.disabled_description')}</FormDescription>
+              <FormDescription>{t('profile.form.fields.email.description')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
